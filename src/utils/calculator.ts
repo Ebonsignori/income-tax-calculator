@@ -3,6 +3,7 @@ import { ALL, FilingStatus } from "@/constants/filing_status";
 import { TaxData, TaxResults, TaxResultsWithCities } from "@/types";
 import {
   MAX_401K_CONTRIBUTION,
+  NONE,
   STANDARD_DEDUCTION,
 } from "@/constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "@/constants";
@@ -18,7 +19,8 @@ export function calculate(
   totalFederalDeductions: number | undefined,
   totalStateDeductions: number | undefined,
   exemptTaxes: { title: string; value: string }[],
-  selectedState: string
+  selectedState: string,
+  selectedCity: string
 ) {
   const totalIncome = asCurrency(income);
   const exemptions = exemptTaxes.map((tax) => tax.value);
@@ -32,8 +34,7 @@ export function calculate(
     filingStatus,
     totalIRA,
     totalFederalDeductions,
-    exemptions,
-    selectedState
+    exemptions
   );
 
   const { taxesPerBracket: stateResults, taxableIncome: stateTaxableIncome } =
@@ -44,7 +45,8 @@ export function calculate(
       totalIRA,
       totalStateDeductions,
       exemptions,
-      selectedState
+      selectedState,
+      selectedCity
     );
 
   const totals = sumTotals(totalIncome, federalResults, stateResults);
@@ -59,11 +61,16 @@ export function calculateTaxesPerBracket(
   totalIRA: number,
   totalDeductions: number | undefined,
   exemptions: string[],
-  selectedState: string
+  selectedState?: string,
+  selectedCity?: string
 ): { taxesPerBracket: TaxResultsWithCities; taxableIncome: Dinero.Dinero } {
   const taxableIncome = totalIncome
     .subtract(asCurrency(totalIRA))
     .subtract(asCurrency(totalDeductions || 0));
+  
+  if (!taxData) {
+    return { taxesPerBracket: {}, taxableIncome };
+  }
 
   const taxesPerBracket = {} as TaxResultsWithCities;
   Object.entries(taxData).forEach(([taxType, taxTypeData]) => {
@@ -81,16 +88,19 @@ export function calculateTaxesPerBracket(
           taxTypeData[ALL]
         );
       }
+    } else if (taxTypeData === NONE) {
+      taxesPerBracket[taxType] = asCurrency(0);
     } else if (taxType === CITIES) {
-      if (selectedState) {
+      if (selectedState && selectedCity) {
         taxesPerBracket.cities = calculateTaxesPerBracket(
-          taxTypeData[selectedState],
+          taxTypeData[selectedCity],
           totalIncome,
           filingStatus,
           totalIRA,
           totalDeductions,
           exemptions,
-          selectedState
+          selectedState,
+          selectedCity
         ).taxesPerBracket as TaxResults;
       }
     } else {
@@ -114,8 +124,6 @@ function calculateTaxBracket(
   for (let i = 0; i < brackets.length; i++) {
     const bracket = brackets[i];
     let minBracket = asCurrency(bracket.min);
-
-    console.log("bracket", bracket);
 
     let maxBracket = bracket.max;
     if (bracket.max === INFINITY) {

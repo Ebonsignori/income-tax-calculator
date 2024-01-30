@@ -11,10 +11,9 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import React, { memo } from "react";
+import React, { memo, useMemo } from "react";
 import { useState } from "react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -22,7 +21,7 @@ import { PieChart } from "@mui/x-charts/PieChart";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import { CITIES, EXEMPT } from "@/constants";
 import { Dinero } from "dinero.js";
-import theme from "@/theme";
+import { useTheme } from "@mui/material/styles";
 
 const Results = memo(function Results({
   federalTaxes,
@@ -33,6 +32,7 @@ const Results = memo(function Results({
   totalFederalDeductions,
   totalStateDeductions,
   exemptTaxes,
+  USAState,
   USACity,
 }: any) {
   const {
@@ -46,17 +46,34 @@ const Results = memo(function Results({
     stateResults,
     stateTaxableIncome,
     federalTaxableIncome,
-  } = calculate(
-    federalTaxes,
-    stateTaxes,
-    totalIncome,
-    filingStatus,
-    totalIRA,
-    totalFederalDeductions,
-    totalStateDeductions,
-    exemptTaxes,
-    USACity
+  } = useMemo(
+    () =>
+      calculate(
+        federalTaxes,
+        stateTaxes,
+        totalIncome,
+        filingStatus,
+        totalIRA,
+        totalFederalDeductions,
+        totalStateDeductions,
+        exemptTaxes,
+        USAState,
+        USACity
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      totalIncome,
+      filingStatus,
+      totalIRA,
+      totalFederalDeductions,
+      totalStateDeductions,
+      exemptTaxes,
+      federalTaxes,
+      stateTaxes,
+      USACity,
+    ]
   );
+  const theme = useTheme();
 
   const tableRows = [
     {
@@ -310,25 +327,37 @@ const Results = memo(function Results({
                 return (
                   <table
                     style={{
-                      backgroundColor: theme.palette.common.white,
-                      color: theme.palette.common.black,
+                      backgroundColor:
+                        theme.palette.mode === "light"
+                          ? theme.palette.common.white
+                          : theme.palette.common.black,
+                      color:
+                        theme.palette.mode === "light"
+                          ? theme.palette.common.black
+                          : theme.palette.common.white,
                       borderRadius: 4,
                       padding: "5px",
-                      border: `1px solid ${theme.palette.common.black}`,
+                      border: `1px solid ${
+                        theme.palette.mode === "light"
+                          ? theme.palette.common.black
+                          : theme.palette.common.white
+                      }`,
                     }}
                   >
-                    <tr>
-                      <td>
-                        <Typography variant="body1" fontWeight="bold">
-                          {dataItem?.label}:
-                        </Typography>
-                      </td>
-                      <td>
-                        <Typography variant="body1">
-                          {dataItem?.tooltipValue}
-                        </Typography>
-                      </td>
-                    </tr>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <Typography variant="body1" fontWeight="bold">
+                            {dataItem?.label}:
+                          </Typography>
+                        </td>
+                        <td>
+                          <Typography variant="body1">
+                            {dataItem?.tooltipValue}
+                          </Typography>
+                        </td>
+                      </tr>
+                    </tbody>
                   </table>
                 );
               },

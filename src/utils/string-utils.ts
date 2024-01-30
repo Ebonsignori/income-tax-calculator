@@ -7,3 +7,7 @@ export function snakeToTitleCase(snakeCase: string) {
     c ? c.toUpperCase() : " " + d.toUpperCase()
   );
 }
+
+export function yearDisplay(year: string) {
+  return `${year} - ${parseInt(year, 10) + 1}`;
+}

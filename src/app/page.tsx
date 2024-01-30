@@ -1,8 +1,7 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import Copyright from "@/components/Copyright";
 import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
@@ -19,7 +18,11 @@ import type {
   FilingStatus,
   StandardDeductionMap,
 } from "@/constants/filing_status";
-import { capitalizeFirstLetter, snakeToTitleCase } from "@/utils/string-utils";
+import {
+  capitalizeFirstLetter,
+  snakeToTitleCase,
+  yearDisplay,
+} from "@/utils/string-utils";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { STATE_MAP } from "@/constants/states";
 import type { State } from "@/constants/states";
@@ -29,15 +32,20 @@ import {
   MAX_401K_CONTRIBUTION,
   STANDARD_DEDUCTION,
 } from "@/constants/tax_types";
-import { Box, Slider, useMediaQuery } from "@mui/material";
-import theme from "@/theme";
+import { Box, IconButton, Slider, Tooltip, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { City } from "@/constants/cities";
 import { TaxData } from "@/types";
 import Results from "@/components/Results";
+import { KeyboardDoubleArrowUp, RestartAlt } from "@mui/icons-material";
 
-export default function Home() {
-  const defaultUSAState = "oregon";
-  const defaultUSACity = "portland";
+type HomeProps = {
+  defaultUSAState: string | undefined;
+  defaultUSACity?: string;
+};
+
+export default function Home({ defaultUSAState, defaultUSACity }: HomeProps) {
+  const theme = useTheme();
 
   const [totalIncome, setTotalIncome] = useState(216000); // Evenly cubed to 60
   const [totalIRA, setTotalIRA] = useState(0);
@@ -47,8 +55,10 @@ export default function Home() {
   const [totalStateDeductions, setTotalStateDeductions] = useState<
     number | undefined
   >(undefined); // undefined until user input
-  const [USACity, setUSACity] = useState<string>(defaultUSACity);
-  const [USAState, setUSAState] = useState<State>(defaultUSAState);
+  const [USACity, setUSACity] = useState<string>(defaultUSACity || "");
+  const [USAState, setUSAState] = useState<State>(
+    (defaultUSAState as State) || ""
+  );
   const [year, setYear] = useState<Year>(CURRENT_YEAR);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [exemptTaxes, setExemptTaxes] = useState<string[]>([]);
@@ -61,16 +71,15 @@ export default function Home() {
   const [stateStandardDeductionMap, setStateStandardDeductionMap] =
     useState<StandardDeductionMap>(EMPTY_STANDARD_DEDUCTION_MAP);
 
-  // TODO: Limit max
   const [max401KContribution, setMax401KContribution] = useState(0);
 
   const resetTotalStateDeductions = useCallback(() => {
     setTotalStateDeductions(stateStandardDeductionMap[filingStatus]);
-  }, [stateStandardDeductionMap, filingStatus, year]);
+  }, [stateStandardDeductionMap, filingStatus]);
 
   const resetTotalFederalDeductions = useCallback(() => {
     setTotalFederalDeductions(federalStandardDeductionMap[filingStatus]);
-  }, [federalStandardDeductionMap, filingStatus, year]);
+  }, [federalStandardDeductionMap, filingStatus]);
 
   useEffect(() => {
     if (federalStandardDeductionMap[filingStatus]) {
@@ -79,7 +88,13 @@ export default function Home() {
     if (stateStandardDeductionMap[filingStatus]) {
       resetTotalStateDeductions();
     }
-  }, [filingStatus, federalStandardDeductionMap, stateStandardDeductionMap]);
+  }, [
+    filingStatus,
+    federalStandardDeductionMap,
+    stateStandardDeductionMap,
+    resetTotalFederalDeductions,
+    resetTotalStateDeductions,
+  ]);
 
   useEffect(() => {
     if (
@@ -94,6 +109,7 @@ export default function Home() {
     ) {
       resetTotalStateDeductions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stateStandardDeductionMap, federalStandardDeductionMap]);
 
   const stateOptions = useMemo(() => {
@@ -125,7 +141,7 @@ export default function Home() {
         title: name,
       };
     });
-  }, [USAState, stateTaxes]);
+  }, [stateTaxes]);
 
   useEffect(() => {
     async function fetchFederalBrackets() {
@@ -137,6 +153,10 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchStateBrackets() {
+      if (!USAState) {
+        setStateTaxes({} as TaxData);
+        return;
+      }
       const stateBrackets = await import(`@/data/${year}/state/${USAState}.ts`);
       setStateTaxes(stateBrackets.default);
     }
@@ -166,7 +186,7 @@ export default function Home() {
         return null;
       }
       if (key === CITIES) {
-        if (USACity) {
+        if (USACity && (value as any)[USACity]) {
           Object.entries((value as any)[USACity]).map(([key, value]) => {
             cities.push({
               title: snakeToTitleCase(`${USACity}_${key}`),
@@ -208,6 +228,32 @@ export default function Home() {
     []
   );
 
+  const max401KContributionDisplay = useMemo(() => {
+    return totalIRA === max401KContribution ? `Max 401K contribution` : " ";
+  }, [totalIRA, max401KContribution]);
+
+  const standardStateDeductionDisplay = useMemo(() => {
+    return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions
+      ? `Standard deduction for ${yearDisplay(year)}`
+      : " ";
+  }, [stateStandardDeductionMap, filingStatus, totalStateDeductions, year]);
+
+  const standardFederalDeductionDisplay = useMemo(() => {
+    return federalStandardDeductionMap?.[filingStatus] ===
+      totalFederalDeductions
+      ? `Standard deduction for ${yearDisplay(year)}`
+      : " ";
+  }, [federalStandardDeductionMap, filingStatus, totalFederalDeductions, year]);
+
+  const validateAll = useCallback(() => {
+    if (totalIRA > max401KContribution) {
+      setTotalIRA(max401KContribution);
+    }
+  }, [totalIRA, max401KContribution]);
+  useEffect(() => {
+    validateAll();
+  }, [validateAll]);
+
   return (
     <>
       <Container maxWidth="md">
@@ -243,6 +289,7 @@ export default function Home() {
                 min={1}
                 step={1}
                 max={215}
+                sx={{ padding: 0 }}
                 onChange={(event: Event, newValue: number | number[]) => {
                   if (typeof newValue === "number") {
                     setTotalIncome(newValue ** 3);
@@ -251,7 +298,7 @@ export default function Home() {
               />
             </Box>
           </Grid>
-          <Grid xs={12} sm={2} md={2} display="flex" justifyContent="center">
+          <Grid xs={12} sm={3} md={3} display="flex" justifyContent="center">
             <TextField
               fullWidth={isXs}
               select
@@ -262,12 +309,12 @@ export default function Home() {
             >
               {YEARS.map((option) => (
                 <MenuItem key={option} value={option}>
-                  {option}
+                  {yearDisplay(option)}
                 </MenuItem>
               ))}
             </TextField>
           </Grid>
-          <Grid xs={12} sm={4} md={4}>
+          <Grid xs={12} sm={3} md={3}>
             <TextField
               select
               label="Filing Status"
@@ -290,12 +337,9 @@ export default function Home() {
               id="state-select"
               options={stateOptions}
               groupBy={(option) => option.firstLetter}
-              // isOptionEqualToValue={(option, value) => {
-              // TODO: Fix this warning
-
-              // }
-              //   option.title === value.title
-              // }
+              isOptionEqualToValue={(option, value) => {
+                return option.title === value.title;
+              }}
               getOptionLabel={(option) =>
                 capitalizeFirstLetter(option?.title) || ""
               }
@@ -309,9 +353,8 @@ export default function Home() {
               onInputChange={(e, val) => {
                 if (val && STATE_MAP[val.toLowerCase() as State]?.supported) {
                   setUSAState(val.toLowerCase() as State);
-                  setUSACity("");
                 } else if (!val) {
-                  setUSAState(USAState || defaultUSAState);
+                  setUSAState("" as State);
                 }
               }}
               renderInput={(params) => {
@@ -339,9 +382,9 @@ export default function Home() {
                 value={{
                   title: USACity,
                 }}
-                isOptionEqualToValue={(option, value) =>
-                  option.title === value.title
-                }
+                isOptionEqualToValue={(option, value) => {
+                  return option.title === value.title;
+                }}
                 onInputChange={(e, val) => {
                   if (val) {
                     setUSACity(val.toLowerCase() as City);
@@ -375,9 +418,9 @@ export default function Home() {
             <Autocomplete
               id="exempt-select"
               multiple
-              isOptionEqualToValue={(option, value) =>
-                option.title === value.title
-              }
+              isOptionEqualToValue={(option, value) => {
+                return option.value === value.value;
+              }}
               options={taxOptions}
               getOptionLabel={(option) =>
                 capitalizeFirstLetter(option?.title || "")
@@ -403,62 +446,120 @@ export default function Home() {
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel htmlFor="outlined-adornment-total-ira">
-                401k/IRA Contributions
-              </InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-total-ira"
+              <TextField
+                label="401k/IRA Contributions"
+                aria-label="401k/IRA Contributions"
+                helperText={max401KContributionDisplay}
                 value={totalIRA}
                 onChange={handleNumberChange(setTotalIRA)}
-                onBlur={() => {
-                  if (totalIRA > max401KContribution) {
-                    setTotalIRA(max401KContribution);
-                  }
+                onBlur={validateAll}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                  endAdornment:
+                    max401KContributionDisplay === " " ? (
+                      <InputAdornment position="end">
+                        <Tooltip
+                          title={`Set to max allowed for ${yearDisplay(year)}`}
+                        >
+                          <IconButton
+                            aria-label="Set to max allowed for year"
+                            onClick={() => {
+                              setTotalIRA(max401KContribution);
+                            }}
+                            edge="end"
+                          >
+                            <KeyboardDoubleArrowUp />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ) : null,
                 }}
-                startAdornment={
-                  <InputAdornment position="start">$</InputAdornment>
-                }
-                label="401k/IRA Contributions"
               />
             </FormControl>
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel htmlFor="outlined-adornment-total-federal-deductions">
-                Total Federal Deductions
-              </InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-total-federal-deductions"
+              <TextField
+                label="Total Federal Deductions"
+                aria-label="Total Federal Deductions"
+                helperText={standardFederalDeductionDisplay}
                 value={
                   typeof totalFederalDeductions === "undefined"
                     ? 0
                     : totalFederalDeductions
                 }
                 onChange={handleNumberChange(setTotalFederalDeductions)}
-                startAdornment={
-                  <InputAdornment position="start">$</InputAdornment>
-                }
-                label="Total Federal Deductions"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                  endAdornment:
+                    standardFederalDeductionDisplay === " " ? (
+                      <InputAdornment position="end">
+                        <Tooltip
+                          title={`Set to standard deduction for ${yearDisplay(
+                            year
+                          )}`}
+                        >
+                          <IconButton
+                            aria-label="Reset to standard deduction for year"
+                            onClick={() => {
+                              resetTotalFederalDeductions();
+                            }}
+                            edge="end"
+                          >
+                            <RestartAlt />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ) : (
+                      ""
+                    ),
+                }}
               />
             </FormControl>
           </Grid>
           <Grid xs={12} sm={6} md={4}>
             <FormControl fullWidth sx={{ mt: 2 }}>
-              <InputLabel htmlFor="outlined-adornment-total-state-deductions">
-                Total State Deductions
-              </InputLabel>
-              <OutlinedInput
-                id="outlined-adornment-total-state-deductions"
+              <TextField
+                label="Total State Deductions"
+                aria-label="Total State Deductions"
+                helperText={standardStateDeductionDisplay}
                 value={
                   typeof totalStateDeductions === "undefined"
                     ? 0
                     : totalStateDeductions
                 }
                 onChange={handleNumberChange(setTotalStateDeductions)}
-                startAdornment={
-                  <InputAdornment position="start">$</InputAdornment>
-                }
-                label="Total State Deductions"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+                  endAdornment:
+                    standardStateDeductionDisplay === " " ? (
+                      <InputAdornment position="end">
+                        <Tooltip
+                          title={`Set to standard deduction for ${yearDisplay(
+                            year
+                          )}`}
+                        >
+                          <IconButton
+                            aria-label="Reset to standard deduction for year"
+                            onClick={() => {
+                              resetTotalStateDeductions();
+                            }}
+                            edge="end"
+                          >
+                            <RestartAlt />
+                          </IconButton>
+                        </Tooltip>
+                      </InputAdornment>
+                    ) : (
+                      ""
+                    ),
+                }}
               />
             </FormControl>
           </Grid>
@@ -473,10 +574,11 @@ export default function Home() {
           totalStateDeductions={totalStateDeductions}
           exemptTaxes={exemptTaxes}
           USACity={USACity}
+          USAState={USAState}
         />
       </Container>
 
-      <Copyright sx={{ m: 5 }} />
+      <Copyright />
     </>
   );
 }
