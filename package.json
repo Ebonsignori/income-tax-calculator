@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node open.js 3000 && next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && next export",
+    "start": "serve out",
     "lint": "next lint"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "better-opn": "^3.0.2",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
+    "serve": "^14.2.1",
     "typescript": "^5"
   }
 }

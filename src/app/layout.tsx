@@ -30,7 +30,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <Head>
-        <title>US City Income & Tax Calculator</title>
+        <title>US Income Tax Calculator</title>
         <meta
           name="description"
           content="Calculate your income and taxes for cities with special taxes, like Portland OR."
