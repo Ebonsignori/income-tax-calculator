@@ -10,6 +10,5 @@ export default function StateWithCity(params: {
 export async function generateStaticParams() {
   return [
     { state: "oregon", city: "portland" },
-    { state: "washington", city: "" },
   ];
 }

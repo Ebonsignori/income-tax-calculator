@@ -22,3 +22,5 @@ If you'd like to update the data used for tax calculations, see [data](./src/dat
 - Right hand pop out menu
 
 - Optimize Lighthouse Accessibility, SEO, and performance
+
+- Change URL without rerouting when changing dropdown for link sharing
