@@ -6,7 +6,7 @@ import {
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
-} from "@/constants/filing_status";
+} from "@/constants/filing-status";
 import {
   ART_TAX,
   STATE_INCOME,
@@ -15,7 +15,6 @@ import {
   SUPPORTIVE_HOUSING_SERVICES,
 } from "@/constants/tax_types";
 import { TaxData } from "@/types";
-
 
 export default {
   [STANDARD_DEDUCTION]: {

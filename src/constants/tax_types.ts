@@ -3,8 +3,6 @@ export const NONE = "none"; // No tax (e.g. states with no income)
 export const STANDARD_DEDUCTION = "standard_deduction";
 export const MAX_401K_CONTRIBUTION = "max_401k_contribution";
 
-
-
 // Federal
 export const FEDERAL_INCOME = "federal_income";
 export const SOCIAL_SECURITY = "social_security";

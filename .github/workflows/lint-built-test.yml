@@ -1,0 +1,33 @@
+# Lints, builds, and tests the project.
+name: Lint, Build, and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-build-test:
+    name: Lint, Build, and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: ./.github/actions/node-and-dependencies
+    
+      - uses: ./.github/actions/cache-nextjs
+      
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test
+        

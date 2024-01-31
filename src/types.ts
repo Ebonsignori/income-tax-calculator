@@ -1,5 +1,5 @@
-import type { FilingStatus } from "./constants/filing_status";
-import { ALL } from "./constants/filing_status";
+import type { FilingStatus } from "./constants/filing-status";
+import { ALL } from "./constants/filing-status";
 import {
   STATE_INCOME,
   STANDARD_DEDUCTION,
@@ -28,9 +28,11 @@ export interface TaxData {
   [FEDERAL_INCOME]?: {
     [Key in FilingStatus]: Bracket[];
   };
-  [STATE_INCOME]?: {
-    [Key in FilingStatus]: Bracket[];
-  } | typeof NONE;
+  [STATE_INCOME]?:
+    | {
+        [Key in FilingStatus]: Bracket[];
+      }
+    | typeof NONE;
   [CITIES]?: {
     [Key: string]: {
       [Key: string]:

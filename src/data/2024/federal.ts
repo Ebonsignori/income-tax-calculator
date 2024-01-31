@@ -5,7 +5,7 @@ import {
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
-} from "@/constants/filing_status";
+} from "@/constants/filing-status";
 import {
   FEDERAL_INCOME,
   MAX_401K_CONTRIBUTION,
@@ -27,7 +27,7 @@ export default {
     [SINGLE]: [
       { min: 0, max: 11600, rate: 10 },
       { min: 11600, max: 47150, rate: 12 },
-      { min: 47150, max: 100525, rate:22 },
+      { min: 47150, max: 100525, rate: 22 },
       { min: 100525, max: 191950, rate: 24 },
       { min: 191950, max: 243725, rate: 32 },
       { min: 243725, max: 609350, rate: 35 },
@@ -50,7 +50,7 @@ export default {
       { min: 191950, max: 243725, rate: 32 },
       { min: 243725, max: 365600, rate: 35 },
       { min: 365600, max: INFINITY, rate: 37 },
-   ],
+    ],
     [HEAD_OF_HOUSEHOLD]: [
       { min: 0, max: 16550, rate: 10 },
       { min: 16550, max: 63100, rate: 12 },

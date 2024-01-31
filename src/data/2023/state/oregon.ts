@@ -6,7 +6,7 @@ import {
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
-} from "@/constants/filing_status";
+} from "@/constants/filing-status";
 import {
   ART_TAX,
   STATE_INCOME,

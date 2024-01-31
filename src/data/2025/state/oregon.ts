@@ -5,7 +5,7 @@ import {
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
-} from "@/constants/filing_status";
+} from "@/constants/filing-status";
 import {
   STATE_INCOME,
   PRESCHOOL_FOR_ALL,
@@ -14,7 +14,8 @@ import {
 import { TaxData } from "@/types";
 
 export default {
-  [STANDARD_DEDUCTION]: { // TODO
+  [STANDARD_DEDUCTION]: {
+    // TODO
     [SINGLE]: 0,
     [MARRIED]: 0,
     [MARRIED_SEPARATELY]: 0,

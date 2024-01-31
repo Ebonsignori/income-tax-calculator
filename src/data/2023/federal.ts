@@ -5,12 +5,18 @@ import {
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
-} from "@/constants/filing_status";
-import { MAX_401K_CONTRIBUTION, MEDICARE, SOCIAL_SECURITY, STANDARD_DEDUCTION, FEDERAL_INCOME } from "@/constants/tax_types";
+} from "@/constants/filing-status";
+import {
+  MAX_401K_CONTRIBUTION,
+  MEDICARE,
+  SOCIAL_SECURITY,
+  STANDARD_DEDUCTION,
+  FEDERAL_INCOME,
+} from "@/constants/tax_types";
 import { TaxData } from "@/types";
 
 export default {
-  [MAX_401K_CONTRIBUTION]: 22500, 
+  [MAX_401K_CONTRIBUTION]: 22500,
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 13850,
     [MARRIED_SEPARATELY]: 13850,
@@ -31,7 +37,7 @@ export default {
       { min: 0, max: 22000, rate: 10 },
       { min: 22000, max: 89450, rate: 12 },
       { min: 89450, max: 190750, rate: 22 },
-      { min: 190750, max: 364200, rate:24 },
+      { min: 190750, max: 364200, rate: 24 },
       { min: 364200, max: 462500, rate: 32 },
       { min: 462500, max: 693750, rate: 35 },
       { min: 693750, max: INFINITY, rate: 37 },

@@ -4,7 +4,7 @@ export function capitalizeFirstLetter(str: string) {
 
 export function snakeToTitleCase(snakeCase: string) {
   return snakeCase.replace(/^_*(.)|_+(.)/g, (s, c, d) =>
-    c ? c.toUpperCase() : " " + d.toUpperCase()
+    c ? c.toUpperCase() : " " + d.toUpperCase(),
   );
 }
 

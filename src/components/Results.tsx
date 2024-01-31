@@ -58,7 +58,7 @@ const Results = memo(function Results({
         totalStateDeductions,
         exemptTaxes,
         USAState,
-        USACity
+        USACity,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -71,9 +71,11 @@ const Results = memo(function Results({
       federalTaxes,
       stateTaxes,
       USACity,
-    ]
+    ],
   );
   const theme = useTheme();
+
+  if (!totalIncome) return null;
 
   const tableRows = [
     {

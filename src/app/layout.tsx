@@ -22,7 +22,7 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
       },
     }),
-    []
+    [],
   );
 
   const theme = React.useMemo(() => getTheme(mode), [mode]);

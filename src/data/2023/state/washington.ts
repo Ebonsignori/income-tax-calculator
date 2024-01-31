@@ -1,5 +1,5 @@
 import { INFINITY } from "@/constants";
-import { ALL } from "@/constants/filing_status";
+import { ALL } from "@/constants/filing-status";
 import {
   STATE_INCOME,
   NONE,

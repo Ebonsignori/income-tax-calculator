@@ -1,26 +1,22 @@
-# Income tax and Paycheck Calculator
+# Income Tax Calculator
 
-Includes state-specific taxes
+Calculates USA Federal, State, and City income cities tax.
 
-## Contributing
+Accounts for city-specific taxes, unlike other online calculators.
 
-If you'd like to update the data used for tax calculations, see [data](./src/data).
+## Tax Data
+
+All tax data used for calculations is located in [src/data](./src/data).
 
 ## TODO
 
-- Routes to pages via sitemap?
-- Tax tables display as another route / page
-- Open source tax data repo link
-  - JSON schema or similar for validation via workflow
-  - Issues link
+- Issues link or email?
 
+- Playwright tests
+- Refactor before tax tables
+- Tax tables
 - Analytics
 - Ad in middle of screen
-
 - About page
-
 - Right hand pop out menu
-
 - Optimize Lighthouse Accessibility, SEO, and performance
-
-- Change URL without rerouting when changing dropdown for link sharing

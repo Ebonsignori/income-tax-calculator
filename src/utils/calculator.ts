@@ -1,5 +1,5 @@
 import Dinero from "dinero.js";
-import { ALL, FilingStatus } from "@/constants/filing_status";
+import { ALL, FilingStatus } from "@/constants/filing-status";
 import { TaxData, TaxResults, TaxResultsWithCities } from "@/types";
 import {
   MAX_401K_CONTRIBUTION,
@@ -20,7 +20,7 @@ export function calculate(
   totalStateDeductions: number | undefined,
   exemptTaxes: { title: string; value: string }[],
   selectedState: string,
-  selectedCity: string
+  selectedCity: string,
 ) {
   const totalIncome = asCurrency(income);
   const exemptions = exemptTaxes.map((tax) => tax.value);
@@ -34,7 +34,7 @@ export function calculate(
     filingStatus,
     totalIRA,
     totalFederalDeductions,
-    exemptions
+    exemptions,
   );
 
   const { taxesPerBracket: stateResults, taxableIncome: stateTaxableIncome } =
@@ -46,7 +46,7 @@ export function calculate(
       totalStateDeductions,
       exemptions,
       selectedState,
-      selectedCity
+      selectedCity,
     );
 
   const totals = sumTotals(totalIncome, federalResults, stateResults);
@@ -62,12 +62,12 @@ export function calculateTaxesPerBracket(
   totalDeductions: number | undefined,
   exemptions: string[],
   selectedState?: string,
-  selectedCity?: string
+  selectedCity?: string,
 ): { taxesPerBracket: TaxResultsWithCities; taxableIncome: Dinero.Dinero } {
   const taxableIncome = totalIncome
     .subtract(asCurrency(totalIRA))
     .subtract(asCurrency(totalDeductions || 0));
-  
+
   if (!taxData) {
     return { taxesPerBracket: {}, taxableIncome };
   }
@@ -85,7 +85,7 @@ export function calculateTaxesPerBracket(
       } else {
         taxesPerBracket[taxType] = calculateTaxBracket(
           taxableIncome,
-          taxTypeData[ALL]
+          taxTypeData[ALL],
         );
       }
     } else if (taxTypeData === NONE) {
@@ -100,13 +100,13 @@ export function calculateTaxesPerBracket(
           totalDeductions,
           exemptions,
           selectedState,
-          selectedCity
+          selectedCity,
         ).taxesPerBracket as TaxResults;
       }
     } else {
       taxesPerBracket[taxType] = calculateTaxBracket(
         taxableIncome,
-        taxTypeData[filingStatus]
+        taxTypeData[filingStatus],
       );
     }
   });
@@ -116,7 +116,7 @@ export function calculateTaxesPerBracket(
 
 function calculateTaxBracket(
   income: Dinero.Dinero,
-  brackets: any
+  brackets: any,
 ): Dinero.Dinero {
   let totalTax = asCurrency(0);
   let incomeTaxed = asCurrency(0);
@@ -150,11 +150,11 @@ function calculateTaxBracket(
 export function sumTotals(
   totalIncome: Dinero.Dinero,
   federalResults: TaxResultsWithCities,
-  stateResults: TaxResultsWithCities
+  stateResults: TaxResultsWithCities,
 ) {
   let totalFederal = sumBracketsByTaxType(
     federalResults,
-    Object.keys(federalResults)
+    Object.keys(federalResults),
   );
   const totalFica = sumBracketsByTaxType(federalResults, [
     "social_security",
@@ -162,13 +162,13 @@ export function sumTotals(
   ]);
   let totalState = sumBracketsByTaxType(
     stateResults,
-    Object.keys(stateResults)
+    Object.keys(stateResults),
   );
   let totalCity = asCurrency(0);
   if (stateResults[CITIES]) {
     totalCity = sumBracketsByTaxType(
       stateResults[CITIES] as TaxResults,
-      Object.keys(stateResults[CITIES])
+      Object.keys(stateResults[CITIES]),
     );
   }
 
@@ -218,7 +218,7 @@ export function sumTotals(
 // Sum all values in results under specified keys
 export function sumBracketsByTaxType(
   results: TaxResultsWithCities,
-  taxTypes: string[]
+  taxTypes: string[],
 ): Dinero.Dinero {
   let total = Dinero({ amount: 0 });
   for (const taxType of taxTypes) {
@@ -241,7 +241,7 @@ export function asCurrency(amount: number) {
 // Determine the percentage of two Dinero objects
 export function getPercent(
   amount: Dinero.Dinero,
-  total: Dinero.Dinero
+  total: Dinero.Dinero,
 ): number {
   return Math.round((amount.getAmount() / total.getAmount()) * 10000) / 100;
 }

@@ -2,21 +2,24 @@ import Home from "@/components/Home";
 import { getTaxDataByYear } from "@/get-tax-data";
 import path from "path";
 
-export default async function Landing() {
+type YearProps = { params: { year: string } };
+
+export default async function Year({ params }: YearProps) {
+  const { year } = params;
   const dataDirectory = path.join(process.cwd(), "src", "data");
-  const { years, currentYear, taxDataByYear, statesAndCitiesForYear } =
+  const { years, taxDataByYear, statesAndCitiesForYear } =
     await getTaxDataByYear(dataDirectory);
 
-  const federalTaxes = taxDataByYear[currentYear]?.federal || {};
+  const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = {};
-  const availableStatesAndCities = statesAndCitiesForYear[currentYear] || {};
+  const availableStatesAndCities = statesAndCitiesForYear[year] || {};
   return (
     <Home
       availableYears={years}
       availableStatesAndCities={availableStatesAndCities}
       defaultFederalTaxes={federalTaxes}
       defaultStateTaxes={stateTaxes}
-      defaultYear={currentYear}
+      defaultYear={year}
     />
   );
 }
