@@ -73,6 +73,7 @@ const Results = memo(function Results({
       USACity,
     ],
   );
+
   const theme = useTheme();
 
   if (!totalIncome) return null;
@@ -163,7 +164,7 @@ const Results = memo(function Results({
     tableRows.push(stateRow);
   }
 
-  const pieChartData = [];
+  let pieChartData = [];
   let totalTaxTypes = 0;
   for (const [taxType, value] of Object.entries(federalResults)) {
     totalTaxTypes++;
@@ -205,7 +206,7 @@ const Results = memo(function Results({
             variant="h5"
             component="h6"
             textAlign="center"
-            color="green"
+            color={theme.custom.green}
           >
             Total Take Home
           </Typography>
@@ -233,13 +234,14 @@ const Results = memo(function Results({
           sm={6}
           marginTop={{
             xs: 2,
+            sm: 0,
           }}
         >
           <Typography
             variant="h5"
             component="h6"
             textAlign="center"
-            color="red"
+            color={theme.custom.red}
           >
             Total Taxes
           </Typography>
@@ -263,124 +265,128 @@ const Results = memo(function Results({
         </Grid>
       </Grid>
 
-      <Typography
-        variant="h3"
-        component="h3"
-        textAlign="center"
-        sx={{ mt: 4, mb: 2 }}
-      >
-        Breakdown
-      </Typography>
-      <Grid container>
-        <Grid item xs={12} sm={12} md={7}>
-          <TableContainer component={Paper} sx={{ border: 1 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      width: "8px",
-                      padding: "1px",
-                    }}
-                  />
-                  <TableCell>Tax</TableCell>
-                  <TableCell align="right">Percent</TableCell>
-                  <TableCell align="right">Amount</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {tableRows.map((row) => (
-                  <BreakdownRow key={row.name} row={row} />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Grid>
-        <Grid
-          item
-          xs={12}
-          sm={12}
-          md={5}
-          display="flex"
-          alignContent="center"
-          flexDirection="column"
-          alignItems="center"
-          marginTop={{ xs: 2, md: 0 }}
-        >
-          <PieChart
-            series={[
-              {
-                highlightScope: { faded: "global", highlighted: "item" },
-                faded: {
-                  innerRadius: 30,
-                  additionalRadius: -30,
-                  color: "gray",
-                },
-                data: pieChartData,
-              },
-            ]}
-            width={250}
-            height={325}
-            tooltip={{
-              trigger: "item",
-              itemContent: (props) => {
-                const dataIndex = props?.itemData?.dataIndex;
-                const dataItem = props?.series?.data?.[dataIndex] as any;
-                return (
-                  <table
-                    style={{
-                      backgroundColor:
-                        theme.palette.mode === "light"
-                          ? theme.palette.common.white
-                          : theme.palette.common.black,
-                      color:
-                        theme.palette.mode === "light"
-                          ? theme.palette.common.black
-                          : theme.palette.common.white,
-                      borderRadius: 4,
-                      padding: "5px",
-                      border: `1px solid ${
-                        theme.palette.mode === "light"
-                          ? theme.palette.common.black
-                          : theme.palette.common.white
-                      }`,
-                    }}
-                  >
-                    <tbody>
-                      <tr>
-                        <td>
-                          <Typography variant="body1" fontWeight="bold">
-                            {dataItem?.label}:
-                          </Typography>
-                        </td>
-                        <td>
-                          <Typography variant="body1">
-                            {dataItem?.tooltipValue}
-                          </Typography>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                );
-              },
-            }}
-            margin={{
-              top: 10,
-              right: 10,
-              bottom: 55 + 30 * (totalTaxTypes / 2),
-              left: 10,
-            }}
-            slotProps={{
-              legend: {
-                direction: "row",
-                position: { vertical: "bottom", horizontal: "middle" },
-                padding: 0,
-                itemMarkHeight: 10,
-              },
-            }}
-          />
-        </Grid>
-      </Grid>
+      {totalTaxes?.toUnit() > 0 ? (
+        <>
+          <Typography
+            variant="h3"
+            component="h3"
+            textAlign="center"
+            sx={{ mt: 4, mb: 2 }}
+          >
+            Breakdown
+          </Typography>
+          <Grid container>
+            <Grid item xs={12} sm={12} md={7}>
+              <TableContainer component={Paper} sx={{ border: 1 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell
+                        sx={{
+                          width: "8px",
+                          padding: "1px",
+                        }}
+                      />
+                      <TableCell>Tax</TableCell>
+                      <TableCell align="right">Percent</TableCell>
+                      <TableCell align="right">Amount</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {tableRows.map((row) => (
+                      <BreakdownRow key={row.name} row={row} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sm={12}
+              md={5}
+              display="flex"
+              alignContent="center"
+              flexDirection="column"
+              alignItems="center"
+              marginTop={{ xs: 2, md: 0 }}
+            >
+              <PieChart
+                series={[
+                  {
+                    highlightScope: { faded: "global", highlighted: "item" },
+                    faded: {
+                      innerRadius: 30,
+                      additionalRadius: -30,
+                      color: "gray",
+                    },
+                    data: pieChartData,
+                  },
+                ]}
+                width={250}
+                height={325}
+                tooltip={{
+                  trigger: "item",
+                  itemContent: (props) => {
+                    const dataIndex = props?.itemData?.dataIndex;
+                    const dataItem = props?.series?.data?.[dataIndex] as any;
+                    return (
+                      <table
+                        style={{
+                          backgroundColor:
+                            theme.palette.mode === "light"
+                              ? theme.palette.common.white
+                              : theme.palette.common.black,
+                          color:
+                            theme.palette.mode === "light"
+                              ? theme.palette.common.black
+                              : theme.palette.common.white,
+                          borderRadius: 4,
+                          padding: "5px",
+                          border: `1px solid ${
+                            theme.palette.mode === "light"
+                              ? theme.palette.common.black
+                              : theme.palette.common.white
+                          }`,
+                        }}
+                      >
+                        <tbody>
+                          <tr>
+                            <td>
+                              <Typography variant="body1" fontWeight="bold">
+                                {dataItem?.label}:
+                              </Typography>
+                            </td>
+                            <td>
+                              <Typography variant="body1">
+                                {dataItem?.tooltipValue}
+                              </Typography>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    );
+                  },
+                }}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  bottom: 55 + 30 * (totalTaxTypes / 2),
+                  left: 10,
+                }}
+                slotProps={{
+                  legend: {
+                    direction: "row",
+                    position: { vertical: "bottom", horizontal: "middle" },
+                    padding: 0,
+                    itemMarkHeight: 10,
+                  },
+                }}
+              />
+            </Grid>
+          </Grid>
+        </>
+      ) : null}
     </Box>
   );
 });

@@ -1,0 +1,82 @@
+import { ALL_STATES } from "@/constants/states";
+import type { AutocompleteOption, AvailableStatesAndCities } from "@/types";
+import { capitalizeFirstLetter, snakeToTitleCase } from "@/utils/string-utils";
+import { Autocomplete, TextField } from "@mui/material";
+import { useMemo } from "react";
+
+type StateSelectProps = {
+  availableStatesAndCities: AvailableStatesAndCities;
+  year: string;
+  USAState: string;
+  setUSAState: (val: string) => void;
+  setUSACity: (val: string) => void;
+  baseRoute?: string;
+};
+
+export function StateSelect({
+  availableStatesAndCities,
+  year,
+  USAState,
+  setUSAState,
+  setUSACity,
+  baseRoute = "",
+}: StateSelectProps) {
+  const stateOptions = useMemo((): AutocompleteOption[] => {
+    return ALL_STATES.map((state) => {
+      const firstLetter = state[0].toUpperCase();
+      return {
+        firstLetter,
+        title: snakeToTitleCase(state),
+        disabled: typeof availableStatesAndCities[state] === "undefined",
+      };
+    }).sort((a, b) => {
+      if (a.disabled && !b.disabled) return 1;
+      if (!a.disabled && b.disabled) return -1;
+      if (a.firstLetter > b.firstLetter) return 1;
+      if (a.firstLetter < b.firstLetter) return -1;
+      return 0;
+    });
+  }, [availableStatesAndCities]);
+
+  return (
+    <Autocomplete
+      id="state-select"
+      options={stateOptions}
+      groupBy={(option) => option.firstLetter}
+      isOptionEqualToValue={(option, value) => {
+        return option.title === value.title;
+      }}
+      getOptionLabel={(option) => capitalizeFirstLetter(option?.title) || ""}
+      getOptionDisabled={(option) => option.disabled}
+      freeSolo={false}
+      value={{
+        title: USAState,
+        firstLetter: (USAState?.[0] || "").toUpperCase(),
+        disabled: false,
+      }}
+      onInputChange={(e, val) => {
+        const state = val?.toLowerCase();
+        if (val && ALL_STATES.includes(state)) {
+          window.history.replaceState({}, "", `${baseRoute}/${year}/${state}`);
+          setUSAState(state);
+          setUSACity("");
+        } else if (!val) {
+          window.history.replaceState({}, "", `${baseRoute}/${year}`);
+          setUSAState("");
+          setUSACity("");
+        }
+      }}
+      renderInput={(params) => {
+        const { key, ...props } = params as any;
+        return (
+          <TextField
+            key={props.id || key}
+            {...props}
+            label="State"
+            variant="standard"
+          />
+        );
+      }}
+    />
+  );
+}

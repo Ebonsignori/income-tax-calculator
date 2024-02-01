@@ -1,24 +1,13 @@
-import * as React from "react";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Copyright from "@/components/Copyright";
+import TaxTables from "@/components/TaxTables";
+import Wrapper from "@/components/Wrapper";
+import { TAX_TABLES } from "@/constants/pages";
+import { getLandingPageData } from "@/utils/get-page-data";
 
-export default function About() {
+export default async function TaxTableLanding() {
+  const data = await getLandingPageData();
   return (
-    <>
-      <Container maxWidth="md">
-        <Typography
-          variant="h3"
-          component="h1"
-          textAlign="center"
-          display="flex"
-          justifyContent="center"
-          sx={{ mt: 4, mb: 4 }}
-        >
-          Tax Tables
-        </Typography>
-      </Container>
-      <Copyright />
-    </>
+    <Wrapper title={TAX_TABLES.name}>
+      <TaxTables {...data} />
+    </Wrapper>
   );
 }

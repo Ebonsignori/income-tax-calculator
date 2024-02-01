@@ -10,13 +10,19 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 ## TODO
 
-- Issues link or email?
+- Tax tables
+- About page
 
 - Playwright tests
-- Refactor before tax tables
-- Tax tables
+
+- Optimize Lighthouse Accessibility, SEO, and performance
 - Analytics
 - Ad in middle of screen
-- About page
-- Right hand pop out menu
-- Optimize Lighthouse Accessibility, SEO, and performance
+
+- Issues link or email on Help page
+
+- Memoize Results
+
+- State standard deduction at 0 shows helper text bug
+
+- Make income display with commas?

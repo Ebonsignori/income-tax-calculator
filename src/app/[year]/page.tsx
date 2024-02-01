@@ -1,34 +1,25 @@
-import Home from "@/components/Home";
-import { getTaxDataByYear } from "@/get-tax-data";
-import path from "path";
+import Calculator from "@/components/Calculator";
+import Wrapper from "@/components/Wrapper";
+import {
+  INCOME_TAX_CALCULATOR,
+  INCOME_TAX_CALCULATOR_SHORT_TITLE,
+} from "@/constants/pages";
+import { YearPageParams, YearPageProps } from "@/types/page";
+import { getYearPageData } from "@/utils/get-page-data";
+import { getYearPageParams } from "@/utils/get-page-params";
 
-type YearProps = { params: { year: string } };
-
-export default async function Year({ params }: YearProps) {
-  const { year } = params;
-  const dataDirectory = path.join(process.cwd(), "src", "data");
-  const { years, taxDataByYear, statesAndCitiesForYear } =
-    await getTaxDataByYear(dataDirectory);
-
-  const federalTaxes = taxDataByYear[year]?.federal || {};
-  const stateTaxes = {};
-  const availableStatesAndCities = statesAndCitiesForYear[year] || {};
+export default async function Year({ params }: YearPageProps) {
+  const data = await getYearPageData(params);
   return (
-    <Home
-      availableYears={years}
-      availableStatesAndCities={availableStatesAndCities}
-      defaultFederalTaxes={federalTaxes}
-      defaultStateTaxes={stateTaxes}
-      defaultYear={year}
-    />
+    <Wrapper
+      title={INCOME_TAX_CALCULATOR.name}
+      shortTitle={INCOME_TAX_CALCULATOR_SHORT_TITLE}
+    >
+      <Calculator {...data} />
+    </Wrapper>
   );
 }
 
-export async function generateStaticParams() {
-  const dataDirectory = path.join(process.cwd(), "src", "data");
-  const { taxDataByYear } = await getTaxDataByYear(dataDirectory);
-
-  return Object.keys(taxDataByYear).map((year) => {
-    return { year };
-  });
+export async function generateStaticParams(): Promise<YearPageParams[]> {
+  return getYearPageParams();
 }

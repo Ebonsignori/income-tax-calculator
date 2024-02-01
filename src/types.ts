@@ -1,11 +1,11 @@
 import type { FilingStatus } from "./constants/filing-status";
 import { ALL } from "./constants/filing-status";
 import {
-  STATE_INCOME,
-  STANDARD_DEDUCTION,
   FEDERAL_INCOME,
   MAX_401K_CONTRIBUTION,
   NONE,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
 } from "./constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "./constants";
 import { Dinero } from "dinero.js";
@@ -51,3 +51,11 @@ export type TaxResults = {
 export type TaxResultsWithCities = {
   [Key: string]: TaxResults | Dinero | typeof EXEMPT;
 };
+
+export type AutocompleteOption = {
+  title: string;
+  firstLetter: string;
+  disabled: boolean;
+};
+
+export type AvailableStatesAndCities = { [key: string]: { cities: string[] } };

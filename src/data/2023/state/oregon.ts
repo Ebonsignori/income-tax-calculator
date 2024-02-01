@@ -9,9 +9,9 @@ import {
 } from "@/constants/filing-status";
 import {
   ART_TAX,
-  STATE_INCOME,
   PRESCHOOL_FOR_ALL,
   STANDARD_DEDUCTION,
+  STATE_INCOME,
   SUPPORTIVE_HOUSING_SERVICES,
 } from "@/constants/tax_types";
 import { TaxData } from "@/types";

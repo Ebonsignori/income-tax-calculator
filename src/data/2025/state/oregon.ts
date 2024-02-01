@@ -7,9 +7,9 @@ import {
   SINGLE,
 } from "@/constants/filing-status";
 import {
-  STATE_INCOME,
   PRESCHOOL_FOR_ALL,
   STANDARD_DEDUCTION,
+  STATE_INCOME,
 } from "@/constants/tax_types";
 import { TaxData } from "@/types";
 

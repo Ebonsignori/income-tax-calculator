@@ -8,13 +8,40 @@ const roboto = Roboto({
   display: "swap",
 });
 
+declare module "@mui/material/styles" {
+  interface Theme {
+    custom: {
+      red: string;
+      green: string;
+    };
+  }
+  // allow configuration using `createTheme`
+  interface ThemeOptions {
+    custom: {
+      red: string;
+      green: string;
+    };
+  }
+}
+
 export function getTheme(mode: "light" | "dark") {
+  const isDark = mode === "dark";
   return createTheme({
     palette: {
       mode: mode,
+      primary: {
+        main: "#3d405b",
+      },
+      secondary: {
+        main: "#e07a5f",
+      },
     },
     typography: {
       fontFamily: roboto.style.fontFamily,
+    },
+    custom: {
+      red: isDark ? "#FF0000" : "#BC4749",
+      green: isDark ? "#00FF00" : "#386641",
     },
   });
 }

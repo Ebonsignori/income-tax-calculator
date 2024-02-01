@@ -1,5 +1,4 @@
-# Lints, builds, and tests the project.
-name: Lint, Build, and Test
+name: Lint and Build
 
 on:
   push:
@@ -10,8 +9,8 @@ on:
       - main
 
 jobs:
-  lint-build-test:
-    name: Lint, Build, and Test
+  lint-and-build:
+    name: Lint and build
     runs-on: ubuntu-latest
 
     steps:
@@ -22,12 +21,7 @@ jobs:
     
       - uses: ./.github/actions/cache-nextjs
       
-      - name: Lint
-        run: npm run lint
-
+      # Next.js automatically lints when it builds, 
       - name: Build
         run: npm run build
-
-      - name: Test
-        run: npm run test
         

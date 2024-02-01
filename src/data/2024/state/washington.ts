@@ -1,8 +1,8 @@
 import { INFINITY } from "@/constants";
 import { ALL } from "@/constants/filing-status";
 import {
-  STATE_INCOME,
   NONE,
+  STATE_INCOME,
   WASHINGTON_CARES_FUND,
 } from "@/constants/tax_types";
 import { TaxData } from "@/types";

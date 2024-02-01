@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -10,22 +10,46 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import Head from "next/head";
-import { IconButton, Tooltip } from "@mui/material";
-import Brightness4Icon from "@mui/icons-material/Brightness4";
-import Brightness7Icon from "@mui/icons-material/Brightness7";
+import { ColorModeContext } from "@/context/color-mode";
 
 export default function RootLayout(props: { children: React.ReactNode }) {
-  const [mode, setMode] = React.useState<"light" | "dark">("light");
-  const colorMode = React.useMemo(
+  const [mode, setMode] = useState<"light" | "dark">("light");
+  const colorMode = useMemo(
     () => ({
       toggleColorMode: () => {
-        setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
+        setMode((prevMode) => {
+          const newMode = prevMode === "light" ? "dark" : "light";
+          window.localStorage.setItem("color-mode", newMode);
+          return newMode;
+        });
       },
     }),
     [],
   );
 
-  const theme = React.useMemo(() => getTheme(mode), [mode]);
+  const theme = useMemo(() => getTheme(mode), [mode]);
+
+  useEffect(() => {
+    const localMode = window.localStorage.getItem("color-mode");
+    if (localMode) {
+      setMode(localMode as "light" | "dark");
+    } else if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      if (mode !== "dark") {
+        setMode("dark");
+      }
+    }
+
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (event) => {
+        const newColorScheme = event.matches ? "dark" : "light";
+        setMode(newColorScheme);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <html lang="en">
@@ -40,28 +64,12 @@ export default function RootLayout(props: { children: React.ReactNode }) {
       </Head>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Tooltip
-              placement="right"
-              title={`Switch to ${
-                theme.palette.mode === "light" ? "dark" : "light"
-              } mode`}
-            >
-              <IconButton
-                sx={{ position: "absolute", top: 1, left: 1 }}
-                onClick={colorMode.toggleColorMode}
-                color="inherit"
-              >
-                {theme.palette.mode === "dark" ? (
-                  <Brightness7Icon />
-                ) : (
-                  <Brightness4Icon />
-                )}
-              </IconButton>
-            </Tooltip>
-            {props.children}
-          </ThemeProvider>
+          <ColorModeContext.Provider value={colorMode}>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              {props.children}
+            </ThemeProvider>
+          </ColorModeContext.Provider>
         </AppRouterCacheProvider>
       </body>
     </html>

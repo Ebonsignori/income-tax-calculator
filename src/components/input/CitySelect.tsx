@@ -1,0 +1,89 @@
+import { AvailableStatesAndCities } from "@/types";
+import { capitalizeFirstLetter } from "@/utils/string-utils";
+import { Autocomplete, TextField } from "@mui/material";
+import { useMemo } from "react";
+
+type CitySelectProps = {
+  availableStatesAndCities: AvailableStatesAndCities;
+  year: string;
+  USAState: string;
+  USACity: string;
+  setUSACity: (val: string) => void;
+  baseRoute?: string;
+};
+
+export function CitySelect({
+  availableStatesAndCities,
+  year,
+  USAState,
+  USACity,
+  setUSACity,
+  baseRoute = "",
+}: CitySelectProps) {
+  const cityOptions = useMemo(() => {
+    if (typeof availableStatesAndCities[USAState]?.cities === "undefined") {
+      return null;
+    }
+
+    return availableStatesAndCities[USAState]?.cities.map((city: string) => {
+      return {
+        title: city,
+      };
+    });
+  }, [availableStatesAndCities, USAState]);
+
+  if (!cityOptions) {
+    return (
+      <TextField
+        fullWidth
+        label="City"
+        variant="standard"
+        disabled={true}
+        value="No Specific City Taxes"
+      />
+    );
+  }
+  return (
+    <Autocomplete
+      id="city-select"
+      options={cityOptions}
+      getOptionLabel={(option) => capitalizeFirstLetter(option?.title) || ""}
+      freeSolo={false}
+      value={{
+        title: USACity,
+      }}
+      isOptionEqualToValue={(option, value) => {
+        return option.title === value.title;
+      }}
+      onInputChange={(e, val) => {
+        const city = val?.toLowerCase();
+        if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
+          window.history.replaceState(
+            {},
+            "",
+            `${baseRoute}/${year}/${USAState}/${city}`,
+          );
+          setUSACity(city);
+        } else {
+          setUSACity("");
+          window.history.replaceState(
+            {},
+            "",
+            `${baseRoute}/${year}/${USAState}`,
+          );
+        }
+      }}
+      renderInput={(params) => {
+        const { key, ...props } = params as any;
+        return (
+          <TextField
+            key={props.id || key}
+            {...props}
+            label="City"
+            variant="standard"
+          />
+        );
+      }}
+    />
+  );
+}

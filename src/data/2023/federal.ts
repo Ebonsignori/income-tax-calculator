@@ -7,11 +7,11 @@ import {
   SINGLE,
 } from "@/constants/filing-status";
 import {
+  FEDERAL_INCOME,
   MAX_401K_CONTRIBUTION,
   MEDICARE,
   SOCIAL_SECURITY,
   STANDARD_DEDUCTION,
-  FEDERAL_INCOME,
 } from "@/constants/tax_types";
 import { TaxData } from "@/types";
 
