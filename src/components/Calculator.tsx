@@ -16,18 +16,8 @@ import type {
   FilingStatus,
   StandardDeductionMap,
 } from "@/constants/filing-status";
-import {
-  capitalizeFirstLetter,
-  snakeToTitleCase,
-  yearDisplay,
-} from "@/utils/string-utils";
+import { snakeToTitleCase, yearDisplay } from "@/utils/string-utils";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
-import Autocomplete from "@mui/material/Autocomplete";
-import { CITIES } from "@/constants";
-import {
-  MAX_401K_CONTRIBUTION,
-  STANDARD_DEDUCTION,
-} from "@/constants/tax_types";
 import { Box, IconButton, Slider, Tooltip } from "@mui/material";
 import type { AvailableStatesAndCities, TaxData } from "@/types";
 import Results from "@/components/Results";
@@ -39,6 +29,8 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { StateSelect } from "./input/StateSelect";
 import { CitySelect } from "./input/CitySelect";
 import { YearSelect } from "./input/YearSelect";
+import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
+import { TaxOption, useGetTaxOptions } from "@/utils/get-tax-options";
 
 type HomeProps = {
   availableYears: string[];
@@ -61,6 +53,7 @@ export default function Home({
 }: HomeProps) {
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalIRA, setTotalIRA] = useState(0);
+
   const [totalFederalDeductions, setTotalFederalDeductions] = useState<
     number | undefined
   >(undefined); // undefined until user input
@@ -71,7 +64,9 @@ export default function Home({
   const [USAState, setUSAState] = useState(defaultUSAState || "");
   const [year, setYear] = useState(defaultYear);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
-  const [exemptTaxes, setExemptTaxes] = useState<string[]>([]);
+  const [exemptTaxes, setExemptTaxes] = useState<TaxOption[]>(
+    [] as TaxOption[],
+  );
 
   const [stateTaxes, setStateTaxes] = useState<TaxData>(defaultStateTaxes);
   const [federalTaxes, setFederalTaxes] =
@@ -143,48 +138,15 @@ export default function Home({
     fetchStateBrackets();
   }, [USAState, year]);
 
-  const taxOptions = useMemo(() => {
-    const cities = [] as any;
-    const federal = Object.entries(federalTaxes).map(([key, value]) => {
-      if (key === STANDARD_DEDUCTION) {
-        setFederalStandardDeductionMap(value as StandardDeductionMap);
-        return null;
-      }
-      if (key === MAX_401K_CONTRIBUTION) {
-        setMax401KContribution(value as number);
-        return null;
-      }
-      return {
-        title: snakeToTitleCase(key),
-        value: key,
-        disabled: false,
-      };
-    });
-    const state = Object.entries(stateTaxes).map(([key, value]) => {
-      if (key === STANDARD_DEDUCTION) {
-        setStateStandardDeductionMap(value as StandardDeductionMap);
-        return null;
-      }
-      if (key === CITIES) {
-        if (USACity && (value as any)[USACity]) {
-          Object.entries((value as any)[USACity]).map(([key, value]) => {
-            cities.push({
-              title: snakeToTitleCase(`${USACity}_${key}`),
-              value: key,
-              disabled: false,
-            });
-          });
-        }
-        return null;
-      }
-      return {
-        title: snakeToTitleCase(key),
-        value: key,
-        disabled: false,
-      };
-    });
-    return [...federal, ...state, ...cities].filter((x) => x);
-  }, [federalTaxes, stateTaxes, USACity]);
+  const taxOptions = useGetTaxOptions({
+    federalTaxes,
+    stateTaxes,
+    USACity,
+    USAState,
+    setFederalStandardDeductionMap,
+    setStateStandardDeductionMap,
+    setMax401KContribution,
+  });
 
   const handleNumberChange = useCallback(
     (setterFunction: (...args: any) => void) => {
@@ -232,7 +194,7 @@ export default function Home({
 
   return (
     <>
-      <Grid container spacing={2} sx={{ mb: 2 }}>
+      <Grid container spacing={2} sx={{ mb: 2 }} component="main">
         <Grid xs={12} sm={6} md={6}>
           <Box>
             <FormControl fullWidth>
@@ -311,33 +273,11 @@ export default function Home({
           />
         </Grid>
         <Grid xs={12} sm={12} md={4}>
-          <Autocomplete
-            id="exempt-select"
-            multiple
-            isOptionEqualToValue={(option, value) => {
-              return option.value === value.value;
-            }}
-            options={taxOptions}
-            getOptionLabel={(option) =>
-              capitalizeFirstLetter(option?.title || "")
-            }
-            freeSolo={false}
-            getOptionDisabled={(option) => option?.disabled}
-            value={exemptTaxes}
-            onChange={(e, val) => {
-              if (val) setExemptTaxes(val);
-            }}
-            renderInput={(params) => {
-              const { key, ...props } = params as any;
-              return (
-                <TextField
-                  key={props.id || key}
-                  {...props}
-                  label="Tax Exemptions"
-                  variant="standard"
-                />
-              );
-            }}
+          <TaxOptionsSelect
+            label="Tax Exemptions"
+            taxOptions={taxOptions}
+            selectedTaxOptions={exemptTaxes}
+            setSelectedTaxOptions={setExemptTaxes}
           />
         </Grid>
         <Grid xs={12} sx={{ mt: 2 }}>

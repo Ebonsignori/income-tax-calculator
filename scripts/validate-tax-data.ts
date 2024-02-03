@@ -39,6 +39,7 @@ const singleBracket = Joi.array().items(
       min: Joi.number().integer().required(),
       max,
       rate: Joi.number().required(),
+      percent_of_total: Joi.number().optional(),
     }),
     Joi.object().keys({
       amount: Joi.number().integer().required(),

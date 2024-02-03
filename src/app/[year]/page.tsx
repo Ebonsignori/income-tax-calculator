@@ -5,6 +5,7 @@ import {
   INCOME_TAX_CALCULATOR_SHORT_TITLE,
 } from "@/constants/pages";
 import { YearPageParams, YearPageProps } from "@/types/page";
+import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
 import { getYearPageData } from "@/utils/get-page-data";
 import { getYearPageParams } from "@/utils/get-page-params";
 
@@ -22,4 +23,12 @@ export default async function Year({ params }: YearPageProps) {
 
 export async function generateStaticParams(): Promise<YearPageParams[]> {
   return getYearPageParams();
+}
+
+export async function generateMetadata({ params }: YearPageProps) {
+  return {
+    title: `${params.year} ${INCOME_TAX_CALCULATOR.name}`,
+    ...defaultMetadata,
+    ...getPageSpecificMetadata(INCOME_TAX_CALCULATOR.name, params.year),
+  };
 }

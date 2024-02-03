@@ -35,6 +35,7 @@ const Results = memo(function Results({
   USAState,
   USACity,
 }: any) {
+  const theme = useTheme();
   const {
     takeHome,
     totalTaxes,
@@ -73,8 +74,6 @@ const Results = memo(function Results({
       USACity,
     ],
   );
-
-  const theme = useTheme();
 
   if (!totalIncome) return null;
 
@@ -153,13 +152,13 @@ const Results = memo(function Results({
         stateRow.breakdown.push({
           id: taxType,
           name: snakeToTitleCase(taxType),
-          percent: getPercent(taxTotal as Dinero, totalState?.amount),
+          percent: `${getPercent(taxTotal as Dinero, totalState?.amount)}%`,
           amount: (taxTotal as Dinero)?.toFormat(),
         });
       }
     }
     if (totalCity?.amount?.toUnit() > 0) {
-      stateRow.name = `State + City Taxes`;
+      stateRow.name = "State + City Taxes";
     }
     tableRows.push(stateRow);
   }
@@ -204,7 +203,7 @@ const Results = memo(function Results({
         <Grid item xs={12} sm={6}>
           <Typography
             variant="h5"
-            component="h6"
+            component="h2"
             textAlign="center"
             color={theme.custom.green}
           >
@@ -239,7 +238,7 @@ const Results = memo(function Results({
         >
           <Typography
             variant="h5"
-            component="h6"
+            component="h2"
             textAlign="center"
             color={theme.custom.red}
           >
@@ -268,10 +267,10 @@ const Results = memo(function Results({
       {totalTaxes?.toUnit() > 0 ? (
         <>
           <Typography
-            variant="h3"
+            variant="h4"
             component="h3"
             textAlign="center"
-            sx={{ mt: 4, mb: 2 }}
+            sx={{ mt: 4, mb: 1 }}
           >
             Breakdown
           </Typography>
@@ -294,7 +293,7 @@ const Results = memo(function Results({
                   </TableHead>
                   <TableBody>
                     {tableRows.map((row) => (
-                      <BreakdownRow key={row.name} row={row} />
+                      <CollapsibleRow key={row.name} row={row} />
                     ))}
                   </TableBody>
                 </Table>
@@ -371,7 +370,7 @@ const Results = memo(function Results({
                 margin={{
                   top: 10,
                   right: 10,
-                  bottom: 55 + 30 * (totalTaxTypes / 2),
+                  bottom: 55 + 35 * (totalTaxTypes / 2),
                   left: 10,
                 }}
                 slotProps={{
@@ -393,7 +392,7 @@ const Results = memo(function Results({
 
 export default Results;
 
-function BreakdownRow(props: { row: any }) {
+function CollapsibleRow(props: { row: any }) {
   const { row } = props;
   const [open, setOpen] = useState(false);
 

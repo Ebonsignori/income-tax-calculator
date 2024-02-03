@@ -4,6 +4,7 @@ import {
   INCOME_TAX_CALCULATOR,
   INCOME_TAX_CALCULATOR_SHORT_TITLE,
 } from "@/constants/pages";
+import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
 import { getLandingPageData } from "@/utils/get-page-data";
 
 export default async function Landing() {
@@ -16,4 +17,12 @@ export default async function Landing() {
       <Calculator {...data} />
     </Wrapper>
   );
+}
+
+export async function generateMetadata() {
+  return {
+    title: INCOME_TAX_CALCULATOR.name,
+    ...defaultMetadata,
+    ...getPageSpecificMetadata(INCOME_TAX_CALCULATOR.name),
+  };
 }

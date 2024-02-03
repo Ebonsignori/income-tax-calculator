@@ -1,9 +1,0 @@
-# *
-User-agent: *
-Allow: /
-
-# Host
-Host: https://www.income-calc.com
-
-# Sitemaps
-Sitemap: https://www.income-calc.com/sitemap.xml

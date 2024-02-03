@@ -8,21 +8,27 @@ Accounts for city-specific taxes, unlike other online calculators.
 
 All tax data used for calculations is located in [src/data](./src/data).
 
-## TODO
+## TODO before launch
 
 - Tax tables
-- About page
 
-- Playwright tests
+- Accessibility fields (form elements do not have associated labels)
 
-- Optimize Lighthouse Accessibility, SEO, and performance
+- CSP for XSS attacks?
+
 - Analytics
+
 - Ad in middle of screen
 
-- Issues link or email on Help page
-
-- Memoize Results
+- PWA
 
 - State standard deduction at 0 shows helper text bug
 
 - Make income display with commas?
+
+
+## Later TODO
+
+- Playwright tests
+
+- Memoize Results.tsx

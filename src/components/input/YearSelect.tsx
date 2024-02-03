@@ -23,6 +23,7 @@ export function YearSelect({
       fullWidth
       select
       label="Tax Year"
+      aria-label="Tax Year Select"
       value={year}
       onChange={(e) => {
         const year = e.target.value;

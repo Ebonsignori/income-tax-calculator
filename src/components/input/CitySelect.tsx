@@ -46,12 +46,17 @@ export function CitySelect({
   return (
     <Autocomplete
       id="city-select"
+      aria-label="City Select"
       options={cityOptions}
       getOptionLabel={(option) => capitalizeFirstLetter(option?.title) || ""}
       freeSolo={false}
-      value={{
-        title: USACity,
-      }}
+      value={
+        USACity
+          ? {
+              title: USACity,
+            }
+          : null
+      }
       isOptionEqualToValue={(option, value) => {
         return option.title === value.title;
       }}

@@ -41,19 +41,24 @@ export function StateSelect({
   return (
     <Autocomplete
       id="state-select"
+      aria-label="State Select"
       options={stateOptions}
       groupBy={(option) => option.firstLetter}
       isOptionEqualToValue={(option, value) => {
-        return option.title === value.title;
+        return option?.title?.toLowerCase() === value?.title?.toLowerCase();
       }}
       getOptionLabel={(option) => capitalizeFirstLetter(option?.title) || ""}
       getOptionDisabled={(option) => option.disabled}
       freeSolo={false}
-      value={{
-        title: USAState,
-        firstLetter: (USAState?.[0] || "").toUpperCase(),
-        disabled: false,
-      }}
+      value={
+        USAState
+          ? {
+              title: USAState,
+              firstLetter: (USAState?.[0] || "").toUpperCase(),
+              disabled: false,
+            }
+          : null
+      }
       onInputChange={(e, val) => {
         const state = val?.toLowerCase();
         if (val && ALL_STATES.includes(state)) {

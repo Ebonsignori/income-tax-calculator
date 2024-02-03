@@ -9,10 +9,12 @@ import {
 } from "@/constants/filing-status";
 import {
   ART_TAX,
+  PAID_FAMILY_AND_MEDICAL_LEAVE,
   PRESCHOOL_FOR_ALL,
   STANDARD_DEDUCTION,
   STATE_INCOME,
   SUPPORTIVE_HOUSING_SERVICES,
+  TRANSIT_TAX,
 } from "@/constants/tax_types";
 import { TaxData } from "@/types";
 
@@ -48,6 +50,12 @@ export default {
       { min: 20400, max: 250000, rate: 8.75 },
       { min: 250000, max: INFINITY, rate: 9.9 },
     ],
+  },
+  [TRANSIT_TAX]: {
+    [ALL]: [{ min: 0, max: 132900, rate: 0.1 }],
+  },
+  [PAID_FAMILY_AND_MEDICAL_LEAVE]: {
+    [ALL]: [{ min: 0, max: 132900, rate: 1, percent_of_total: 60 }],
   },
   [CITIES]: {
     [PORTLAND]: {

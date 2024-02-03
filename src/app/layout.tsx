@@ -9,8 +9,8 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import Head from "next/head";
 import { ColorModeContext } from "@/context/color-mode";
+import { Viewport } from "next";
 
 export default function RootLayout(props: { children: React.ReactNode }) {
   const [mode, setMode] = useState<"light" | "dark">("light");
@@ -53,15 +53,6 @@ export default function RootLayout(props: { children: React.ReactNode }) {
 
   return (
     <html lang="en">
-      <Head>
-        <title>US Income Tax Calculator</title>
-        <meta
-          name="description"
-          content="Calculate your income and taxes for cities with special taxes, like Portland OR."
-        />
-        <link rel="icon" href="/favicon.ico" />
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-      </Head>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ColorModeContext.Provider value={colorMode}>
@@ -75,3 +66,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
     </html>
   );
 }
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
+};

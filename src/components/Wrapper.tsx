@@ -15,15 +15,13 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { Container, Tooltip, useTheme } from "@mui/material";
 import {
-  ABOUT,
-  HELP,
+  SUPPORT,
   INCOME_TAX_CALCULATOR_SHORT_TITLE,
   TAX_TABLES,
 } from "@/constants/pages";
 import {
   AttachMoney,
   InfoOutlined,
-  QuestionMark,
   TableChartOutlined,
 } from "@mui/icons-material";
 import Link from "next/link";
@@ -67,8 +65,7 @@ export default function Wrapper({
       icon: <AttachMoney />,
     },
     { ...TAX_TABLES, icon: <TableChartOutlined /> },
-    { ...ABOUT, icon: <InfoOutlined /> },
-    { ...HELP, icon: <QuestionMark /> },
+    { ...SUPPORT, icon: <InfoOutlined /> },
   ];
 
   return (
@@ -90,12 +87,7 @@ export default function Wrapper({
             >
               <MenuIcon />
             </IconButton>
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{ flexGrow: 1 }}
-              component="div"
-            >
+            <Typography variant="h6" noWrap sx={{ flexGrow: 1 }} component="h1">
               {title}
             </Typography>
             <Tooltip
@@ -165,7 +157,7 @@ export default function Wrapper({
           </List>
         </Drawer>
       </Box>
-      <Container component="main" maxWidth="md" sx={{ flexGrow: 1, p: 4 }}>
+      <Container maxWidth="md" sx={{ flexGrow: 1, p: 4 }}>
         <Toolbar />
         {children}
       </Container>

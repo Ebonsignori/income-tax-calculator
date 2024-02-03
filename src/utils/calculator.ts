@@ -7,6 +7,7 @@ import {
   STANDARD_DEDUCTION,
 } from "@/constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "@/constants";
+import { TaxOption } from "./get-tax-options";
 
 const nonTaxKeys = [MAX_401K_CONTRIBUTION, STANDARD_DEDUCTION];
 
@@ -18,7 +19,7 @@ export function calculate(
   totalIRA: number,
   totalFederalDeductions: number | undefined,
   totalStateDeductions: number | undefined,
-  exemptTaxes: { title: string; value: string }[],
+  exemptTaxes: TaxOption[],
   selectedState: string,
   selectedCity: string,
 ) {
@@ -136,7 +137,14 @@ function calculateTaxBracket(
     if (bracketRange.lessThanOrEqual(asCurrency(0))) {
       break;
     }
-    totalTax = totalTax.add(bracketRange.percentage(bracket.rate));
+
+    let totalBracketAmount = bracketRange.percentage(bracket.rate);
+    if (bracket.percent_of_total) {
+      totalBracketAmount = totalBracketAmount.percentage(
+        bracket.percent_of_total,
+      );
+    }
+    totalTax = totalTax.add(totalBracketAmount);
     incomeTaxed = incomeTaxed.add(bracketRange);
 
     if (incomeTaxed.greaterThanOrEqual(income)) {
@@ -245,3 +253,5 @@ export function getPercent(
 ): number {
   return Math.round((amount.getAmount() / total.getAmount()) * 10000) / 100;
 }
+
+export const formatNoZeros = "$0,0";
