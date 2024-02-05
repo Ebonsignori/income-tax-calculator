@@ -250,7 +250,7 @@ export default function Home({
                         EVENTS.CHANGE_INCOME_VIA_SLIDER,
                         newIncome,
                       ),
-                    );
+                    )();
                   }
                 }}
               />

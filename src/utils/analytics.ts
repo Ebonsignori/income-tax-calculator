@@ -89,6 +89,12 @@ export function sendAnalyticsEvent(
         new_page_name: eventValue as string,
       };
       break;
+    case EVENTS.FOOTER_NAV_CLICK:
+      metadata = {
+        ...metadata,
+        new_page_name: eventValue as string,
+      };
+      break;
     case EVENTS.CHANGE_STATE:
       newEventContext = {
         ...eventContext,
@@ -135,6 +141,12 @@ export function sendAnalyticsEvent(
       newEventContext = {
         ...eventContext,
         selected_tax_options: (eventValue as string[])?.join(","),
+      };
+      break;
+    case EVENTS.EXPAND_TABLE:
+      metadata = {
+        ...metadata,
+        row_name: eventValue as string,
       };
       break;
   }

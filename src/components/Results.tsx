@@ -22,6 +22,8 @@ import { snakeToTitleCase } from "@/utils/string-utils";
 import { CITIES, EXEMPT } from "@/constants";
 import type { Dinero } from "dinero.js";
 import { useTheme } from "@mui/material/styles";
+import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
+import { debounce } from "@/utils/debounce";
 
 const Results = memo(function Results({
   federalTaxes,
@@ -327,8 +329,12 @@ const Results = memo(function Results({
                 tooltip={{
                   trigger: "item",
                   itemContent: (props) => {
+                    console.log("here", props);
                     const dataIndex = props?.itemData?.dataIndex;
                     const dataItem = props?.series?.data?.[dataIndex] as any;
+                    debounce(() =>
+                      sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label),
+                    )();
                     return (
                       <table
                         style={{
@@ -402,7 +408,12 @@ function CollapsibleRow(props: { row: any }) {
       <IconButton
         aria-label="expand row"
         size="small"
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+          if (!open) {
+            sendAnalyticsEvent(EVENTS.EXPAND_TABLE, row.name);
+          }
+        }}
       >
         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
       </IconButton>

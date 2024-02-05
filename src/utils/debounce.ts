@@ -1,11 +1,17 @@
-// TODO: verify this
+let debounceCallback: any = "";
 // eslint-disable-next-line no-unused-vars
-export const debounce = (callback: (args: any) => void, wait = 500) => {
+export const debounce = (callback: (args: any) => void, wait = 3000) => {
   let timeoutId: any = null;
   return (...args: any) => {
+    if (debounceCallback.toString() === callback.toString()) {
+      debounceCallback = callback;
+      return;
+    }
     window.clearTimeout(timeoutId);
+    debounceCallback = callback;
     timeoutId = window.setTimeout(() => {
-      callback.apply(null, args);
+      debounceCallback.apply(null, args);
+      debounceCallback = "";
     }, wait);
   };
 };
