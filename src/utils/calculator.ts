@@ -83,7 +83,9 @@ export function calculateTaxesPerBracket(
       taxesPerBracket[taxType] = EXEMPT;
     } else if (taxTypeData?.[ALL]) {
       if (taxTypeData[ALL]?.[0]?.amount) {
-        taxesPerBracket[taxType] = asCurrency(taxTypeData[ALL][0].amount);
+        if (totalIncome.toUnit() > taxTypeData[ALL][0].min) {
+          taxesPerBracket[taxType] = asCurrency(taxTypeData[ALL][0].amount);
+        }
       } else {
         taxesPerBracket[taxType] = calculateTaxBracket(
           taxableIncome,

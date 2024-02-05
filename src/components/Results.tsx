@@ -170,7 +170,7 @@ const Results = memo(function Results({
     let pieChartData = [];
     let totalTaxTypes = 0;
     for (const [taxType, value] of Object.entries(federalResults)) {
-      if (value === EXEMPT) continue;
+      if (value === EXEMPT || (value as Dinero)?.toUnit() === 0) continue;
       totalTaxTypes++;
       pieChartData.push({
         id: taxType,
@@ -182,7 +182,7 @@ const Results = memo(function Results({
     for (const [taxType, taxTotal] of Object.entries(stateResults)) {
       if (taxType === CITIES) {
         for (const [city, cityValue] of Object.entries(taxTotal)) {
-          if (cityValue === EXEMPT) continue;
+          if (cityValue === EXEMPT || cityValue?.toUnit() === 0) continue;
           totalTaxTypes++;
           pieChartData.push({
             id: city,
@@ -191,7 +191,7 @@ const Results = memo(function Results({
             tooltipValue: (cityValue as Dinero)?.toFormat(),
           });
         }
-      } else if (taxTotal !== EXEMPT) {
+      } else if (taxTotal !== EXEMPT && (taxTotal as Dinero)?.toUnit() > 0) {
         totalTaxTypes++;
         pieChartData.push({
           id: taxType,
