@@ -15,7 +15,7 @@ import { YearSelect } from "./input/YearSelect";
 import { StateSelect } from "./input/StateSelect";
 import { CitySelect } from "./input/CitySelect";
 import { AvailableStatesAndCities, TaxData } from "@/types";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { TAX_TABLES } from "@/constants/pages";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import {
@@ -31,6 +31,8 @@ import { useGetTaxData } from "@/utils/get-tax-data";
 import { asCurrency, formatNoZeros } from "@/utils/calculator";
 import { NONE, STATE_INCOME } from "@/constants/tax_types";
 import { TaxDataSelect, TaxDataSelectOption } from "./input/TaxDataSelect";
+import mixpanel from "mixpanel-browser";
+import { initEventTracking } from "@/utils/analytics";
 
 type TaxTableProps = {
   availableYears: string[];
@@ -190,6 +192,12 @@ export default function TaxTables({
     return taxTables.concat(taxDataTables);
   }, [taxTables, taxDataTables]);
 
+  initEventTracking({
+    selected_year: year,
+    selected_state: USAState,
+    selected_city: USACity,
+  });
+
   return (
     <>
       <Grid container spacing={2} columns={13}>
@@ -294,7 +302,6 @@ function RenderTable(table: Table) {
 }
 
 function tableDataFromTaxData(name: string, taxData: any): Table {
-  console.log(taxData);
   if (taxData === NONE) {
     return {
       name,

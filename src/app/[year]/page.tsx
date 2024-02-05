@@ -12,10 +12,7 @@ import { getYearPageParams } from "@/utils/get-page-params";
 export default async function Year({ params }: YearPageProps) {
   const data = await getYearPageData(params);
   return (
-    <Wrapper
-      title={INCOME_TAX_CALCULATOR.name}
-      shortTitle={INCOME_TAX_CALCULATOR_SHORT_TITLE}
-    >
+    <Wrapper title={INCOME_TAX_CALCULATOR.name}>
       <Calculator {...data} />
     </Wrapper>
   );

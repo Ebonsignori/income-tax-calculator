@@ -1,6 +1,15 @@
 "use client";
 
-import { ReactNode, useContext, useMemo, useState } from "react";
+import {
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import mixpanel from "mixpanel-browser";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
@@ -18,6 +27,7 @@ import {
   SUPPORT,
   INCOME_TAX_CALCULATOR_SHORT_TITLE,
   TAX_TABLES,
+  INCOME_TAX_CALCULATOR,
 } from "@/constants/pages";
 import {
   AttachMoney,
@@ -25,27 +35,51 @@ import {
   TableChartOutlined,
 } from "@mui/icons-material";
 import Link from "next/link";
-import Copyright from "./Copyright";
+import Footer from "./Footer";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { ColorModeContext } from "@/context/color-mode";
+import {
+  EVENTS,
+  isTrackingEnabled,
+  sendAnalyticsEvent,
+  setPageName,
+  setTrackingEnabled,
+} from "@/utils/analytics";
+import { NavPage } from "@/types";
+import { calculate } from "@/utils/calculator";
 
 const drawerWidth = 240;
 
 export default function Wrapper({
   children,
   title,
-  shortTitle,
 }: {
   children: ReactNode;
   title: string;
-  shortTitle?: string;
 }) {
+  const [footerHeight, setFooterHeight] = useState(0);
+
+  useEffect(() => {
+    mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "", {
+      debug: process.env.NODE_ENV === "development",
+      track_pageview: false,
+      persistence: "localStorage",
+    });
+    setPageName(title);
+    if (!isTrackingEnabled()) {
+      setTrackingEnabled();
+    }
+    // mixpanel.opt_out_tracking();
+  }, [title]);
+
   const [open, setOpen] = useState(false);
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
 
-  const toggleDrawer =
+  const footerRef = useRef(null);
+
+  const toggleDrawer = useCallback(
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
       if (
         event.type === "keydown" &&
@@ -55,18 +89,38 @@ export default function Wrapper({
         return;
       }
 
-      setOpen(open);
-    };
+      if (open) {
+        sendAnalyticsEvent(EVENTS.NAV_CLICK);
+      }
 
-  const pages = [
-    {
-      name: INCOME_TAX_CALCULATOR_SHORT_TITLE,
-      route: "/",
-      icon: <AttachMoney />,
+      setOpen(open);
     },
-    { ...TAX_TABLES, icon: <TableChartOutlined /> },
-    { ...SUPPORT, icon: <InfoOutlined /> },
-  ];
+    [setOpen],
+  );
+
+  const pages: NavPage[] = useMemo(
+    () => [
+      {
+        name: INCOME_TAX_CALCULATOR_SHORT_TITLE,
+        route: "/",
+        icon: <AttachMoney />,
+        selected: title === INCOME_TAX_CALCULATOR.name,
+      },
+      {
+        ...TAX_TABLES,
+        icon: <TableChartOutlined />,
+        selected: title === TAX_TABLES.name,
+      },
+      { ...SUPPORT, icon: <InfoOutlined />, selected: title === SUPPORT.name },
+    ],
+    [title],
+  );
+
+  useEffect(() => {
+    if (footerRef.current) {
+      setFooterHeight((footerRef.current as any)?.clientHeight);
+    }
+  }, [footerRef, setFooterHeight]);
 
   return (
     <>
@@ -127,25 +181,27 @@ export default function Wrapper({
         >
           <Toolbar />
           <List>
-            {pages.map((page) => {
-              const selected =
-                title === page.name ||
-                (typeof shortTitle !== "undefined" && shortTitle === page.name);
+            {pages.map(({ name, icon, route, selected }) => {
               return (
                 <ListItem
-                  key={page.name}
+                  key={name}
                   disablePadding
                   component={Link}
-                  href={selected ? "" : page.route}
+                  onClick={() => {
+                    if (!selected) {
+                      sendAnalyticsEvent(EVENTS.NAV_CHANGE, name);
+                    }
+                  }}
+                  href={selected ? "" : route}
                   sx={{
                     textDecoration: "none",
                     color: theme.palette.text.primary,
                   }}
                 >
                   <ListItemButton selected={selected}>
-                    <ListItemIcon>{page.icon}</ListItemIcon>
+                    <ListItemIcon>{icon}</ListItemIcon>
                     <ListItemText
-                      primary={page.name}
+                      primary={name}
                       sx={{
                         "& span": { fontWeight: selected ? "bold" : "normal" },
                       }}
@@ -157,11 +213,19 @@ export default function Wrapper({
           </List>
         </Drawer>
       </Box>
-      <Container maxWidth="md" sx={{ flexGrow: 1, p: 4 }}>
+      <Container
+        maxWidth="md"
+        sx={{
+          flexGrow: 1,
+          p: 4,
+          maxHeight: `calc(100vh - ${footerHeight}px)`,
+          overflow: "auto",
+        }}
+      >
         <Toolbar />
         {children}
       </Container>
-      <Copyright />
+      <Footer innerRef={footerRef} pages={pages} />
     </>
   );
 }

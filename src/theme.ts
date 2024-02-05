@@ -24,13 +24,15 @@ declare module "@mui/material/styles" {
   }
 }
 
+export const primaryColor = "#3d405b";
+
 export function getTheme(mode: "light" | "dark") {
   const isDark = mode === "dark";
   return createTheme({
     palette: {
       mode: mode,
       primary: {
-        main: "#3d405b",
+        main: primaryColor,
       },
       secondary: {
         main: "#e07a5f",

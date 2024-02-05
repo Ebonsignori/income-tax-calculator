@@ -28,8 +28,25 @@ export const defaultMetadata: Metadata = {
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
-  manifest: "/site.webmanifest",
+  appleWebApp: {
+    title: "Income Tax Calculator",
+    statusBarStyle: "default",
+    startupImage: "/apple_touch_icon.png",
+  },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  manifest: "/manifest.webmanifest",
   openGraph: {
+    title: "Income Tax Calculator",
+    description:
+      "Calculate your take home pay after federal, state, and city income taxes.",
+    url: "https://income-calc.com",
+    siteName: "Income Tax Calculator",
+    locale: "en_US",
+    type: "website",
     images: "/og-image.png",
   },
 };
@@ -39,7 +56,7 @@ export function getPageSpecificMetadata(
   year?: string,
   state?: string,
   city?: string,
-) {
+): Metadata {
   let description = "";
   if (pageName === INCOME_TAX_CALCULATOR.name) {
     if (!city) {
@@ -72,7 +89,26 @@ export function getPageSpecificMetadata(
   } else if (pageName === SUPPORT.name) {
     description = "Support page for the Income Tax Calculator.";
   }
+
+  // Build canonical URL
+  let canonical = defaultMetadata.metadataBase?.href;
+  if (canonical?.endsWith("/")) {
+    canonical = canonical.slice(0, -1);
+  }
+  if (year) {
+    canonical += `/${year}`;
+    if (state) {
+      canonical += `/${state}`;
+      if (city) {
+        canonical += `/${city}`;
+      }
+    }
+  }
+
   return {
     description,
+    alternates: {
+      canonical,
+    },
   };
 }

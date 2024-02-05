@@ -44,6 +44,7 @@ module.exports = {
       {
         userAgent: "*",
         allow: "/",
+        disallow: ["/_next/"],
       },
     ],
     additionalSitemaps: ["https://www.income-calc.com/sitemap.xml"],

@@ -1,4 +1,5 @@
 import { AvailableStatesAndCities } from "@/types";
+import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 import { useMemo } from "react";
@@ -62,6 +63,7 @@ export function CitySelect({
       }}
       onInputChange={(e, val) => {
         const city = val?.toLowerCase();
+        if (city === USACity) return;
         if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
           window.history.replaceState(
             {},
@@ -69,6 +71,7 @@ export function CitySelect({
             `${baseRoute}/${year}/${USAState}/${city}`,
           );
           setUSACity(city);
+          sendAnalyticsEvent(EVENTS.CHANGE_CITY, city);
         } else {
           setUSACity("");
           window.history.replaceState(

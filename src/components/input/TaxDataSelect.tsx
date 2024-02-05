@@ -1,3 +1,4 @@
+import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 
@@ -31,7 +32,13 @@ export function TaxDataSelect({
       freeSolo={false}
       value={selectedTaxData}
       onChange={(e, val: TaxDataSelectOption[]) => {
-        if (val) setSelectedTaxData(val);
+        if (val) {
+          setSelectedTaxData(val);
+          sendAnalyticsEvent(
+            EVENTS.CHANGE_TAX_OPTIONS,
+            val.map((v) => v.title?.toLowerCase()),
+          );
+        }
       }}
       renderInput={(params) => {
         const { key, ...props } = params as any;

@@ -13,10 +13,7 @@ import { snakeToTitleCase } from "@/utils/string-utils";
 export default async function State({ params }: StatePageProps) {
   const data = await getStatePageData(params);
   return (
-    <Wrapper
-      title={INCOME_TAX_CALCULATOR.name}
-      shortTitle={INCOME_TAX_CALCULATOR_SHORT_TITLE}
-    >
+    <Wrapper title={INCOME_TAX_CALCULATOR.name}>
       <Calculator {...data} />
     </Wrapper>
   );

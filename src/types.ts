@@ -9,6 +9,7 @@ import {
 } from "./constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "./constants";
 import { Dinero } from "dinero.js";
+import { ReactElement } from "react";
 
 export type Bracket =
   | {
@@ -59,3 +60,10 @@ export type AutocompleteOption = {
 };
 
 export type AvailableStatesAndCities = { [key: string]: { cities: string[] } };
+
+export type NavPage = {
+  name: string;
+  icon: ReactElement;
+  route: string;
+  selected: boolean;
+};

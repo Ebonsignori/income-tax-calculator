@@ -1,16 +1,10 @@
-import * as React from "react";
 import Wrapper from "@/components/Wrapper";
 import { SUPPORT } from "@/constants/pages";
-import {
-  Button,
-  Container,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import Link from "next/link";
+import { Container, Typography } from "@mui/material";
 import { ArrowRightOutlined } from "@mui/icons-material";
 import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
+import { initEventTracking } from "@/utils/analytics";
+import { SupportButton } from "@/components/SupportButton";
 
 function SupportItem({ text, sx }: { text: string; sx?: object }) {
   return (
@@ -38,6 +32,10 @@ function SupportItem({ text, sx }: { text: string; sx?: object }) {
 }
 
 export default function Support() {
+  initEventTracking({
+    selected_year: new Date().getFullYear().toString(),
+  });
+
   return (
     <Wrapper title={SUPPORT.name}>
       <Typography variant="h2" textAlign="center">
@@ -64,19 +62,7 @@ export default function Support() {
         >
           Please,
         </Typography>
-        <Button
-          sx={{
-            mt: 1,
-          }}
-          variant="contained"
-          component={Link}
-          href={
-            process.env.NEXT_PUBLIC_NEW_REPO_ISSUE_LINK ||
-            "https://github.com/Ebonsignori/income-calculator/issues/new"
-          }
-        >
-          Report issue on GitHub
-        </Button>
+        <SupportButton />
       </Container>
     </Wrapper>
   );

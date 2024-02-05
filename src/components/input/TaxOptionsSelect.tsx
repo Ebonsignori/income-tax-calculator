@@ -1,4 +1,5 @@
 import { TaxOption } from "@/utils/get-tax-options";
+import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 
@@ -29,7 +30,17 @@ export function TaxOptionsSelect({
       getOptionDisabled={(option) => option?.disabled}
       value={selectedTaxOptions}
       onChange={(e, val: TaxOption[]) => {
-        if (val) setSelectedTaxOptions(val);
+        if (val) {
+          setSelectedTaxOptions(val);
+          let event = EVENTS.CHANGE_TAX_OPTIONS;
+          if (label.includes("exemptions")) {
+            event = EVENTS.CHANGE_TAX_EXEMPTIONS;
+          }
+          sendAnalyticsEvent(
+            event,
+            val.map((v) => v.value),
+          );
+        }
       }}
       renderInput={(params) => {
         const { key, ...props } = params as any;

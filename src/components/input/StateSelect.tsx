@@ -1,5 +1,6 @@
 import { ALL_STATES } from "@/constants/states";
 import type { AutocompleteOption, AvailableStatesAndCities } from "@/types";
+import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter, snakeToTitleCase } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 import { useMemo } from "react";
@@ -61,8 +62,10 @@ export function StateSelect({
       }
       onInputChange={(e, val) => {
         const state = val?.toLowerCase();
+        if (state === USAState) return;
         if (val && ALL_STATES.includes(state)) {
           window.history.replaceState({}, "", `${baseRoute}/${year}/${state}`);
+          sendAnalyticsEvent(EVENTS.CHANGE_STATE, state);
           setUSAState(state);
           setUSACity("");
         } else if (!val) {

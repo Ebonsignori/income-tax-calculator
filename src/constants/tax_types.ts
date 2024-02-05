@@ -13,8 +13,9 @@ export const STATE_INCOME = "state_income";
 
 // State specific
 export const WASHINGTON_CARES_FUND = "washington_cares_fund";
-export const TRANSIT_TAX = "transit_tax";
-export const PAID_FAMILY_AND_MEDICAL_LEAVE = "paid_family_and_medical_leave";
+export const OREGON_TRANSIT_TAX = "oregon_transit_tax";
+export const OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE =
+  "oregon_paid_family_and_medical_leave";
 
 // City specific
 export const ART_TAX = "art_tax";

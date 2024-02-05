@@ -1,5 +1,7 @@
 # Income Tax Calculator
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/000c009b-6eb5-40f7-b10f-f52779cb1caa/deploy-status)](https://app.netlify.com/sites/peppy-centaur-2b8fe8/deploys)
+
 Calculates USA Federal, State, and City income cities tax.
 
 Accounts for city-specific taxes, unlike other online calculators.
@@ -10,25 +12,16 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 ## TODO before launch
 
-- Tax tables
-
-- Accessibility fields (form elements do not have associated labels)
-
-- CSP for XSS attacks?
-
-- Analytics
+- `x-robots-tag: noindex` discover where this is being set, unset and only set for support
 
 - Ad in middle of screen
 
 - PWA
-
-- State standard deduction at 0 shows helper text bug
-
-- Make income display with commas?
-
 
 ## Later TODO
 
 - Playwright tests
 
 - Memoize Results.tsx
+
+- Analytics dashboard setup, mixpanel.com

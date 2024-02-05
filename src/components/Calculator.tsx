@@ -31,6 +31,12 @@ import { CitySelect } from "./input/CitySelect";
 import { YearSelect } from "./input/YearSelect";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import { TaxOption, useGetTaxOptions } from "@/utils/get-tax-options";
+import {
+  EVENTS,
+  initEventTracking,
+  sendAnalyticsEvent,
+} from "@/utils/analytics";
+import { debounce } from "@/utils/debounce";
 
 type HomeProps = {
   availableYears: string[];
@@ -171,14 +177,16 @@ export default function Home({
   }, [totalIRA, max401KContribution]);
 
   const standardStateDeductionDisplay = useMemo(() => {
-    return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions
+    return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions &&
+      stateStandardDeductionMap?.[filingStatus] !== 0
       ? `Standard deduction for ${yearDisplay(year)}`
       : " ";
   }, [stateStandardDeductionMap, filingStatus, totalStateDeductions, year]);
 
   const standardFederalDeductionDisplay = useMemo(() => {
     return federalStandardDeductionMap?.[filingStatus] ===
-      totalFederalDeductions
+      totalFederalDeductions &&
+      federalStandardDeductionMap?.[filingStatus] !== 0
       ? `Standard deduction for ${yearDisplay(year)}`
       : " ";
   }, [federalStandardDeductionMap, filingStatus, totalFederalDeductions, year]);
@@ -192,6 +200,14 @@ export default function Home({
     validateAll();
   }, [validateAll]);
 
+  initEventTracking({
+    selected_income: totalIncome,
+    selected_year: year,
+    selected_filing_status: filingStatus,
+    selected_state: USAState,
+    selected_city: USACity,
+  });
+
   return (
     <>
       <Grid container spacing={2} sx={{ mb: 2 }} component="main">
@@ -203,8 +219,12 @@ export default function Home({
               </InputLabel>
               <OutlinedInput
                 id="outlined-adornment-total-income"
+                type="number"
                 value={totalIncome}
                 onChange={handleNumberChange(setTotalIncome)}
+                onBlur={() => {
+                  sendAnalyticsEvent(EVENTS.CHANGE_INCOME, totalIncome);
+                }}
                 startAdornment={
                   <InputAdornment position="start">$</InputAdornment>
                 }
@@ -213,6 +233,7 @@ export default function Home({
             </FormControl>
             <Box display="flex" justifyContent="center">
               <Slider
+                aria-label="Total Income"
                 value={Math.cbrt(totalIncome)}
                 min={1}
                 step={1}
@@ -220,7 +241,14 @@ export default function Home({
                 sx={{ padding: "0 !important", width: "80%", mt: 1.5 }}
                 onChange={(event: Event, newValue: number | number[]) => {
                   if (typeof newValue === "number") {
-                    setTotalIncome(newValue ** 3);
+                    const newIncome = Math.round(Math.pow(newValue, 3));
+                    setTotalIncome(newIncome);
+                    debounce(() =>
+                      sendAnalyticsEvent(
+                        EVENTS.CHANGE_INCOME_VIA_SLIDER,
+                        newIncome,
+                      ),
+                    );
                   }
                 }}
               />
@@ -243,6 +271,7 @@ export default function Home({
             value={filingStatus}
             onChange={(e) => {
               setFilingStatus(e.target.value as FilingStatus);
+              sendAnalyticsEvent(EVENTS.CHANGE_FILING_STATUS, e.target.value);
             }}
             fullWidth
             variant="standard"
@@ -295,6 +324,7 @@ export default function Home({
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
                       label="401k/IRA Contributions"
+                      type="number"
                       aria-label="401k/IRA Contributions"
                       helperText={max401KContributionDisplay}
                       value={totalIRA}
@@ -332,6 +362,7 @@ export default function Home({
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
                       label="Total Federal Deductions"
+                      type="number"
                       aria-label="Total Federal Deductions"
                       helperText={standardFederalDeductionDisplay}
                       value={
@@ -345,7 +376,9 @@ export default function Home({
                           <InputAdornment position="start">$</InputAdornment>
                         ),
                         endAdornment:
-                          standardFederalDeductionDisplay === " " ? (
+                          standardFederalDeductionDisplay === " " &&
+                          federalStandardDeductionMap?.[filingStatus] !== 0 &&
+                          totalFederalDeductions ? (
                             <InputAdornment position="end">
                               <Tooltip
                                 title={`Set to standard deduction for ${yearDisplay(
@@ -374,6 +407,7 @@ export default function Home({
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
                       label="Total State Deductions"
+                      type="number"
                       aria-label="Total State Deductions"
                       helperText={standardStateDeductionDisplay}
                       value={
@@ -387,7 +421,8 @@ export default function Home({
                           <InputAdornment position="start">$</InputAdornment>
                         ),
                         endAdornment:
-                          standardStateDeductionDisplay === " " ? (
+                          standardStateDeductionDisplay === " " &&
+                          stateStandardDeductionMap?.[filingStatus] !== 0 ? (
                             <InputAdornment position="end">
                               <Tooltip
                                 title={`Set to standard deduction for ${yearDisplay(

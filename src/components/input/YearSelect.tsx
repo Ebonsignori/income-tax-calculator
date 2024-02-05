@@ -1,3 +1,4 @@
+import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { yearDisplay } from "@/utils/string-utils";
 import { MenuItem, TextField } from "@mui/material";
 
@@ -36,6 +37,7 @@ export function YearSelect({
         }
         window.history.replaceState({}, "", newUrl);
         setYear(e.target.value);
+        sendAnalyticsEvent(EVENTS.CHANGE_YEAR, year);
       }}
       variant="standard"
     >
