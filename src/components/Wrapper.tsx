@@ -47,7 +47,6 @@ import {
   setTrackingEnabled,
 } from "@/utils/analytics";
 import { NavPage } from "@/types";
-import { calculate } from "@/utils/calculator";
 
 const drawerWidth = 240;
 
@@ -67,7 +66,7 @@ export default function Wrapper({
       persistence: "localStorage",
     });
     setPageName(title);
-    if (!isTrackingEnabled()) {
+    if (!isTrackingEnabled() && typeof window !== "undefined") {
       setTrackingEnabled();
     }
     // mixpanel.opt_out_tracking();

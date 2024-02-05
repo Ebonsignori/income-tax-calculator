@@ -74,7 +74,7 @@ export const EVENTS = {
 export function sendAnalyticsEvent(
   eventName: (typeof EVENTS)[keyof typeof EVENTS],
   eventValue?: string | number | string[],
-  metadata: Record<string, any> = {},
+  metadata: Record<string, any> = {}
 ): void {
   if (!trackingEnabled) {
     return;
