@@ -24,7 +24,7 @@ jobs:
       # Next.js automatically lints when it builds, 
       - name: Build
         env:
-          NEXT_PUBLIC_DISABLE_ANALYTICS: true 
+          NODE_ENV: "test" 
         run: npm run build
  
       - name: Install Playwright Browsers

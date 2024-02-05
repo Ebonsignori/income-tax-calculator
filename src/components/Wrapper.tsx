@@ -120,8 +120,9 @@ export default function Wrapper({
         >
           <Toolbar>
             <IconButton
+              id="open-nav-drawer"
               color="inherit"
-              aria-label="open drawer"
+              aria-label="open nav drawer"
               edge="start"
               onClick={open ? toggleDrawer(false) : toggleDrawer(true)}
               sx={{ mr: 2 }}

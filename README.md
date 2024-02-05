@@ -14,17 +14,15 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Ad in middle of screen
 
-- Number fields aren't allowed to be empty, fix this
-
-- Don't show per month, let user select paycheck freq and calculate per paycheck
-
-
-## Later TODO
-
-- Playwright tests
-
-- Verify PWA works offline for uncached states/cities
+- Use paycheck frequency instead of per month: 
+  - Weekly – 52 paychecks per year.
+  - Biweekly – 26 paychecks per year.
+  - Semi-monthly – 24 paychecks per year.
+  - Monthly – 12 paychecks per year.
 
 - Add other states / cities
 
 - Tax options {...key} error in console?
+
+- Verify PWA works offline for uncached states/cities
+  

@@ -167,7 +167,7 @@ export default function Home({
         if (!isNaN(numberValue)) {
           setterFunction(numberValue);
         } else if (!value) {
-          setterFunction(0);
+          setterFunction("");
         }
       };
     },
