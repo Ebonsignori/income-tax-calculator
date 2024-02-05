@@ -216,11 +216,9 @@ export default function Home({
         <Grid xs={12} sm={6} md={6}>
           <Box>
             <FormControl fullWidth>
-              <InputLabel htmlFor="outlined-adornment-total-income">
-                Total Income
-              </InputLabel>
+              <InputLabel htmlFor="total-income">Total Income</InputLabel>
               <OutlinedInput
-                id="outlined-adornment-total-income"
+                id="total-income"
                 type="number"
                 value={totalIncome}
                 onChange={handleNumberChange(setTotalIncome)}

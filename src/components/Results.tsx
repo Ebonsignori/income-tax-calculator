@@ -235,6 +235,7 @@ const Results = memo(function Results({
             fontSize="large"
             sx={{ mb: 0, mt: 1 }}
             textAlign="center"
+            data-testid="total-take-home-amount"
           >
             {takeHome?.amount?.toFormat()}
           </Typography>

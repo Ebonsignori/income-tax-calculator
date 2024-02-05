@@ -5,13 +5,14 @@
   "scripts": {
     "go": "npm run lint:fix && npm run build && node open.js 3000 && npm run start",
     "dev": "node open.js 3000 && next dev",
+    "dev:test": "NODE_ENV=test next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
     "start": "serve out",
     "validate-tax-data": "ts-node --project tsconfig.json scripts/validate-tax-data.ts",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "test": "playwright test",
+    "test": "NODE_ENV=test playwright test",
     "test:ui": "npm run test -- --ui",
     "prepare": "husky"
   },

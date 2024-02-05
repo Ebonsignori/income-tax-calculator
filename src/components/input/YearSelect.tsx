@@ -25,7 +25,9 @@ export function YearSelect({
       fullWidth
       select
       label="Tax Year"
+      id="tax-year-select"
       aria-label="Tax Year Select"
+      data-testid="tax-year-select"
       value={year}
       onChange={(e) => {
         const year = e.target.value;

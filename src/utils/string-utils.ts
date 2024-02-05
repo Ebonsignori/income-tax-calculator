@@ -8,6 +8,16 @@ export function snakeToTitleCase(snakeCase: string) {
   );
 }
 
+export function toSnakeCase(anyCase: string): string {
+  const snakeCase = anyCase
+    ?.match(
+      /[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g,
+    )
+    ?.map((s: string) => s.toLowerCase())
+    .join("_");
+  return snakeCase || anyCase;
+}
+
 export function yearDisplay(year: string) {
   return `${year} - ${parseInt(year, 10) + 1}`;
 }

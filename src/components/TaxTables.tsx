@@ -27,7 +27,7 @@ import {
 import { CITIES, INFINITY } from "@/constants";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
-import { snakeToTitleCase } from "@/utils/string-utils";
+import { snakeToTitleCase, toSnakeCase } from "@/utils/string-utils";
 import { useGetTaxData } from "@/utils/get-tax-data";
 import { asCurrency, formatNoZeros } from "@/utils/calculator";
 import { NONE, STATE_INCOME } from "@/constants/tax_types";
@@ -269,15 +269,15 @@ type Table = {
 };
 
 function RenderTable(table: Table) {
-  const { headers, rows } = table;
+  const { name, headers, rows } = table;
 
   return (
     <>
       <Typography component="h2" variant="h5">
-        {snakeToTitleCase(table.name)}
+        {snakeToTitleCase(name)}
       </Typography>
       <TableContainer component={Paper} sx={{ border: 1, mt: 1, mb: 1 }}>
-        <Table>
+        <Table id={name}>
           <TableHead>
             <TableRow>
               {headers.map((header) => (
@@ -288,7 +288,7 @@ function RenderTable(table: Table) {
           <TableBody>
             {rows.map((row, index) => {
               return (
-                <TableRow key={index}>
+                <TableRow key={index} id={`${name}_row_${index}`}>
                   {row.map((cell, index) => (
                     <TableCell key={`${cell}-${index}`}>{cell}</TableCell>
                   ))}
@@ -392,7 +392,7 @@ function standardDeductionMapToTable(
   }
 
   return {
-    name,
+    name: toSnakeCase(name),
     headers,
     rows,
   };

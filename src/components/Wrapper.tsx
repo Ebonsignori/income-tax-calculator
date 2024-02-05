@@ -53,18 +53,17 @@ export default function Wrapper({
 }) {
   useEffect(() => {
     const isDev = process.env.NODE_ENV === "development";
-    let token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "";
-    if (isDev) {
-      token = process.env.NEXT_PUBLIC_MIXPANEL_DEV_TOKEN || "";
-    }
-    mixpanel.init(token, {
-      debug: isDev,
-      track_pageview: false,
-      persistence: "localStorage",
-    });
-    setPageName(title);
-    if (!isTrackingEnabled() && typeof window !== "undefined") {
-      setTrackingEnabled();
+    const isDisabled = process.env.NEXT_PUBLIC_DISABLE_ANALYTICS === "true";
+    if (!isDisabled) {
+      mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "", {
+        debug: isDev,
+        track_pageview: false,
+        persistence: "localStorage",
+      });
+      setPageName(title);
+      if (!isTrackingEnabled() && typeof window !== "undefined") {
+        setTrackingEnabled();
+      }
     }
   }, [title]);
 
