@@ -53,6 +53,9 @@ export default function RootLayout(props: { children: ReactNode }) {
 
   return (
     <html lang="en">
+      <head>
+        <meta name="theme-color" content="#ffffff" />
+      </head>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ColorModeContext.Provider value={colorMode}>
@@ -68,7 +71,9 @@ export default function RootLayout(props: { children: ReactNode }) {
 }
 
 export const viewport: Viewport = {
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
-  themeColor: "white",
+  // TODO: We set this in the head, because it's not setting here per possible Next.js bug
+  themeColor: "#ffffff",
 };

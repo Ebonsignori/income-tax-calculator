@@ -12,11 +12,7 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 ## TODO before launch
 
-- `x-robots-tag: noindex` discover where this is being set, unset and only set for support
-
 - Ad in middle of screen
-
-- PWA
 
 ## Later TODO
 
@@ -25,3 +21,7 @@ All tax data used for calculations is located in [src/data](./src/data).
 - Memoize Results.tsx
 
 - Analytics dashboard setup, mixpanel.com
+
+- Fix pie chart styling in PWA
+
+- Cache all json files in PWA?
