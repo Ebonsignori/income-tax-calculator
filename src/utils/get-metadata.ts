@@ -49,7 +49,6 @@ export const defaultMetadata: Metadata = {
     type: "website",
     images: "/og-image.png",
   },
-  themeColor: "#ffffff",
 };
 
 export function getPageSpecificMetadata(
