@@ -88,7 +88,7 @@ export default function Wrapper({
 
       setOpen(open);
     },
-    [setOpen]
+    [setOpen],
   );
 
   const pages: NavPage[] = useMemo(
@@ -107,7 +107,7 @@ export default function Wrapper({
       },
       { ...SUPPORT, icon: <InfoOutlined />, selected: title === SUPPORT.name },
     ],
-    [title]
+    [title],
   );
 
   return (
