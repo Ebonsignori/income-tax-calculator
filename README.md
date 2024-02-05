@@ -25,3 +25,5 @@ All tax data used for calculations is located in [src/data](./src/data).
 - Fix pie chart styling in PWA
 
 - Cache all json files in PWA?
+
+- Add other states / cities
