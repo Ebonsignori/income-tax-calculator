@@ -14,17 +14,11 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Ad in middle of screen
 
-- Fix footer
-
 ## Later TODO
 
 - Playwright tests
 
-- Memoize Results.tsx
-
-- Analytics dashboard setup, mixpanel.com
-
-- Fix pie chart styling in PWA
+- Verify pie chart styling in PWA
 
 - Cache all json files in PWA?
 

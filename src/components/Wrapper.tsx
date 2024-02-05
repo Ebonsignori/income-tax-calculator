@@ -52,8 +52,13 @@ export default function Wrapper({
   title: string;
 }) {
   useEffect(() => {
-    mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "", {
-      debug: process.env.NODE_ENV === "development",
+    const isDev = process.env.NODE_ENV === "development";
+    let token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "";
+    if (isDev) {
+      token = process.env.NEXT_PUBLIC_MIXPANEL_DEV_TOKEN || "";
+    }
+    mixpanel.init(token, {
+      debug: isDev,
       track_pageview: false,
       persistence: "localStorage",
     });
@@ -61,7 +66,6 @@ export default function Wrapper({
     if (!isTrackingEnabled() && typeof window !== "undefined") {
       setTrackingEnabled();
     }
-    // mixpanel.opt_out_tracking();
   }, [title]);
 
   const [open, setOpen] = useState(false);
@@ -84,7 +88,7 @@ export default function Wrapper({
 
       setOpen(open);
     },
-    [setOpen],
+    [setOpen]
   );
 
   const pages: NavPage[] = useMemo(
@@ -103,7 +107,7 @@ export default function Wrapper({
       },
       { ...SUPPORT, icon: <InfoOutlined />, selected: title === SUPPORT.name },
     ],
-    [title],
+    [title]
   );
 
   return (

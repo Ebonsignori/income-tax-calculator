@@ -48,7 +48,7 @@ export function TaxOptionsSelect({
         const newKey = key || props.id || label;
         if (props.key) delete props.key;
         return (
-          <TextField key={newKey}  {...props} label={label} variant="standard" />
+          <TextField key={newKey} {...props} label={label} variant="standard" />
         );
       }}
     />

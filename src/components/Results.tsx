@@ -61,7 +61,7 @@ const Results = memo(function Results({
         totalStateDeductions,
         exemptTaxes,
         USAState,
-        USACity
+        USACity,
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -74,131 +74,149 @@ const Results = memo(function Results({
       federalTaxes,
       stateTaxes,
       USACity,
-    ]
+    ],
   );
 
-  if (!totalIncome) return null;
+  const { tableRows, pieChartData, totalTaxTypes } = useMemo(() => {
+    if (!totalIncome)
+      return { tableRows: [], pieChartData: [], totalTaxTypes: [] };
 
-  const tableRows = [
-    {
-      id: "take_home",
-      name: "Take Home",
-      percent: takeHome?.percent,
-      amount: takeHome?.amount?.toFormat(),
-    },
-  ];
-  if (totalFederal?.amount?.toUnit() > 0) {
-    const federalRow = {
-      id: "total_federal",
-      name: "Federal Taxes",
-      percent: totalFederal?.percent,
-      amount: totalFederal?.amount?.toFormat(),
-      breakdown: [],
-      breakdownTaxableIncome: federalTaxableIncome?.toFormat(),
-    } as any;
-    for (const [taxType, taxTotal] of Object.entries(federalResults)) {
-      if (taxTotal === EXEMPT) continue;
-      federalRow.breakdown.push({
-        id: taxType,
-        name: snakeToTitleCase(taxType),
-        percent: `${getPercent(taxTotal as Dinero, totalFederal?.amount)}%`,
-        amount: (taxTotal as Dinero)?.toFormat(),
-      });
-    }
-    if (totalFica?.amount?.toUnit() > 0) {
-      federalRow.breakdown.push({
-        id: "fica",
-        name: "Total FICA",
-        percent: `${getPercent(totalFica?.amount, totalFederal?.amount)}%`,
-        amount: totalFica?.amount?.toFormat(),
-        styles: {
-          name: { fontWeight: "bold" },
-          percent: { fontStyle: "italic" },
-        },
-      });
-    }
-
-    tableRows.push(federalRow);
-  }
-  if (totalState?.amount?.toUnit() > 0) {
-    const stateRow = {
-      id: "total_state",
-      name: "State Taxes",
-      percent: totalState?.percent,
-      amount: totalState?.amount?.toFormat(),
-      breakdown: [],
-      breakdownTaxableIncome: stateTaxableIncome?.toFormat(),
-    } as any;
-    for (const [taxType, taxTotal] of Object.entries(stateResults)) {
-      if (taxType === CITIES) {
-        for (const [city, cityValue] of Object.entries(taxTotal)) {
-          if (cityValue === EXEMPT) continue;
-          stateRow.breakdown.push({
-            id: city,
-            name: `${snakeToTitleCase(city)} (City)`,
-            percent: `${getPercent(cityValue as Dinero, totalState?.amount)}%`,
-            amount: (cityValue as Dinero)?.toFormat(),
-          });
-        }
-        stateRow.breakdown.push({
-          id: "total_city",
-          name: "Total City",
-          percent: `${getPercent(totalCity?.amount, totalState?.amount)}%`,
-          amount: totalCity?.amount?.toFormat(),
+    const tableRows = [
+      {
+        id: "take_home",
+        name: "Take Home",
+        percent: takeHome?.percent,
+        amount: takeHome?.amount?.toFormat(),
+      },
+    ];
+    if (totalFederal?.amount?.toUnit() > 0) {
+      const federalRow = {
+        id: "total_federal",
+        name: "Federal Taxes",
+        percent: totalFederal?.percent,
+        amount: totalFederal?.amount?.toFormat(),
+        breakdown: [],
+        breakdownTaxableIncome: federalTaxableIncome?.toFormat(),
+      } as any;
+      for (const [taxType, taxTotal] of Object.entries(federalResults)) {
+        if (taxTotal === EXEMPT) continue;
+        federalRow.breakdown.push({
+          id: taxType,
+          name: snakeToTitleCase(taxType),
+          percent: `${getPercent(taxTotal as Dinero, totalFederal?.amount)}%`,
+          amount: (taxTotal as Dinero)?.toFormat(),
+        });
+      }
+      if (totalFica?.amount?.toUnit() > 0) {
+        federalRow.breakdown.push({
+          id: "fica",
+          name: "Total FICA",
+          percent: `${getPercent(totalFica?.amount, totalFederal?.amount)}%`,
+          amount: totalFica?.amount?.toFormat(),
           styles: {
             name: { fontWeight: "bold" },
             percent: { fontStyle: "italic" },
           },
         });
-      } else if (taxTotal !== EXEMPT) {
-        stateRow.breakdown.push({
-          id: taxType,
-          name: snakeToTitleCase(taxType),
-          percent: `${getPercent(taxTotal as Dinero, totalState?.amount)}%`,
-          amount: (taxTotal as Dinero)?.toFormat(),
-        });
       }
-    }
-    if (totalCity?.amount?.toUnit() > 0) {
-      stateRow.name = "State + City Taxes";
-    }
-    tableRows.push(stateRow);
-  }
 
-  let pieChartData = [];
-  let totalTaxTypes = 0;
-  for (const [taxType, value] of Object.entries(federalResults)) {
-    if (value === EXEMPT) continue;
-    totalTaxTypes++;
-    pieChartData.push({
-      id: taxType,
-      value: (value as Dinero)?.toUnit(),
-      label: snakeToTitleCase(taxType),
-      tooltipValue: (value as Dinero)?.toFormat(),
-    });
-  }
-  for (const [taxType, taxTotal] of Object.entries(stateResults)) {
-    if (taxType === CITIES) {
-      for (const [city, cityValue] of Object.entries(taxTotal)) {
-        if (cityValue === EXEMPT) continue;
-        totalTaxTypes++;
-        pieChartData.push({
-          id: city,
-          value: cityValue?.toUnit(),
-          label: snakeToTitleCase(city),
-          tooltipValue: (cityValue as Dinero)?.toFormat(),
-        });
+      tableRows.push(federalRow);
+    }
+    if (totalState?.amount?.toUnit() > 0) {
+      const stateRow = {
+        id: "total_state",
+        name: "State Taxes",
+        percent: totalState?.percent,
+        amount: totalState?.amount?.toFormat(),
+        breakdown: [],
+        breakdownTaxableIncome: stateTaxableIncome?.toFormat(),
+      } as any;
+      for (const [taxType, taxTotal] of Object.entries(stateResults)) {
+        if (taxType === CITIES) {
+          for (const [city, cityValue] of Object.entries(taxTotal)) {
+            if (cityValue === EXEMPT) continue;
+            stateRow.breakdown.push({
+              id: city,
+              name: `${snakeToTitleCase(city)} (City)`,
+              percent: `${getPercent(cityValue as Dinero, totalState?.amount)}%`,
+              amount: (cityValue as Dinero)?.toFormat(),
+            });
+          }
+          stateRow.breakdown.push({
+            id: "total_city",
+            name: "Total City",
+            percent: `${getPercent(totalCity?.amount, totalState?.amount)}%`,
+            amount: totalCity?.amount?.toFormat(),
+            styles: {
+              name: { fontWeight: "bold" },
+              percent: { fontStyle: "italic" },
+            },
+          });
+        } else if (taxTotal !== EXEMPT) {
+          stateRow.breakdown.push({
+            id: taxType,
+            name: snakeToTitleCase(taxType),
+            percent: `${getPercent(taxTotal as Dinero, totalState?.amount)}%`,
+            amount: (taxTotal as Dinero)?.toFormat(),
+          });
+        }
       }
-    } else if (taxTotal !== EXEMPT) {
+      if (totalCity?.amount?.toUnit() > 0) {
+        stateRow.name = "State + City Taxes";
+      }
+      tableRows.push(stateRow);
+    }
+
+    let pieChartData = [];
+    let totalTaxTypes = 0;
+    for (const [taxType, value] of Object.entries(federalResults)) {
+      if (value === EXEMPT) continue;
       totalTaxTypes++;
       pieChartData.push({
         id: taxType,
-        value: (taxTotal as Dinero)?.toUnit(),
+        value: (value as Dinero)?.toUnit(),
         label: snakeToTitleCase(taxType),
-        tooltipValue: (taxTotal as Dinero)?.toFormat(),
+        tooltipValue: (value as Dinero)?.toFormat(),
       });
     }
-  }
+    for (const [taxType, taxTotal] of Object.entries(stateResults)) {
+      if (taxType === CITIES) {
+        for (const [city, cityValue] of Object.entries(taxTotal)) {
+          if (cityValue === EXEMPT) continue;
+          totalTaxTypes++;
+          pieChartData.push({
+            id: city,
+            value: cityValue?.toUnit(),
+            label: snakeToTitleCase(city),
+            tooltipValue: (cityValue as Dinero)?.toFormat(),
+          });
+        }
+      } else if (taxTotal !== EXEMPT) {
+        totalTaxTypes++;
+        pieChartData.push({
+          id: taxType,
+          value: (taxTotal as Dinero)?.toUnit(),
+          label: snakeToTitleCase(taxType),
+          tooltipValue: (taxTotal as Dinero)?.toFormat(),
+        });
+      }
+    }
+
+    return { tableRows, pieChartData, totalTaxTypes };
+  }, [
+    totalIncome,
+    federalResults,
+    stateResults,
+    totalFederal,
+    totalState,
+    totalCity,
+    totalFica,
+    takeHome,
+    federalTaxableIncome,
+    stateTaxableIncome,
+  ]);
+
+  if (!totalIncome) return null;
 
   return (
     <Box>
@@ -333,7 +351,7 @@ const Results = memo(function Results({
                     const dataIndex = props?.itemData?.dataIndex;
                     const dataItem = props?.series?.data?.[dataIndex] as any;
                     debounce(() =>
-                      sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label)
+                      sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label),
                     )();
                     return (
                       <table
