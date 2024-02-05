@@ -71,6 +71,7 @@ export default function RootLayout(props: { children: ReactNode }) {
         <Script
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3786303899750150"
           strategy="lazyOnload"
+          crossOrigin="anonymous"
         />
       </body>
     </html>
