@@ -61,7 +61,7 @@ const Results = memo(function Results({
         totalStateDeductions,
         exemptTaxes,
         USAState,
-        USACity,
+        USACity
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -74,7 +74,7 @@ const Results = memo(function Results({
       federalTaxes,
       stateTaxes,
       USACity,
-    ],
+    ]
   );
 
   if (!totalIncome) return null;
@@ -168,8 +168,8 @@ const Results = memo(function Results({
   let pieChartData = [];
   let totalTaxTypes = 0;
   for (const [taxType, value] of Object.entries(federalResults)) {
-    totalTaxTypes++;
     if (value === EXEMPT) continue;
+    totalTaxTypes++;
     pieChartData.push({
       id: taxType,
       value: (value as Dinero)?.toUnit(),
@@ -178,10 +178,10 @@ const Results = memo(function Results({
     });
   }
   for (const [taxType, taxTotal] of Object.entries(stateResults)) {
-    totalTaxTypes++;
     if (taxType === CITIES) {
       for (const [city, cityValue] of Object.entries(taxTotal)) {
         if (cityValue === EXEMPT) continue;
+        totalTaxTypes++;
         pieChartData.push({
           id: city,
           value: cityValue?.toUnit(),
@@ -190,6 +190,7 @@ const Results = memo(function Results({
         });
       }
     } else if (taxTotal !== EXEMPT) {
+      totalTaxTypes++;
       pieChartData.push({
         id: taxType,
         value: (taxTotal as Dinero)?.toUnit(),
@@ -324,16 +325,15 @@ const Results = memo(function Results({
                     data: pieChartData,
                   },
                 ]}
-                width={250}
+                width={300}
                 height={325}
                 tooltip={{
                   trigger: "item",
                   itemContent: (props) => {
-                    console.log("here", props);
                     const dataIndex = props?.itemData?.dataIndex;
                     const dataItem = props?.series?.data?.[dataIndex] as any;
                     debounce(() =>
-                      sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label),
+                      sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label)
                     )();
                     return (
                       <table

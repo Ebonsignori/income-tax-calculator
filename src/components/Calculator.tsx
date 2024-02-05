@@ -312,7 +312,14 @@ export default function Home({
           />
         </Grid>
         <Grid xs={12} sx={{ mt: 2 }}>
-          <Accordion sx={{ border: 1 }}>
+          <Accordion
+            sx={{ border: 1 }}
+            onChange={(_, isExpanded: boolean) => {
+              if (isExpanded) {
+                sendAnalyticsEvent(EVENTS.OPEN_DEDUCTIONS);
+              }
+            }}
+          >
             <AccordionSummary
               expandIcon={<ArrowDownwardIcon />}
               id="deductions-header"

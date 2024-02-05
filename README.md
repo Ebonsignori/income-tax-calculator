@@ -29,3 +29,5 @@ All tax data used for calculations is located in [src/data](./src/data).
 - Cache all json files in PWA?
 
 - Add other states / cities
+
+- Tax options {...key} error in console?

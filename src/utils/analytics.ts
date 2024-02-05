@@ -149,6 +149,12 @@ export function sendAnalyticsEvent(
         row_name: eventValue as string,
       };
       break;
+    case EVENTS.CLICK_CHART:
+      metadata = {
+        ...metadata,
+        chart_slice_name: eventValue as string,
+      };
+      break;
   }
 
   mixpanel.track(eventName, {
