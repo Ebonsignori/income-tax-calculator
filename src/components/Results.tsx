@@ -79,7 +79,7 @@ const Results = memo(function Results({
 
   const { tableRows, pieChartData, totalTaxTypes } = useMemo(() => {
     if (!totalIncome)
-      return { tableRows: [], pieChartData: [], totalTaxTypes: [] };
+      return { tableRows: [], pieChartData: [], totalTaxTypes: 0 };
 
     const tableRows = [
       {
