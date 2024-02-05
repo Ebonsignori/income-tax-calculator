@@ -12,7 +12,6 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { ColorModeContext } from "@/context/color-mode";
 import type { Viewport } from "next";
-import Script from "next/script";
 
 export default function RootLayout(props: { children: ReactNode }) {
   const [mode, setMode] = useState<"light" | "dark">("light");
@@ -68,11 +67,11 @@ export default function RootLayout(props: { children: ReactNode }) {
             </ThemeProvider>
           </ColorModeContext.Provider>
         </AppRouterCacheProvider>
-        <Script
+        <script
+          async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3786303899750150"
-          strategy="lazyOnload"
           crossOrigin="anonymous"
-        />
+        ></script>
       </body>
     </html>
   );

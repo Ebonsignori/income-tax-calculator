@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "go": "npm run lint:fix && npm run build && npm run start",
+    "go": "npm run lint:fix && npm run build && node open.js 3000 && npm run start",
     "dev": "node open.js 3000 && next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
