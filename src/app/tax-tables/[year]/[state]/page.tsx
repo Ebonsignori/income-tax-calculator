@@ -1,7 +1,7 @@
 import TaxTables from "@/components/TaxTables";
 import Wrapper from "@/components/Wrapper";
 import { TAX_TABLES } from "@/constants/pages";
-import { StatePageProps } from "@/types/page";
+import type { StatePageProps } from "@/types/page";
 import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
 import { getStatePageData } from "@/utils/get-page-data";
 import { getStatePageParams } from "@/utils/get-page-params";

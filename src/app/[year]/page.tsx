@@ -1,10 +1,7 @@
 import Calculator from "@/components/Calculator";
 import Wrapper from "@/components/Wrapper";
-import {
-  INCOME_TAX_CALCULATOR,
-  INCOME_TAX_CALCULATOR_SHORT_TITLE,
-} from "@/constants/pages";
-import { YearPageParams, YearPageProps } from "@/types/page";
+import { INCOME_TAX_CALCULATOR } from "@/constants/pages";
+import type { YearPageParams, YearPageProps } from "@/types/page";
 import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
 import { getYearPageData } from "@/utils/get-page-data";
 import { getYearPageParams } from "@/utils/get-page-params";

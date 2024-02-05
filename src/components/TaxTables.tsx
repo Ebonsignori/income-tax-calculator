@@ -14,24 +14,25 @@ import {
 import { YearSelect } from "./input/YearSelect";
 import { StateSelect } from "./input/StateSelect";
 import { CitySelect } from "./input/CitySelect";
-import { AvailableStatesAndCities, TaxData } from "@/types";
-import { useContext, useMemo, useState } from "react";
+import type { AvailableStatesAndCities, TaxData } from "@/types";
+import { useMemo, useState } from "react";
 import { TAX_TABLES } from "@/constants/pages";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
+import type { StandardDeductionMap } from "@/constants/filing-status";
 import {
   ALL,
   EMPTY_STANDARD_DEDUCTION_MAP,
   FILING_STATUSES,
-  StandardDeductionMap,
 } from "@/constants/filing-status";
 import { CITIES, INFINITY } from "@/constants";
-import { TaxOption, useGetTaxOptions } from "@/utils/get-tax-options";
+import type { TaxOption } from "@/utils/get-tax-options";
+import { useGetTaxOptions } from "@/utils/get-tax-options";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import { useGetTaxData } from "@/utils/get-tax-data";
 import { asCurrency, formatNoZeros } from "@/utils/calculator";
 import { NONE, STATE_INCOME } from "@/constants/tax_types";
-import { TaxDataSelect, TaxDataSelectOption } from "./input/TaxDataSelect";
-import mixpanel from "mixpanel-browser";
+import type { TaxDataSelectOption } from "./input/TaxDataSelect";
+import { TaxDataSelect } from "./input/TaxDataSelect";
 import { initEventTracking } from "@/utils/analytics";
 
 type TaxTableProps = {

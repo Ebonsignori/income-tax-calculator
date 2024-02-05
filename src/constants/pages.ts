@@ -12,3 +12,5 @@ export const SUPPORT = {
 };
 
 export const INCOME_TAX_CALCULATOR_SHORT_TITLE = "Calculator";
+
+export const TAX_TABLES_SHORT_TITLE = "Tax Tables";

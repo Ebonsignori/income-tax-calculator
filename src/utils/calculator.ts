@@ -1,13 +1,14 @@
 import Dinero from "dinero.js";
-import { ALL, FilingStatus } from "@/constants/filing-status";
-import { TaxData, TaxResults, TaxResultsWithCities } from "@/types";
+import type { FilingStatus } from "@/constants/filing-status";
+import { ALL } from "@/constants/filing-status";
+import type { TaxData, TaxResults, TaxResultsWithCities } from "@/types";
 import {
   MAX_401K_CONTRIBUTION,
   NONE,
   STANDARD_DEDUCTION,
 } from "@/constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "@/constants";
-import { TaxOption } from "./get-tax-options";
+import type { TaxOption } from "./get-tax-options";
 
 const nonTaxKeys = [MAX_401K_CONTRIBUTION, STANDARD_DEDUCTION];
 

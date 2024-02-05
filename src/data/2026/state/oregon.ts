@@ -7,7 +7,7 @@ import {
   SINGLE,
 } from "@/constants/filing-status";
 import { PRESCHOOL_FOR_ALL } from "@/constants/tax_types";
-import { TaxData } from "@/types";
+import type { TaxData } from "@/types";
 
 export default {
   [CITIES]: {

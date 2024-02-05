@@ -1,5 +1,5 @@
 import { INCOME_TAX_CALCULATOR, SUPPORT, TAX_TABLES } from "@/constants/pages";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(

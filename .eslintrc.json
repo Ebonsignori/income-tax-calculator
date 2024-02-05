@@ -1,6 +1,11 @@
 {
   "extends": ["next/core-web-vitals", "plugin:prettier/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "root": true,
   "rules": {
-    "import/no-anonymous-default-export": "off"
+    "import/no-anonymous-default-export": "off",
+    "no-unused-vars": "error",
+    "@typescript-eslint/consistent-type-imports": "error"
   }
 }

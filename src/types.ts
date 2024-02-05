@@ -1,15 +1,16 @@
+/* eslint-disable no-unused-vars */
 import type { FilingStatus } from "./constants/filing-status";
-import { ALL } from "./constants/filing-status";
-import {
+import type { ALL } from "./constants/filing-status";
+import type {
   FEDERAL_INCOME,
   MAX_401K_CONTRIBUTION,
   NONE,
   STANDARD_DEDUCTION,
   STATE_INCOME,
 } from "./constants/tax_types";
-import { CITIES, EXEMPT, INFINITY } from "./constants";
-import { Dinero } from "dinero.js";
-import { ReactElement } from "react";
+import type { CITIES, EXEMPT, INFINITY } from "./constants";
+import type { Dinero } from "dinero.js";
+import type { ReactElement } from "react";
 
 export type Bracket =
   | {

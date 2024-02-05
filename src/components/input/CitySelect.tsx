@@ -1,4 +1,4 @@
-import { AvailableStatesAndCities } from "@/types";
+import type { AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
@@ -9,6 +9,7 @@ type CitySelectProps = {
   year: string;
   USAState: string;
   USACity: string;
+  // eslint-disable-next-line no-unused-vars
   setUSACity: (val: string) => void;
   baseRoute?: string;
 };

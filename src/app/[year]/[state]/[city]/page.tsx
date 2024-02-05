@@ -1,11 +1,8 @@
 import Calculator from "@/components/Calculator";
 import Wrapper from "@/components/Wrapper";
-import {
-  INCOME_TAX_CALCULATOR,
-  INCOME_TAX_CALCULATOR_SHORT_TITLE,
-} from "@/constants/pages";
+import { INCOME_TAX_CALCULATOR } from "@/constants/pages";
 import { getCityPageData } from "@/utils/get-page-data";
-import { CityPageParams, CityPageProps } from "@/types/page";
+import type { CityPageParams, CityPageProps } from "@/types/page";
 import { getCityPageParams } from "@/utils/get-page-params";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";

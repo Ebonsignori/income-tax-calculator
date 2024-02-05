@@ -30,7 +30,8 @@ import { StateSelect } from "./input/StateSelect";
 import { CitySelect } from "./input/CitySelect";
 import { YearSelect } from "./input/YearSelect";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
-import { TaxOption, useGetTaxOptions } from "@/utils/get-tax-options";
+import type { TaxOption } from "@/utils/get-tax-options";
+import { useGetTaxOptions } from "@/utils/get-tax-options";
 import {
   EVENTS,
   initEventTracking,
@@ -155,6 +156,7 @@ export default function Home({
   });
 
   const handleNumberChange = useCallback(
+    // eslint-disable-next-line no-unused-vars
     (setterFunction: (...args: any) => void) => {
       return (event: React.ChangeEvent<HTMLInputElement>, newValue?: any) => {
         let value = event.target.value;

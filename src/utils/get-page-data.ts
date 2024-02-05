@@ -1,5 +1,5 @@
 import { getTaxDataByYear } from "@/get-tax-data";
-import { CityPageParams, StatePageParams } from "@/types/page";
+import type { CityPageParams, StatePageParams } from "@/types/page";
 import path from "path";
 
 export async function getLandingPageData() {

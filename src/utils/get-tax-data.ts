@@ -1,10 +1,12 @@
-import { TaxData } from "@/types";
+import type { TaxData } from "@/types";
 import { useEffect } from "react";
 
 type GetTaxData = {
   year: string;
   USAState: string;
+  // eslint-disable-next-line no-unused-vars
   setFederalTaxes: (value: TaxData) => void;
+  // eslint-disable-next-line no-unused-vars
   setStateTaxes: (value: TaxData) => void;
 };
 

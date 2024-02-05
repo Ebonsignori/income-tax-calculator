@@ -13,7 +13,7 @@ import {
   SOCIAL_SECURITY,
   STANDARD_DEDUCTION,
 } from "@/constants/tax_types";
-import { TaxData } from "@/types";
+import type { TaxData } from "@/types";
 
 export default {
   [MAX_401K_CONTRIBUTION]: 22500,

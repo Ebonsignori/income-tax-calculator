@@ -6,12 +6,8 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import {
-  PRESCHOOL_FOR_ALL,
-  STANDARD_DEDUCTION,
-  STATE_INCOME,
-} from "@/constants/tax_types";
-import { TaxData } from "@/types";
+import { PRESCHOOL_FOR_ALL, STANDARD_DEDUCTION } from "@/constants/tax_types";
+import type { TaxData } from "@/types";
 
 export default {
   [STANDARD_DEDUCTION]: {

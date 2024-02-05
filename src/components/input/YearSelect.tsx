@@ -7,6 +7,7 @@ type YearSelectProps = {
   year: string;
   USAState: string;
   USACity: string;
+  // eslint-disable-next-line no-unused-vars
   setYear: (val: string) => void;
   baseRoute?: string;
 };

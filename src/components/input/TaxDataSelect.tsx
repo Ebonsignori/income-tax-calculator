@@ -10,6 +10,7 @@ type TaxDataSelectProps = {
   label: string;
   taxData: TaxDataSelectOption[];
   selectedTaxData: TaxDataSelectOption[];
+  // eslint-disable-next-line no-unused-vars
   setSelectedTaxData: (val: TaxDataSelectOption[]) => void;
 };
 

@@ -16,7 +16,7 @@ import {
   SUPPORTIVE_HOUSING_SERVICES,
   OREGON_TRANSIT_TAX,
 } from "@/constants/tax_types";
-import { TaxData } from "@/types";
+import type { TaxData } from "@/types";
 
 export default {
   [STANDARD_DEDUCTION]: {

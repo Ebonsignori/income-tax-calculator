@@ -20,7 +20,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import { CITIES, EXEMPT } from "@/constants";
-import { Dinero } from "dinero.js";
+import type { Dinero } from "dinero.js";
 import { useTheme } from "@mui/material/styles";
 
 const Results = memo(function Results({

@@ -9,7 +9,9 @@ type StateSelectProps = {
   availableStatesAndCities: AvailableStatesAndCities;
   year: string;
   USAState: string;
+  // eslint-disable-next-line no-unused-vars
   setUSAState: (val: string) => void;
+  // eslint-disable-next-line no-unused-vars
   setUSACity: (val: string) => void;
   baseRoute?: string;
 };

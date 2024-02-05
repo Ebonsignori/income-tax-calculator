@@ -9,13 +9,14 @@ const roboto = Roboto({
 });
 
 declare module "@mui/material/styles" {
+  // eslint-disable-next-line no-unused-vars
   interface Theme {
     custom: {
       red: string;
       green: string;
     };
   }
-  // allow configuration using `createTheme`
+  // eslint-disable-next-line no-unused-vars
   interface ThemeOptions {
     custom: {
       red: string;

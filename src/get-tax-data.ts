@@ -3,7 +3,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 
-import { TaxData } from "./types";
+import type { TaxData } from "./types";
 
 const yearPattern = /^\d{4}$/;
 

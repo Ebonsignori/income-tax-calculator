@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -10,7 +11,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { ColorModeContext } from "@/context/color-mode";
-import { Viewport } from "next";
+import type { Viewport } from "next";
 import Script from "next/script";
 
 export default function RootLayout(props: { children: ReactNode }) {

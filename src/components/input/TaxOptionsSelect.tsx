@@ -1,4 +1,4 @@
-import { TaxOption } from "@/utils/get-tax-options";
+import type { TaxOption } from "@/utils/get-tax-options";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
@@ -7,6 +7,7 @@ type TaxOptionsSelectProps = {
   label: string;
   taxOptions: TaxOption[];
   selectedTaxOptions: TaxOption[];
+  // eslint-disable-next-line no-unused-vars
   setSelectedTaxOptions: (val: TaxOption[]) => void;
 };
 

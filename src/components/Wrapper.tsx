@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import type { ReactNode } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import mixpanel from "mixpanel-browser";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -28,6 +21,7 @@ import {
   INCOME_TAX_CALCULATOR_SHORT_TITLE,
   TAX_TABLES,
   INCOME_TAX_CALCULATOR,
+  TAX_TABLES_SHORT_TITLE,
 } from "@/constants/pages";
 import {
   AttachMoney,
@@ -46,7 +40,7 @@ import {
   setPageName,
   setTrackingEnabled,
 } from "@/utils/analytics";
-import { NavPage } from "@/types";
+import type { NavPage } from "@/types";
 
 const drawerWidth = 240;
 
@@ -57,8 +51,6 @@ export default function Wrapper({
   children: ReactNode;
   title: string;
 }) {
-  const [footerHeight, setFooterHeight] = useState(0);
-
   useEffect(() => {
     mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "", {
       debug: process.env.NODE_ENV === "development",
@@ -75,8 +67,6 @@ export default function Wrapper({
   const [open, setOpen] = useState(false);
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
-
-  const footerRef = useRef(null);
 
   const toggleDrawer = useCallback(
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -106,7 +96,8 @@ export default function Wrapper({
         selected: title === INCOME_TAX_CALCULATOR.name,
       },
       {
-        ...TAX_TABLES,
+        name: TAX_TABLES_SHORT_TITLE,
+        route: TAX_TABLES.route,
         icon: <TableChartOutlined />,
         selected: title === TAX_TABLES.name,
       },
@@ -114,12 +105,6 @@ export default function Wrapper({
     ],
     [title],
   );
-
-  useEffect(() => {
-    if (footerRef.current) {
-      setFooterHeight((footerRef.current as any)?.clientHeight);
-    }
-  }, [footerRef, setFooterHeight]);
 
   return (
     <>
@@ -217,14 +202,12 @@ export default function Wrapper({
         sx={{
           flexGrow: 1,
           p: 4,
-          maxHeight: `calc(100vh - ${footerHeight}px)`,
-          overflow: "auto",
         }}
       >
         <Toolbar />
         {children}
       </Container>
-      <Footer innerRef={footerRef} pages={pages} />
+      <Footer pages={pages} />
     </>
   );
 }

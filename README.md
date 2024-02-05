@@ -14,6 +14,8 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Ad in middle of screen
 
+- Fix footer
+
 ## Later TODO
 
 - Playwright tests

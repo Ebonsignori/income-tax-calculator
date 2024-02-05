@@ -5,9 +5,9 @@ import {
   STANDARD_DEDUCTION,
   STATE_INCOME,
 } from "@/constants/tax_types";
-import { StandardDeductionMap } from "@/constants/filing-status";
+import type { StandardDeductionMap } from "@/constants/filing-status";
 import { CITIES } from "@/constants";
-import { TaxData } from "@/types";
+import type { TaxData } from "@/types";
 
 export type TaxOption = {
   title: string;
@@ -20,8 +20,11 @@ type GetTaxOptions = {
   stateTaxes: TaxData;
   USACity: string;
   USAState: string;
+  // eslint-disable-next-line no-unused-vars
   setFederalStandardDeductionMap: (value: StandardDeductionMap) => void;
+  // eslint-disable-next-line no-unused-vars
   setStateStandardDeductionMap: (value: StandardDeductionMap) => void;
+  // eslint-disable-next-line no-unused-vars
   setMax401KContribution: (value: number) => void;
 };
 
@@ -58,7 +61,7 @@ export function useGetTaxOptions({
       }
       if (key === CITIES) {
         if (USACity && (value as any)[USACity]) {
-          Object.entries((value as any)[USACity]).map(([key, value]) => {
+          Object.entries((value as any)[USACity]).map(([key]) => {
             cities.push({
               title: snakeToTitleCase(`${USACity}_${key}`),
               value: key,
