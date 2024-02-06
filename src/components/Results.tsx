@@ -438,8 +438,8 @@ const Results = memo(function Results({
             </Grid>
             <Grid item xs={12} marginTop={4}>
               <Typography variant="body2" textAlign="center" fontStyle="italic">
-                * Values are estimations and may not be exact. If values appear
-                incorrect, please <SupportButton asLink />.
+                * Values are estimations. If values appear incorrect, please{" "}
+                <SupportButton asLink />.
               </Typography>
             </Grid>
           </Grid>
