@@ -36,6 +36,7 @@ export default function Footer({ pages }: FooterProps) {
         {"Copyright © "}
         <MuiLink
           color="inherit"
+          component={Link}
           href="https://evan.bio/"
           onClick={() => sendAnalyticsEvent(EVENTS.AUTHOR_FOOTER_CLICK)}
         >

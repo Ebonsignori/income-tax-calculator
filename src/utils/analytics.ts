@@ -7,6 +7,7 @@ export type EventContext = {
   selected_city?: string;
   selected_income?: number;
   selected_filing_status?: string;
+  selected_paycheck_frequency?: string;
   selected_tax_options?: string;
 };
 
@@ -58,6 +59,7 @@ export const EVENTS = {
   CHANGE_INCOME: "change_income",
   CHANGE_INCOME_VIA_SLIDER: "change_income_via_slider",
   CHANGE_FILING_STATUS: "change_filing_status",
+  CHANGE_PAYCHECK_FREQUENCY: "change_paycheck_frequency",
 
   OPEN_DEDUCTIONS: "open_deductions",
   CHANGE_TAX_EXEMPTIONS: "change_tax_exemptions",
@@ -129,6 +131,12 @@ export function sendAnalyticsEvent(
       newEventContext = {
         ...eventContext,
         selected_filing_status: eventValue as string,
+      };
+      break;
+    case EVENTS.CHANGE_PAYCHECK_FREQUENCY:
+      newEventContext = {
+        ...eventContext,
+        paycheck_frequency: eventValue as string,
       };
       break;
     case EVENTS.CHANGE_TAX_OPTIONS:

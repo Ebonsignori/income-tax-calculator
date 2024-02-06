@@ -14,12 +14,6 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Ad in middle of screen
 
-- Use paycheck frequency instead of per month: 
-  - Weekly – 52 paychecks per year.
-  - Biweekly – 26 paychecks per year.
-  - Semi-monthly – 24 paychecks per year.
-  - Monthly – 12 paychecks per year.
-
 - Add other states / cities
 
 - Verify PWA works offline for uncached states/cities

@@ -1,4 +1,8 @@
-import { calculate, getPercent } from "@/utils/calculator";
+import {
+  calculate,
+  getPaycheckByFrequency,
+  getPercent,
+} from "@/utils/calculator";
 import {
   Box,
   Collapse,
@@ -24,6 +28,8 @@ import type { Dinero } from "dinero.js";
 import { useTheme } from "@mui/material/styles";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { debounce } from "@/utils/debounce";
+import { FREQUENCY_TO_FREQUENCY_LABEL } from "@/constants/paycheck-frequency";
+import { SupportButton } from "./SupportButton";
 
 const Results = memo(function Results({
   federalTaxes,
@@ -36,6 +42,7 @@ const Results = memo(function Results({
   exemptTaxes,
   USAState,
   USACity,
+  paycheckFrequency,
 }: any) {
   const theme = useTheme();
   const {
@@ -243,10 +250,13 @@ const Results = memo(function Results({
             or
           </Typography>
           <Typography variant="body1" fontSize="large" textAlign="center">
-            {takeHome?.amount?.divide(12).toFormat()}
+            {getPaycheckByFrequency(
+              takeHome?.amount,
+              paycheckFrequency,
+            ).toFormat()}
           </Typography>
           <Typography variant="body2" textAlign="center">
-            per month
+            {FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency]}
           </Typography>
         </Grid>
         <Grid
@@ -278,10 +288,10 @@ const Results = memo(function Results({
             or
           </Typography>
           <Typography variant="body1" fontSize="large" textAlign="center">
-            {totalTaxes.divide(12).toFormat()}
+            {getPaycheckByFrequency(totalTaxes, paycheckFrequency).toFormat()}
           </Typography>
           <Typography variant="body2" textAlign="center">
-            per month
+            {FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency]}
           </Typography>
         </Grid>
       </Grid>
@@ -407,6 +417,12 @@ const Results = memo(function Results({
                   },
                 }}
               />
+            </Grid>
+            <Grid item xs={12} marginTop={4}>
+              <Typography variant="body2" textAlign="center" fontStyle="italic">
+                * Values are estimations and may not be exact. If values appear
+                incorrect, please <SupportButton asLink />.
+              </Typography>
             </Grid>
           </Grid>
         </>

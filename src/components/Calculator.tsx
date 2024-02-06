@@ -38,6 +38,9 @@ import {
   sendAnalyticsEvent,
 } from "@/utils/analytics";
 import { debounce } from "@/utils/debounce";
+import { PaycheckFrequencySelect } from "./input/PaycheckFrequencySelect";
+import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
+import { MONTHLY } from "@/constants/paycheck-frequency";
 
 type HomeProps = {
   availableYears: string[];
@@ -71,6 +74,8 @@ export default function Home({
   const [USAState, setUSAState] = useState(defaultUSAState || "");
   const [year, setYear] = useState(defaultYear);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
+  const [paycheckFrequency, setPaycheckFrequency] =
+    useState<PaycheckFrequency>(MONTHLY);
   const [exemptTaxes, setExemptTaxes] = useState<TaxOption[]>(
     [] as TaxOption[],
   );
@@ -210,6 +215,7 @@ export default function Home({
     selected_income: totalIncome,
     selected_year: year,
     selected_filing_status: filingStatus,
+    selected_paycheck_frequency: paycheckFrequency,
     selected_state: USAState,
     selected_city: USACity,
   });
@@ -287,7 +293,7 @@ export default function Home({
             ))}
           </TextField>
         </Grid>
-        <Grid xs={12} sm={6} md={4}>
+        <Grid xs={12} sm={6} md={6}>
           <StateSelect
             availableStatesAndCities={availableStatesAndCities}
             year={year}
@@ -296,7 +302,7 @@ export default function Home({
             setUSACity={setUSACity}
           />
         </Grid>
-        <Grid xs={12} sm={6} md={4}>
+        <Grid xs={12} sm={6} md={6}>
           <CitySelect
             availableStatesAndCities={availableStatesAndCities}
             year={year}
@@ -305,7 +311,13 @@ export default function Home({
             setUSACity={setUSACity}
           />
         </Grid>
-        <Grid xs={12} sm={12} md={4}>
+        <Grid xs={12} sm={6} md={6}>
+          <PaycheckFrequencySelect
+            paycheckFrequency={paycheckFrequency}
+            setPaycheckFrequency={setPaycheckFrequency}
+          />
+        </Grid>
+        <Grid xs={12} sm={6} md={6}>
           <TaxOptionsSelect
             label="Tax Exemptions"
             taxOptions={taxOptions}
@@ -474,6 +486,7 @@ export default function Home({
         exemptTaxes={exemptTaxes}
         USACity={USACity}
         USAState={USAState}
+        paycheckFrequency={paycheckFrequency}
       />
     </>
   );

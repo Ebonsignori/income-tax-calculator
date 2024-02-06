@@ -2,9 +2,25 @@
 
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { Button } from "@mui/material";
+import MuiLink from "@mui/material/Link";
 import Link from "next/link";
 
-export function SupportButton() {
+type SupportButtonProps = {
+  asLink?: boolean;
+};
+
+export function SupportButton({ asLink }: SupportButtonProps) {
+  const href =
+    process.env.NEXT_PUBLIC_NEW_REPO_ISSUE_LINK ||
+    "https://github.com/Ebonsignori/income-calculator/issues/new";
+  const onClick = () => sendAnalyticsEvent(EVENTS.OPEN_ISSUE_CLICK);
+  if (asLink) {
+    return (
+      <MuiLink color="inherit" component={Link} href={href} onClick={onClick}>
+        open an issue on GitHub
+      </MuiLink>
+    );
+  }
   return (
     <Button
       sx={{
@@ -12,11 +28,8 @@ export function SupportButton() {
       }}
       variant="contained"
       component={Link}
-      onClick={() => sendAnalyticsEvent(EVENTS.OPEN_ISSUE_CLICK)}
-      href={
-        process.env.NEXT_PUBLIC_NEW_REPO_ISSUE_LINK ||
-        "https://github.com/Ebonsignori/income-calculator/issues/new"
-      }
+      onClick={onClick}
+      href={href}
     >
       Report issue on GitHub
     </Button>

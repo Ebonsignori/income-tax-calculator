@@ -9,6 +9,8 @@ import {
 } from "@/constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "@/constants";
 import type { TaxOption } from "./get-tax-options";
+import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
+import { FREQUENCY_TO_PAYCHECKS_PER_YEAR } from "@/constants/paycheck-frequency";
 
 const nonTaxKeys = [MAX_401K_CONTRIBUTION, STANDARD_DEDUCTION];
 
@@ -258,3 +260,13 @@ export function getPercent(
 }
 
 export const formatNoZeros = "$0,0";
+
+export function getPaycheckByFrequency(
+  totalIncome: Dinero.Dinero,
+  paycheckFrequency: PaycheckFrequency,
+) {
+  const paycheck = totalIncome.divide(
+    FREQUENCY_TO_PAYCHECKS_PER_YEAR[paycheckFrequency],
+  );
+  return paycheck;
+}
