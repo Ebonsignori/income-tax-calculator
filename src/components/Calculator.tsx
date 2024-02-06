@@ -72,7 +72,7 @@ export default function Home({
   const [year, setYear] = useState(defaultYear);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
   const [exemptTaxes, setExemptTaxes] = useState<TaxOption[]>(
-    [] as TaxOption[]
+    [] as TaxOption[],
   );
 
   const [stateTaxes, setStateTaxes] = useState<TaxData>(defaultStateTaxes);
@@ -88,7 +88,7 @@ export default function Home({
 
   const availableStatesAndCities = useMemo(() => {
     return statesAndCitiesForYear[year];
-  }, [year]);
+  }, [statesAndCitiesForYear, year]);
 
   const resetTotalStateDeductions = useCallback(() => {
     setTotalStateDeductions(stateStandardDeductionMap[filingStatus]);
@@ -175,7 +175,7 @@ export default function Home({
         }
       };
     },
-    []
+    [],
   );
 
   const max401KContributionDisplay = useMemo(() => {
@@ -250,8 +250,8 @@ export default function Home({
                     debounce(() =>
                       sendAnalyticsEvent(
                         EVENTS.CHANGE_INCOME_VIA_SLIDER,
-                        newIncome
-                      )
+                        newIncome,
+                      ),
                     )();
                   }
                 }}
@@ -350,7 +350,7 @@ export default function Home({
                             <InputAdornment position="end">
                               <Tooltip
                                 title={`Set to max allowed for ${yearDisplay(
-                                  year
+                                  year,
                                 )}`}
                               >
                                 <IconButton
@@ -393,7 +393,7 @@ export default function Home({
                             <InputAdornment position="end">
                               <Tooltip
                                 title={`Set to standard deduction for ${yearDisplay(
-                                  year
+                                  year,
                                 )}`}
                               >
                                 <IconButton
@@ -437,7 +437,7 @@ export default function Home({
                             <InputAdornment position="end">
                               <Tooltip
                                 title={`Set to standard deduction for ${yearDisplay(
-                                  year
+                                  year,
                                 )}`}
                               >
                                 <IconButton

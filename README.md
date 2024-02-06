@@ -22,10 +22,12 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Add other states / cities
 
-- Tax options {...key} error in console?
-
 - Verify PWA works offline for uncached states/cities
   
 # Later TODO
 
 Improve accessibility
+
+- Tax options {...key} error in console? may be a Next.js bug
+
+- Metadata only via tag, may be a Next.js bug
