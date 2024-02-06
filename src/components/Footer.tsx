@@ -41,7 +41,7 @@ export default function Footer({ pages }: FooterProps) {
         >
           Evan Bonsignori
         </MuiLink>{" "}
-        {new Date().getFullYear()}.
+        {new Date().getFullYear()}
       </Typography>
       {pages.map(({ name, route, selected }) => {
         if (selected) {

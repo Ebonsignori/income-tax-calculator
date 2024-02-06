@@ -26,3 +26,6 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Verify PWA works offline for uncached states/cities
   
+# Later TODO
+
+Improve accessibility

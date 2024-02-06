@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import mixpanel from "mixpanel-browser";
 import Box from "@mui/material/Box";
-import Drawer from "@mui/material/Drawer";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import List from "@mui/material/List";
@@ -15,7 +14,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import { Container, Tooltip, useTheme } from "@mui/material";
+import { Container, SwipeableDrawer, Tooltip, useTheme } from "@mui/material";
 import {
   SUPPORT,
   INCOME_TAX_CALCULATOR_SHORT_TITLE,
@@ -74,7 +73,7 @@ export default function Wrapper({
   const toggleDrawer = useCallback(
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
       if (
-        event.type === "keydown" &&
+        event?.type === "keydown" &&
         ((event as React.KeyboardEvent).key === "Tab" ||
           (event as React.KeyboardEvent).key === "Shift")
       ) {
@@ -152,7 +151,7 @@ export default function Wrapper({
             </Tooltip>
           </Toolbar>
         </AppBar>
-        <Drawer
+        <SwipeableDrawer
           sx={{
             width: drawerWidth,
             flexShrink: 0,
@@ -166,6 +165,8 @@ export default function Wrapper({
           variant="temporary"
           onClick={toggleDrawer(false)}
           onKeyDown={toggleDrawer(false)}
+          onOpen={toggleDrawer(true)}
+          onClose={toggleDrawer(false)}
         >
           <Toolbar />
           <List>
@@ -199,7 +200,7 @@ export default function Wrapper({
               );
             })}
           </List>
-        </Drawer>
+        </SwipeableDrawer>
       </Box>
       <Container
         maxWidth="md"
