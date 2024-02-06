@@ -37,7 +37,7 @@ import { initEventTracking } from "@/utils/analytics";
 
 type TaxTableProps = {
   availableYears: string[];
-  availableStatesAndCities: AvailableStatesAndCities;
+  statesAndCitiesForYear: { [year: string]: AvailableStatesAndCities };
   defaultYear: string;
   defaultFederalTaxes: TaxData;
   defaultStateTaxes: TaxData;
@@ -54,7 +54,7 @@ const taxDataMap = {
 
 export default function TaxTables({
   availableYears,
-  availableStatesAndCities,
+  statesAndCitiesForYear,
   defaultFederalTaxes,
   defaultStateTaxes,
   defaultYear,
@@ -83,6 +83,10 @@ export default function TaxTables({
     useState<StandardDeductionMap>(EMPTY_STANDARD_DEDUCTION_MAP);
 
   const [max401KContribution, setMax401KContribution] = useState(0);
+
+  const availableStatesAndCities = useMemo(() => {
+    return statesAndCitiesForYear[year];
+  }, [statesAndCitiesForYear, year]);
 
   useGetTaxData({
     year,
