@@ -28,8 +28,26 @@ import type { Dinero } from "dinero.js";
 import { useTheme } from "@mui/material/styles";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { debounce } from "@/utils/debounce";
+import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { FREQUENCY_TO_FREQUENCY_LABEL } from "@/constants/paycheck-frequency";
 import { SupportButton } from "./SupportButton";
+import type { TaxData } from "@/types";
+import type { FilingStatus } from "@/constants/filing-status";
+import type { TaxOption } from "@/utils/get-tax-options";
+
+type ResultsProps = {
+  federalTaxes: TaxData;
+  stateTaxes: TaxData;
+  totalIncome: number;
+  filingStatus: FilingStatus;
+  totalIRA: number;
+  totalFederalDeductions: number;
+  totalStateDeductions: number;
+  exemptTaxes: TaxOption[];
+  USAState: string;
+  USACity: string;
+  paycheckFrequency: PaycheckFrequency;
+};
 
 const Results = memo(function Results({
   federalTaxes,
@@ -43,7 +61,7 @@ const Results = memo(function Results({
   USAState,
   USACity,
   paycheckFrequency,
-}: any) {
+}: ResultsProps) {
   const theme = useTheme();
   const {
     takeHome,

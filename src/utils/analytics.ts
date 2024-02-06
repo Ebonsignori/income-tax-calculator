@@ -136,7 +136,7 @@ export function sendAnalyticsEvent(
     case EVENTS.CHANGE_PAYCHECK_FREQUENCY:
       newEventContext = {
         ...eventContext,
-        paycheck_frequency: eventValue as string,
+        selected_paycheck_frequency: eventValue as string,
       };
       break;
     case EVENTS.CHANGE_TAX_OPTIONS:

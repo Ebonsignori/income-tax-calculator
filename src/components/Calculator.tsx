@@ -481,8 +481,8 @@ export default function Home({
         totalIncome={totalIncome}
         filingStatus={filingStatus}
         totalIRA={totalIRA}
-        totalFederalDeductions={totalFederalDeductions}
-        totalStateDeductions={totalStateDeductions}
+        totalFederalDeductions={totalFederalDeductions as number}
+        totalStateDeductions={totalStateDeductions as number}
         exemptTaxes={exemptTaxes}
         USACity={USACity}
         USAState={USAState}
