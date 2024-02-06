@@ -12,14 +12,12 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 ## TODO before launch
 
-- Ad in middle of screen
-
 - Add other states / cities
 
-- Verify PWA works offline for uncached states/cities
+- Ad in middle of screen
 
-- Specific OG images for each city?
-  
+- Get PWA working offline for uncached states/cities
+
 # Later TODO
 
 - Improve accessibility
@@ -29,3 +27,5 @@ All tax data used for calculations is located in [src/data](./src/data).
 - Metadata only via tag, may be a Next.js bug
 
 - Expand Calculator tests
+
+- Specific OG images for each city?
