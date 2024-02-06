@@ -21,4 +21,3 @@ jobs:
 
       - name: Validate tax data
         run: npm run validate-tax-data
-        
