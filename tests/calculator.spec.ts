@@ -11,7 +11,7 @@ test("has expected title and heading", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("expected values are displayed for different tax years", async ({ page }) => {
+test("expected values are calculated for different tax years", async ({ page }) => {
   await page.goto("/");
 
   // Select state, Oregon

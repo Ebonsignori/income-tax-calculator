@@ -31,3 +31,5 @@ Improve accessibility
 - Tax options {...key} error in console? may be a Next.js bug
 
 - Metadata only via tag, may be a Next.js bug
+
+- Expand Calculator tests
