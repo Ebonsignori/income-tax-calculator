@@ -21,6 +21,8 @@ import Joi from "joi";
 
 const yearSchema = Joi.string().pattern(/^\d{4}$/);
 
+const isSnakeCaseRegex = /^[a-z0-9_]+$/;
+
 const integerBrackets = Joi.object().keys({
   [SINGLE]: Joi.number().integer().required(),
   [MARRIED]: Joi.number().integer().required(),
@@ -124,6 +126,12 @@ async function main() {
       if (state === "federal") {
         continue;
       }
+      if (!isSnakeCaseRegex.test(state)) {
+        errorCount++;
+        errors.push(
+          `${errorCount}. Invalid state name: ${state}. Must be snake_case`
+        );
+      }
       try {
         await stateTaxData.validateAsync(stateData, {
           abortEarly: false,
@@ -136,6 +144,12 @@ async function main() {
 
       if (stateData[CITIES]) {
         for (const [city, cityData] of Object.entries(stateData[CITIES])) {
+          if (!isSnakeCaseRegex.test(city)) {
+            errorCount++;
+            errors.push(
+              `${errorCount}. Invalid city name: ${city}. Must be snake_case`
+            );
+          }
           try {
             await cityTaxData.validateAsync(cityData, {
               abortEarly: false,

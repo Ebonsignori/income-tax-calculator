@@ -9,11 +9,10 @@ export async function getLandingPageData() {
 
   const federalTaxes = taxDataByYear[currentYear]?.federal || {};
   const stateTaxes = {};
-  const availableStatesAndCities = statesAndCitiesForYear[currentYear] || {};
 
   return {
     availableYears: years,
-    availableStatesAndCities,
+    statesAndCitiesForYear,
     defaultFederalTaxes: federalTaxes,
     defaultStateTaxes: stateTaxes,
     defaultYear: currentYear,
@@ -28,11 +27,10 @@ export async function getYearPageData(params: { year: string }) {
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = {};
-  const availableStatesAndCities = statesAndCitiesForYear[year] || {};
 
   return {
     availableYears: years,
-    availableStatesAndCities,
+    statesAndCitiesForYear,
     defaultFederalTaxes: federalTaxes,
     defaultStateTaxes: stateTaxes,
     defaultYear: year,
@@ -47,11 +45,10 @@ export async function getStatePageData(params: StatePageParams) {
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = taxDataByYear[year]?.[params.state] || {};
-  const availableStatesAndCities = statesAndCitiesForYear[year] || {};
 
   return {
     availableYears: years,
-    availableStatesAndCities,
+    statesAndCitiesForYear,
     defaultFederalTaxes: federalTaxes,
     defaultStateTaxes: stateTaxes,
     defaultYear: year,
@@ -68,11 +65,10 @@ export async function getCityPageData(params: CityPageParams) {
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = taxDataByYear[year]?.[params.state] || {};
-  const availableStatesAndCities = statesAndCitiesForYear[year] || {};
 
   return {
     availableYears: years,
-    availableStatesAndCities,
+    statesAndCitiesForYear,
     defaultFederalTaxes: federalTaxes,
     defaultStateTaxes: stateTaxes,
     defaultYear: year,
