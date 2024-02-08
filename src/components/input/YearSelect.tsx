@@ -1,5 +1,5 @@
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { yearDisplay } from "@/utils/string-utils";
+import { snakeToDashCase, yearDisplay } from "@/utils/string-utils";
 import { MenuItem, TextField } from "@mui/material";
 
 type YearSelectProps = {
@@ -33,10 +33,10 @@ export function YearSelect({
         const year = e.target.value;
         let newUrl = `${baseRoute}/${year}`;
         if (USAState) {
-          newUrl += `/${USAState}`;
+          newUrl += `/${snakeToDashCase(USAState)}`;
         }
         if (USACity) {
-          newUrl += `/${USACity}`;
+          newUrl += `/${snakeToDashCase(USACity)}`;
         }
         window.history.replaceState({}, "", newUrl);
         setYear(e.target.value);

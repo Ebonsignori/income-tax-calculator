@@ -220,6 +220,25 @@ export default function Home({
     selected_city: USACity,
   });
 
+  let resultsRender = null;
+  if (totalIncome) {
+    resultsRender = (
+      <Results
+        federalTaxes={federalTaxes}
+        stateTaxes={stateTaxes}
+        totalIncome={totalIncome}
+        filingStatus={filingStatus}
+        totalIRA={totalIRA}
+        totalFederalDeductions={totalFederalDeductions as number}
+        totalStateDeductions={totalStateDeductions as number}
+        exemptTaxes={exemptTaxes}
+        USACity={USACity}
+        USAState={USAState}
+        paycheckFrequency={paycheckFrequency}
+      />
+    );
+  }
+
   return (
     <>
       <Grid container spacing={2} sx={{ mb: 2 }} component="main">
@@ -475,19 +494,7 @@ export default function Home({
           </Accordion>
         </Grid>
       </Grid>
-      <Results
-        federalTaxes={federalTaxes}
-        stateTaxes={stateTaxes}
-        totalIncome={totalIncome}
-        filingStatus={filingStatus}
-        totalIRA={totalIRA}
-        totalFederalDeductions={totalFederalDeductions as number}
-        totalStateDeductions={totalStateDeductions as number}
-        exemptTaxes={exemptTaxes}
-        USACity={USACity}
-        USAState={USAState}
-        paycheckFrequency={paycheckFrequency}
-      />
+      {resultsRender}
     </>
   );
 }

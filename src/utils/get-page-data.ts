@@ -1,6 +1,7 @@
 import { getTaxDataByYear } from "@/get-tax-data";
 import type { CityPageParams, StatePageParams } from "@/types/page";
 import path from "path";
+import { toSnakeCase } from "./string-utils";
 
 export async function getLandingPageData() {
   const dataDirectory = path.join(process.cwd(), "src", "data");
@@ -38,7 +39,8 @@ export async function getYearPageData(params: { year: string }) {
 }
 
 export async function getStatePageData(params: StatePageParams) {
-  const { year, state } = params;
+  const { year } = params;
+  const state = toSnakeCase(params.state);
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =
     await getTaxDataByYear(dataDirectory);
@@ -57,7 +59,9 @@ export async function getStatePageData(params: StatePageParams) {
 }
 
 export async function getCityPageData(params: CityPageParams) {
-  const { year, state, city } = params;
+  const { year } = params;
+  const state = toSnakeCase(params.state);
+  const city = toSnakeCase(params.city);
 
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =

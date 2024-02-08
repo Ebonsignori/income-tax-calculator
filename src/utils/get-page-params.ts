@@ -5,6 +5,7 @@ import type {
   YearPageParams,
 } from "@/types/page";
 import path from "path";
+import { snakeToDashCase } from "./string-utils";
 
 export async function getYearPageParams(): Promise<YearPageParams[]> {
   const dataDirectory = path.join(process.cwd(), "src", "data");
@@ -25,7 +26,7 @@ export async function getStatePageParams(): Promise<StatePageParams[]> {
       if (state === "federal") {
         continue;
       }
-      yearsAndStates.push({ year, state });
+      yearsAndStates.push({ year, state: snakeToDashCase(state) });
     }
   }
 
@@ -51,8 +52,8 @@ export async function getCityPageParams(): Promise<CityPageParams[]> {
       for (const city of Object.keys(taxDataByYear[year][state].cities as {})) {
         yearsStatesAndCities.push({
           year,
-          state,
-          city,
+          state: snakeToDashCase(state),
+          city: snakeToDashCase(city),
         });
       }
     }

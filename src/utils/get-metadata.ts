@@ -1,10 +1,13 @@
 import { INCOME_TAX_CALCULATOR, SUPPORT, TAX_TABLES } from "@/constants/pages";
 import type { Metadata } from "next";
+import { snakeToTitleCase } from "./string-utils";
+
+const currentYear = new Date().getFullYear();
+
+const defaultUrl = "https://income-calc.com";
 
 export const defaultMetadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://income-calc.com",
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || defaultUrl),
   creator: "Evan Bonsignori",
   authors: [{ name: "Evan Bonsignori", url: "https://evan.bio" }],
   applicationName: "Income Tax Calculator",
@@ -39,16 +42,17 @@ export const defaultMetadata: Metadata = {
     telephone: false,
   },
   manifest: "/manifest.webmanifest",
-  openGraph: {
-    title: "Income Tax Calculator",
-    description:
-      "Calculate your take home pay after federal, state, and city income taxes.",
-    url: "https://income-calc.com",
-    siteName: "Income Tax Calculator",
-    locale: "en_US",
-    type: "website",
-    images: "/og-image.png",
-  },
+};
+
+const defaultOpenGraph = {
+  title: "Income Tax Calculator",
+  description:
+    "Calculate your take home pay after federal, state, and city income taxes.",
+  url: "https://income-calc.com",
+  siteName: "Income Tax Calculator",
+  locale: "en_US",
+  type: "website",
+  images: "/og-image.png",
 };
 
 export function getPageSpecificMetadata(
@@ -57,44 +61,71 @@ export function getPageSpecificMetadata(
   state?: string,
   city?: string,
 ): Metadata {
+  let openGraph = defaultOpenGraph;
   let description = "";
+  let baseUrl = defaultMetadata.metadataBase?.href || defaultUrl;
+  if (baseUrl?.endsWith("/")) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
   if (pageName === INCOME_TAX_CALCULATOR.name) {
     if (!city) {
       if (!state) {
         if (year) {
           description = `Calculate your take home pay after federal and state income taxes for the year ${year}.`;
+          openGraph.title = `${year} ${INCOME_TAX_CALCULATOR.name}`;
+          openGraph.images = `/og-images/${year}/landing.png`;
         } else {
           description = `Calculate your take home pay after federal, state, and city income taxes.`;
+          openGraph.title = `${INCOME_TAX_CALCULATOR.name}`;
+          openGraph.images = `/og-images/${currentYear}/landing.png`;
         }
+        openGraph.description = description;
       } else {
-        description = `Calculate your take home pay after federal and state income taxes for the year ${year} in ${state}.`;
+        description = `Calculate your take home pay after federal and state income taxes for the year ${year} in ${snakeToTitleCase(state)}.`;
+        openGraph.title = `${year} ${snakeToTitleCase(state)} ${INCOME_TAX_CALCULATOR.name}`;
+        openGraph.images = `/og-images/${year}/${state}.png`;
+        openGraph.description = description;
       }
     } else {
-      description = `Calculate your take home pay after federal, state, and city income taxes for the year ${year} in ${city}, ${state}.`;
+      description = `Calculate your take home pay after federal, state, and city income taxes for the year ${year} in ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)}.`;
+      openGraph.title = `${year} ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)} ${INCOME_TAX_CALCULATOR.name}`;
+      openGraph.images = `/og-images/${year}/${state}/${city}.png`;
     }
   } else if (pageName === TAX_TABLES.name) {
+    baseUrl = `${baseUrl}/tax-tables`;
     if (!city) {
       if (!state) {
         if (year) {
           description = `Tables of federal and state income tax rates for the year ${year}.`;
+          openGraph.title = `${year} ${TAX_TABLES.name}`;
+          openGraph.images = `/og-images/${year}/landing.png`;
         } else {
           description = `Tables of federal, state, and city income tax rates.`;
+          openGraph.title = `${TAX_TABLES.name}`;
+          openGraph.images = `/og-images/${currentYear}/landing.png`;
         }
       } else {
-        description = `Tables of federal and state income tax rates for the year ${year} in ${state}.`;
+        description = `Tables of federal and state income tax rates for the year ${year} in ${snakeToTitleCase(state as string)}.`;
+        openGraph.title = `${year} ${snakeToTitleCase(state)} ${TAX_TABLES.name}`;
+        openGraph.images = `/og-images/${year}/${state}.png`;
+        openGraph.description = description;
       }
     } else {
-      description = `Tables of federal, state, and city income tax rates for the year ${year} in ${city}, ${state}.`;
+      description = `Tables of federal, state, and city income tax rates for the year ${year} in ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)}.`;
+      openGraph.title = `${year} ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)} ${TAX_TABLES.name}`;
+      openGraph.images = `/og-images/${year}/${state}/${city}.png`;
+      openGraph.description = description;
     }
   } else if (pageName === SUPPORT.name) {
     description = "Support page for the Income Tax Calculator.";
+    openGraph.title = `${SUPPORT.name}`;
+    openGraph.url = `${baseUrl}/support`;
+    openGraph.images = `/og-images/support.png`;
+    openGraph.description = description;
   }
 
   // Build canonical URL
-  let canonical = defaultMetadata.metadataBase?.href;
-  if (canonical?.endsWith("/")) {
-    canonical = canonical.slice(0, -1);
-  }
+  let canonical = baseUrl;
   if (year) {
     canonical += `/${year}`;
     if (state) {
@@ -105,10 +136,13 @@ export function getPageSpecificMetadata(
     }
   }
 
+  openGraph.url = canonical;
+
   return {
     description,
     alternates: {
       canonical,
     },
+    openGraph,
   };
 }

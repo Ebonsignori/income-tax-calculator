@@ -1,7 +1,11 @@
 import { ALL_STATES } from "@/constants/states";
 import type { AutocompleteOption, AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { capitalizeFirstLetter, snakeToTitleCase } from "@/utils/string-utils";
+import {
+  snakeToDashCase,
+  snakeToTitleCase,
+  toSnakeCase,
+} from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 import { useMemo } from "react";
 
@@ -48,9 +52,9 @@ export function StateSelect({
       options={stateOptions}
       groupBy={(option) => option.firstLetter}
       isOptionEqualToValue={(option, value) => {
-        return option?.title?.toLowerCase() === value?.title?.toLowerCase();
+        return toSnakeCase(option?.title) === toSnakeCase(value?.title);
       }}
-      getOptionLabel={(option) => capitalizeFirstLetter(option?.title) || ""}
+      getOptionLabel={(option) => snakeToTitleCase(option?.title) || ""}
       getOptionDisabled={(option) => option.disabled}
       freeSolo={false}
       value={
@@ -63,10 +67,14 @@ export function StateSelect({
           : null
       }
       onInputChange={(e, val) => {
-        const state = val?.toLowerCase();
+        const state = toSnakeCase(val);
         if (state === USAState) return;
         if (val && ALL_STATES.includes(state)) {
-          window.history.replaceState({}, "", `${baseRoute}/${year}/${state}`);
+          window.history.replaceState(
+            {},
+            "",
+            `${baseRoute}/${year}/${snakeToDashCase(state)}`,
+          );
           sendAnalyticsEvent(EVENTS.CHANGE_STATE, state);
           setUSAState(state);
           setUSACity("");

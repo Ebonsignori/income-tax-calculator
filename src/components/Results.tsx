@@ -1,39 +1,15 @@
-import {
-  calculate,
-  getPaycheckByFrequency,
-  getPercent,
-} from "@/utils/calculator";
-import {
-  Box,
-  Collapse,
-  Grid,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { calculate, getPaycheckByFrequency } from "@/utils/calculator";
+import { Box, Grid, Typography } from "@mui/material";
 import React, { memo, useMemo } from "react";
-import { useState } from "react";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { PieChart } from "@mui/x-charts/PieChart";
-import { snakeToTitleCase } from "@/utils/string-utils";
-import { CITIES, EXEMPT } from "@/constants";
-import type { Dinero } from "dinero.js";
 import { useTheme } from "@mui/material/styles";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { debounce } from "@/utils/debounce";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { FREQUENCY_TO_FREQUENCY_LABEL } from "@/constants/paycheck-frequency";
 import { SupportButton } from "./SupportButton";
 import type { TaxData } from "@/types";
 import type { FilingStatus } from "@/constants/filing-status";
 import type { TaxOption } from "@/utils/get-tax-options";
+import { PieChartBreakdown } from "./PieChartBreakdown";
+import { TableBreakdown } from "./TableBreakdown";
 
 type ResultsProps = {
   federalTaxes: TaxData;
@@ -101,147 +77,6 @@ const Results = memo(function Results({
       USACity,
     ],
   );
-
-  const { tableRows, pieChartData, totalTaxTypes } = useMemo(() => {
-    if (!totalIncome)
-      return { tableRows: [], pieChartData: [], totalTaxTypes: 0 };
-
-    const tableRows = [
-      {
-        id: "take_home",
-        name: "Take Home",
-        percent: takeHome?.percent,
-        amount: takeHome?.amount?.toFormat(),
-      },
-    ];
-    if (totalFederal?.amount?.toUnit() > 0) {
-      const federalRow = {
-        id: "total_federal",
-        name: "Federal Taxes",
-        percent: totalFederal?.percent,
-        amount: totalFederal?.amount?.toFormat(),
-        breakdown: [],
-        breakdownTaxableIncome: federalTaxableIncome?.toFormat(),
-      } as any;
-      for (const [taxType, taxTotal] of Object.entries(federalResults)) {
-        if (taxTotal === EXEMPT) continue;
-        federalRow.breakdown.push({
-          id: taxType,
-          name: snakeToTitleCase(taxType),
-          percent: `${getPercent(taxTotal as Dinero, totalFederal?.amount)}%`,
-          amount: (taxTotal as Dinero)?.toFormat(),
-        });
-      }
-      if (totalFica?.amount?.toUnit() > 0) {
-        federalRow.breakdown.push({
-          id: "fica",
-          name: "Total FICA",
-          percent: `${getPercent(totalFica?.amount, totalFederal?.amount)}%`,
-          amount: totalFica?.amount?.toFormat(),
-          styles: {
-            name: { fontWeight: "bold" },
-            percent: { fontStyle: "italic" },
-          },
-        });
-      }
-
-      tableRows.push(federalRow);
-    }
-    if (totalState?.amount?.toUnit() > 0) {
-      const stateRow = {
-        id: "total_state",
-        name: "State Taxes",
-        percent: totalState?.percent,
-        amount: totalState?.amount?.toFormat(),
-        breakdown: [],
-        breakdownTaxableIncome: stateTaxableIncome?.toFormat(),
-      } as any;
-      for (const [taxType, taxTotal] of Object.entries(stateResults)) {
-        if (taxType === CITIES) {
-          for (const [city, cityValue] of Object.entries(taxTotal)) {
-            if (cityValue === EXEMPT) continue;
-            stateRow.breakdown.push({
-              id: city,
-              name: `${snakeToTitleCase(city)} (City)`,
-              percent: `${getPercent(cityValue as Dinero, totalState?.amount)}%`,
-              amount: (cityValue as Dinero)?.toFormat(),
-            });
-          }
-          stateRow.breakdown.push({
-            id: "total_city",
-            name: "Total City",
-            percent: `${getPercent(totalCity?.amount, totalState?.amount)}%`,
-            amount: totalCity?.amount?.toFormat(),
-            styles: {
-              name: { fontWeight: "bold" },
-              percent: { fontStyle: "italic" },
-            },
-          });
-        } else if (taxTotal !== EXEMPT) {
-          stateRow.breakdown.push({
-            id: taxType,
-            name: snakeToTitleCase(taxType),
-            percent: `${getPercent(taxTotal as Dinero, totalState?.amount)}%`,
-            amount: (taxTotal as Dinero)?.toFormat(),
-          });
-        }
-      }
-      if (totalCity?.amount?.toUnit() > 0) {
-        stateRow.name = "State + City Taxes";
-      }
-      tableRows.push(stateRow);
-    }
-
-    let pieChartData = [];
-    let totalTaxTypes = 0;
-    for (const [taxType, value] of Object.entries(federalResults)) {
-      if (value === EXEMPT || (value as Dinero)?.toUnit() === 0) continue;
-      totalTaxTypes++;
-      pieChartData.push({
-        id: taxType,
-        value: (value as Dinero)?.toUnit(),
-        label: snakeToTitleCase(taxType),
-        tooltipValue: (value as Dinero)?.toFormat(),
-      });
-    }
-    for (const [taxType, taxTotal] of Object.entries(stateResults)) {
-      if (taxType === CITIES) {
-        for (const [city, cityValue] of Object.entries(taxTotal)) {
-          if (cityValue === EXEMPT || cityValue?.toUnit() === 0) continue;
-          totalTaxTypes++;
-          pieChartData.push({
-            id: city,
-            value: cityValue?.toUnit(),
-            label: snakeToTitleCase(city),
-            tooltipValue: (cityValue as Dinero)?.toFormat(),
-          });
-        }
-      } else if (taxTotal !== EXEMPT && (taxTotal as Dinero)?.toUnit() > 0) {
-        totalTaxTypes++;
-        pieChartData.push({
-          id: taxType,
-          value: (taxTotal as Dinero)?.toUnit(),
-          label: snakeToTitleCase(taxType),
-          tooltipValue: (taxTotal as Dinero)?.toFormat(),
-        });
-      }
-    }
-
-    return { tableRows, pieChartData, totalTaxTypes };
-  }, [
-    totalIncome,
-    federalResults,
-    stateResults,
-    totalFederal,
-    totalState,
-    totalCity,
-    totalFica,
-    takeHome,
-    federalTaxableIncome,
-    stateTaxableIncome,
-  ]);
-
-  if (!totalIncome) return null;
 
   return (
     <Box>
@@ -326,28 +161,17 @@ const Results = memo(function Results({
           </Typography>
           <Grid container>
             <Grid item xs={12} sm={12} md={7}>
-              <TableContainer component={Paper} sx={{ border: 1 }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell
-                        sx={{
-                          width: "8px",
-                          padding: "1px",
-                        }}
-                      />
-                      <TableCell>Tax</TableCell>
-                      <TableCell align="right">Percent</TableCell>
-                      <TableCell align="right">Amount</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {tableRows.map((row) => (
-                      <CollapsibleRow key={row.name} row={row} />
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <TableBreakdown
+                totalFederal={totalFederal}
+                totalState={totalState}
+                totalCity={totalCity}
+                totalFica={totalFica}
+                takeHome={takeHome}
+                federalResults={federalResults}
+                stateResults={stateResults}
+                federalTaxableIncome={federalTaxableIncome}
+                stateTaxableIncome={stateTaxableIncome}
+              />
             </Grid>
             <Grid
               item
@@ -360,80 +184,9 @@ const Results = memo(function Results({
               alignItems="center"
               marginTop={{ xs: 2, md: 0 }}
             >
-              <PieChart
-                series={[
-                  {
-                    highlightScope: { faded: "global", highlighted: "item" },
-                    faded: {
-                      innerRadius: 30,
-                      additionalRadius: -30,
-                      color: "gray",
-                    },
-                    data: pieChartData,
-                  },
-                ]}
-                width={300}
-                height={325}
-                tooltip={{
-                  trigger: "item",
-                  itemContent: (props) => {
-                    const dataIndex = props?.itemData?.dataIndex;
-                    const dataItem = props?.series?.data?.[dataIndex] as any;
-                    debounce(() =>
-                      sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label),
-                    )();
-                    return (
-                      <table
-                        style={{
-                          backgroundColor:
-                            theme.palette.mode === "light"
-                              ? theme.palette.common.white
-                              : theme.palette.common.black,
-                          color:
-                            theme.palette.mode === "light"
-                              ? theme.palette.common.black
-                              : theme.palette.common.white,
-                          borderRadius: 4,
-                          padding: "5px",
-                          border: `1px solid ${
-                            theme.palette.mode === "light"
-                              ? theme.palette.common.black
-                              : theme.palette.common.white
-                          }`,
-                        }}
-                      >
-                        <tbody>
-                          <tr>
-                            <td>
-                              <Typography variant="body1" fontWeight="bold">
-                                {dataItem?.label}:
-                              </Typography>
-                            </td>
-                            <td>
-                              <Typography variant="body1">
-                                {dataItem?.tooltipValue}
-                              </Typography>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    );
-                  },
-                }}
-                margin={{
-                  top: 10,
-                  right: 10,
-                  bottom: 55 + 35 * (totalTaxTypes / 2),
-                  left: 10,
-                }}
-                slotProps={{
-                  legend: {
-                    direction: "row",
-                    position: { vertical: "bottom", horizontal: "middle" },
-                    padding: 0,
-                    itemMarkHeight: 10,
-                  },
-                }}
+              <PieChartBreakdown
+                federalResults={federalResults}
+                stateResults={stateResults}
               />
             </Grid>
             <Grid item xs={12} marginTop={4}>
@@ -450,93 +203,3 @@ const Results = memo(function Results({
 });
 
 export default Results;
-
-function CollapsibleRow(props: { row: any }) {
-  const { row } = props;
-  const [open, setOpen] = useState(false);
-
-  let dropdownButton = null;
-  if (row?.breakdown?.length > 0) {
-    dropdownButton = (
-      <IconButton
-        aria-label="expand row"
-        size="small"
-        onClick={() => {
-          setOpen(!open);
-          if (!open) {
-            sendAnalyticsEvent(EVENTS.EXPAND_TABLE, row.name);
-          }
-        }}
-      >
-        {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-      </IconButton>
-    );
-  }
-
-  return (
-    <React.Fragment>
-      <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
-        <TableCell
-          sx={{
-            width: "8px",
-            padding: "1px",
-          }}
-        >
-          {dropdownButton}
-        </TableCell>
-        <TableCell component="th" scope="row">
-          {row.name}
-        </TableCell>
-        <TableCell align="right">{row.percent}%</TableCell>
-        <TableCell align="right">{row.amount}</TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box sx={{ margin: 1 }}>
-              <Typography variant="body2" sx={{ m: 2 }} fontStyle="italic">
-                With {row.breakdownTaxableIncome} of taxable income
-              </Typography>
-              <Table size="small" aria-label="purchases">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Tax</TableCell>
-                    <TableCell>Percent of {row.name}</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {row?.breakdown?.length
-                    ? row.breakdown.map((breakdownRow: any) => (
-                        <TableRow key={breakdownRow.name}>
-                          <TableCell component="th" scope="row">
-                            <Typography
-                              variant="body2"
-                              sx={breakdownRow?.styles?.name}
-                            >
-                              {breakdownRow.name}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography
-                              variant="body2"
-                              sx={breakdownRow?.styles?.percent}
-                            >
-                              {breakdownRow.percent}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            {breakdownRow.amount}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    : null}
-                </TableBody>
-              </Table>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </React.Fragment>
-  );
-}

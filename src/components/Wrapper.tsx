@@ -40,6 +40,7 @@ import {
   setTrackingEnabled,
 } from "@/utils/analytics";
 import type { NavPage } from "@/types";
+import { trackUserTimeOnPage } from "@/utils/user-time-on-page-event";
 
 const drawerWidth = 240;
 
@@ -107,6 +108,10 @@ export default function Wrapper({
     ],
     [title],
   );
+
+  useEffect(() => {
+    trackUserTimeOnPage(title);
+  }, [title]);
 
   return (
     <>

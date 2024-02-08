@@ -18,6 +18,10 @@ export function toSnakeCase(anyCase: string): string {
   return snakeCase || anyCase;
 }
 
+export function snakeToDashCase(str: string): string {
+  return str.replace(/_/g, "-");
+}
+
 export function yearDisplay(year: string) {
   return `${year} - ${parseInt(year, 10) + 1}`;
 }

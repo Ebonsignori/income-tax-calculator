@@ -1,6 +1,10 @@
 import type { AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { capitalizeFirstLetter } from "@/utils/string-utils";
+import {
+  snakeToDashCase,
+  snakeToTitleCase,
+  toSnakeCase,
+} from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 import { useMemo } from "react";
 
@@ -50,7 +54,7 @@ export function CitySelect({
       id="city-select"
       aria-label="City Select"
       options={cityOptions}
-      getOptionLabel={(option) => capitalizeFirstLetter(option?.title) || ""}
+      getOptionLabel={(option) => snakeToTitleCase(option?.title) || ""}
       freeSolo={false}
       value={
         USACity
@@ -60,16 +64,16 @@ export function CitySelect({
           : null
       }
       isOptionEqualToValue={(option, value) => {
-        return option.title === value.title;
+        return toSnakeCase(option?.title) === toSnakeCase(value?.title);
       }}
       onInputChange={(e, val) => {
-        const city = val?.toLowerCase();
+        const city = toSnakeCase(val);
         if (city === USACity) return;
         if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
           window.history.replaceState(
             {},
             "",
-            `${baseRoute}/${year}/${USAState}/${city}`,
+            `${baseRoute}/${year}/${snakeToDashCase(USAState)}/${snakeToDashCase(city)}`,
           );
           setUSACity(city);
           sendAnalyticsEvent(EVENTS.CHANGE_CITY, city);
@@ -78,7 +82,7 @@ export function CitySelect({
           window.history.replaceState(
             {},
             "",
-            `${baseRoute}/${year}/${USAState}`,
+            `${baseRoute}/${year}/${snakeToDashCase(USAState)}`,
           );
         }
       }}

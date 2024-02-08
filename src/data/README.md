@@ -8,13 +8,23 @@ All tax bracket data is organized by TypeScript files that each export a default
 
 ## Rate
 
-`rate` is expressed as a percentage.
+`rate` is expressed as a percentage,
 
 Examples:
 
 - 0.58% = `rate: 0.58`
 - 1.25% = `rate: 1.25`
 - 13% = `rate: 13`
+
+## Naming
+
+Make sure to use `snake_case` for all state, city, and tax names.
+
+Rather than adding string literals for city & tax names, add and reference a constant variable in the relevant [constants](../constants/) file.
+
+- City names go in [cities.ts](../constants/cities.ts)
+
+- Tax type names go in [tax-types.ts](../constants/tax_types.ts)
 
 ## File organization
 
@@ -25,6 +35,10 @@ export default {
   "tax type": {
     "filing status": [
       { min: number, max: number, rate: number }
+      ||
+      { min: number, amount: number }
+      ||
+      { ..., percent_of_total: number }
       ...
     ]
   }
@@ -57,6 +71,8 @@ export default {
 ## Contributing
 
 Feel free to make a PR to add or fix any of the brackets. Just follow the patterns above to organize the filesystem.
+
+Run `npm run validate-tax-data` after updating tax data to make sure the schema is valid.
 
 ## Why
 

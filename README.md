@@ -10,6 +10,20 @@ Accounts for city-specific taxes, unlike other online calculators.
 
 All tax data used for calculations is located in [src/data](./src/data).
 
+### Validating tax data
+
+After updating tax data, validate it with `npm run validate-tax-data`
+
+## Generating OG Images
+
+1. Run the server with `NODE_ENV=development`, this can be done via `npm run dev`
+2. In another terminal run `npm run generate-og-images`
+
+`public/og-images` should be populated with screen captures for each page.
+
+[get-metadata.ts](src/utils/get-metadata.ts) makes sure each page has a `<meta` tag pointing to the matching OG image.
+
+
 ## TODO before launch
 
 - Add other states / cities
@@ -28,4 +42,5 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 - Expand Calculator tests
 
-- Specific OG images for each city?
+- Use `usePathname` to get Next.js URL and aysnc load the path params, show loader, and suggest URL
+- Write about it

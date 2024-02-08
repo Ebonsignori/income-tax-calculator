@@ -71,6 +71,11 @@ export const EVENTS = {
   OPEN_ISSUE_CLICK: "open_issue_click",
 
   AUTHOR_FOOTER_CLICK: "author_footer_click",
+
+  RETURN_TO_LINK_404: "return_to_link_404",
+
+  TOTAL_TIME_ON_PAGE: "total_time_on_page",
+  TIME_ON_PAGE: "time_on_page",
 };
 
 export function sendAnalyticsEvent(
@@ -161,6 +166,24 @@ export function sendAnalyticsEvent(
       metadata = {
         ...metadata,
         chart_slice_name: eventValue as string,
+      };
+      break;
+    case EVENTS.RETURN_TO_LINK_404:
+      metadata = {
+        ...metadata,
+        url_of_404: eventValue as string,
+      };
+      break;
+    case EVENTS.TIME_ON_PAGE:
+      metadata = {
+        ...metadata,
+        time_on_page: eventValue as number,
+      };
+      break;
+    case EVENTS.TOTAL_TIME_ON_PAGE:
+      metadata = {
+        ...metadata,
+        total_time_on_page: eventValue as number,
       };
       break;
   }

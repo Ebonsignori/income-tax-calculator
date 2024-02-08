@@ -10,7 +10,9 @@ export const debounce = (callback: (args: any) => void, wait = 3000) => {
     window.clearTimeout(timeoutId);
     debounceCallback = callback;
     timeoutId = window.setTimeout(() => {
-      debounceCallback.apply(null, args);
+      if (debounceCallback) {
+        debounceCallback.apply(null, args);
+      }
       debounceCallback = "";
     }, wait);
   };
