@@ -85,9 +85,18 @@ export function calculateTaxesPerBracket(
       taxesPerBracket[taxType] = EXEMPT;
     } else if (taxTypeData?.[ALL]) {
       if (taxTypeData[ALL]?.[0]?.amount) {
-        if (totalIncome.toUnit() > taxTypeData[ALL][0].min) {
-          taxesPerBracket[taxType] = asCurrency(taxTypeData[ALL][0].amount);
+        let amount = asCurrency(taxTypeData[ALL][0].amount);
+        if (taxTypeData[ALL]?.[0]?.frequency) {
+          amount = amount.multiply(
+            FREQUENCY_TO_PAYCHECKS_PER_YEAR[
+              taxTypeData[ALL][0].frequency as PaycheckFrequency
+            ],
+          );
         }
+        if (totalIncome.toUnit() > (taxTypeData[ALL][0].min || 0)) {
+          taxesPerBracket[taxType] = amount;
+        }
+        console.log("amount", amount.toFormat());
       } else {
         taxesPerBracket[taxType] = calculateTaxBracket(
           taxableIncome,

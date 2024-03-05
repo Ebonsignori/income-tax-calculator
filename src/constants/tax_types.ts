@@ -21,3 +21,4 @@ export const OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE =
 export const ART_TAX = "art_tax";
 export const SUPPORTIVE_HOUSING_SERVICES = "supportive_housing_services";
 export const PRESCHOOL_FOR_ALL = "preschool_for_all";
+export const OCCUPATIONAL_PRIVILEGE_TAX = "occupational_privilege";

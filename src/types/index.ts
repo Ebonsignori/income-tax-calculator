@@ -12,6 +12,13 @@ import type { CITIES, EXEMPT, INFINITY } from "../constants";
 import type { Dinero } from "dinero.js";
 import type { ReactElement } from "react";
 
+export type TaxFrequency =
+  | "annually"
+  | "monthly"
+  | "semi_monthly"
+  | "biweekly"
+  | "weekly";
+
 export type Bracket =
   | {
       min: number;
@@ -20,6 +27,7 @@ export type Bracket =
     }
   | {
       amount: number;
+      frequency?: TaxFrequency;
     };
 
 export interface TaxData {
@@ -34,6 +42,7 @@ export interface TaxData {
     | {
         [Key in FilingStatus]: Bracket[];
       }
+    | { [ALL]?: Bracket[] }
     | typeof NONE;
   [CITIES]?: {
     [Key: string]: {
