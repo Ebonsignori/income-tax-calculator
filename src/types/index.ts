@@ -1,14 +1,14 @@
 /* eslint-disable no-unused-vars */
-import type { FilingStatus } from "./constants/filing-status";
-import type { ALL } from "./constants/filing-status";
+import type { FilingStatus } from "../constants/filing-status";
+import type { ALL } from "../constants/filing-status";
 import type {
   FEDERAL_INCOME,
   MAX_401K_CONTRIBUTION,
   NONE,
   STANDARD_DEDUCTION,
   STATE_INCOME,
-} from "./constants/tax_types";
-import type { CITIES, EXEMPT, INFINITY } from "./constants";
+} from "../constants/tax_types";
+import type { CITIES, EXEMPT, INFINITY } from "../constants";
 import type { Dinero } from "dinero.js";
 import type { ReactElement } from "react";
 
