@@ -53,7 +53,7 @@ export function calculate(
       selectedCity,
     );
 
-  const totals = sumTotals(totalIncome, federalResults, stateResults);
+  const totals = sumTotals(totalIncome, federalResults, stateResults, totalIRA);
 
   return { ...totals, federalTaxableIncome, stateTaxableIncome };
 }
@@ -173,6 +173,7 @@ export function sumTotals(
   totalIncome: Dinero.Dinero,
   federalResults: TaxResultsWithCities,
   stateResults: TaxResultsWithCities,
+  totalIRA: number,
 ) {
   let totalFederal = sumBracketsByTaxType(
     federalResults,
@@ -208,7 +209,10 @@ export function sumTotals(
 
   let totalTaxes = totalFederal.add(totalState);
 
-  const takeHome = totalIncome.subtract(totalFederal).subtract(totalState);
+  const takeHome = totalIncome
+    .subtract(totalFederal)
+    .subtract(totalState)
+    .subtract(asCurrency(totalIRA));
 
   return {
     takeHome: {
