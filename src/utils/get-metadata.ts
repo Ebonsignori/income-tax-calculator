@@ -79,12 +79,10 @@ export function getPageSpecificMetadata(
           openGraph.title = `${INCOME_TAX_CALCULATOR.name}`;
           openGraph.images = `/og-images/${currentYear}/landing.png`;
         }
-        openGraph.description = description;
       } else {
         description = `Calculate your take home pay after federal and state income taxes for the year ${year} in ${snakeToTitleCase(state)}.`;
         openGraph.title = `${year} ${snakeToTitleCase(state)} ${INCOME_TAX_CALCULATOR.name}`;
         openGraph.images = `/og-images/${year}/${state}.png`;
-        openGraph.description = description;
       }
     } else {
       description = `Calculate your take home pay after federal, state, and city income taxes for the year ${year} in ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)}.`;
@@ -108,20 +106,17 @@ export function getPageSpecificMetadata(
         description = `Tables of federal and state income tax rates for the year ${year} in ${snakeToTitleCase(state as string)}.`;
         openGraph.title = `${year} ${snakeToTitleCase(state)} ${TAX_TABLES.name}`;
         openGraph.images = `/og-images/${year}/${state}.png`;
-        openGraph.description = description;
       }
     } else {
       description = `Tables of federal, state, and city income tax rates for the year ${year} in ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)}.`;
       openGraph.title = `${year} ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)} ${TAX_TABLES.name}`;
       openGraph.images = `/og-images/${year}/${state}/${city}.png`;
-      openGraph.description = description;
     }
   } else if (pageName === SUPPORT.name) {
     description = "Support page for the Income Tax Calculator.";
     openGraph.title = `${SUPPORT.name}`;
     openGraph.url = `${baseUrl}/support`;
     openGraph.images = `/og-images/support.png`;
-    openGraph.description = description;
   }
 
   // Build canonical URL
@@ -137,6 +132,7 @@ export function getPageSpecificMetadata(
   }
 
   openGraph.url = canonical;
+  openGraph.description = description;
 
   return {
     description,

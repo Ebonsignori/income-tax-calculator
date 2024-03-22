@@ -93,10 +93,9 @@ export function calculateTaxesPerBracket(
             ],
           );
         }
-        if (totalIncome.toUnit() > (taxTypeData[ALL][0].min || 0)) {
+        if (taxableIncome.toUnit() > (taxTypeData[ALL][0].min || 0)) {
           taxesPerBracket[taxType] = amount;
         }
-        console.log("amount", amount.toFormat());
       } else {
         taxesPerBracket[taxType] = calculateTaxBracket(
           taxableIncome,
@@ -209,31 +208,30 @@ export function sumTotals(
 
   let totalTaxes = totalFederal.add(totalState);
 
-  const takeHome = totalIncome
-    .subtract(totalFederal)
-    .subtract(totalState)
-    .subtract(asCurrency(totalIRA));
+  const taxableIncome = totalIncome.subtract(asCurrency(totalIRA));
+
+  const takeHome = taxableIncome.subtract(totalFederal).subtract(totalState);
 
   return {
     takeHome: {
-      percent: getPercent(takeHome, totalIncome),
+      percent: getPercent(takeHome, taxableIncome),
       amount: takeHome,
     },
     totalTaxes,
     totalFederal: {
-      percent: getPercent(totalFederal, totalIncome),
+      percent: getPercent(totalFederal, taxableIncome),
       amount: totalFederal,
     },
     totalState: {
-      percent: getPercent(totalState, totalIncome),
+      percent: getPercent(totalState, taxableIncome),
       amount: totalState,
     },
     totalCity: {
-      percent: getPercent(totalCity, totalIncome),
+      percent: getPercent(totalCity, taxableIncome),
       amount: totalCity,
     },
     totalFica: {
-      percent: getPercent(totalFica, totalIncome),
+      percent: getPercent(totalFica, taxableIncome),
       amount: totalFica,
     },
     federalResults,

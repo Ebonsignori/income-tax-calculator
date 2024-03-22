@@ -55,12 +55,12 @@ export default {
     [ALL]: [{ min: 0, max: 132900, rate: 0.1 }],
   },
   [OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE]: {
-    [ALL]: [{ min: 0, max: 132900, rate: 1, percent_of_total: 60 }],
+    [ALL]: [{ min: 0, max: 168600, rate: 1, percent_of_total: 60 }],
   },
   [CITIES]: {
     [PORTLAND]: {
       [ART_TAX]: {
-        [ALL]: [{ min: 1000, amount: 25 }],
+        [ALL]: [{ min: 1000, amount: 35 }],
       },
       [SUPPORTIVE_HOUSING_SERVICES]: {
         [SINGLE]: [{ min: 125000, max: INFINITY, rate: 1 }],
