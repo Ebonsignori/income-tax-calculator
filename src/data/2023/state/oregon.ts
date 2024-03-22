@@ -52,7 +52,7 @@ export default {
     ],
   },
   [OREGON_TRANSIT_TAX]: {
-    [ALL]: [{ min: 0, max: 132900, rate: 0.1 }],
+    [ALL]: [{ min: 0, max: INFINITY, rate: 0.1 }],
   },
   [OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE]: {
     [ALL]: [{ min: 0, max: 132900, rate: 1, percent_of_total: 60 }],
