@@ -30,6 +30,21 @@ export function StateSelect({
   baseRoute = "",
 }: StateSelectProps) {
   const stateOptions = useMemo((): AutocompleteOption[] => {
+    if (!availableStatesAndCities) {
+      return ALL_STATES.map((state) => {
+        const firstLetter = state[0].toUpperCase();
+        return {
+          firstLetter,
+          title: snakeToTitleCase(state),
+          disabled: true,
+        };
+      }).sort((a, b) => {
+        if (a.firstLetter > b.firstLetter) return 1;
+        if (a.firstLetter < b.firstLetter) return -1;
+        return 0;
+      });
+    }
+
     return ALL_STATES.map((state) => {
       const firstLetter = state[0].toUpperCase();
       return {

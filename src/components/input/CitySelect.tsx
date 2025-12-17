@@ -28,7 +28,10 @@ export function CitySelect({
   baseRoute = "",
 }: CitySelectProps) {
   const cityOptions = useMemo(() => {
-    if (typeof availableStatesAndCities[USAState]?.cities === "undefined") {
+    if (
+      !availableStatesAndCities ||
+      typeof availableStatesAndCities[USAState]?.cities === "undefined"
+    ) {
       return null;
     }
 

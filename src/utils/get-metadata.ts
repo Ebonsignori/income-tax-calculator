@@ -6,6 +6,10 @@ const currentYear = new Date().getFullYear();
 
 const defaultUrl = "https://income-calc.com";
 
+// Get base path for GitHub Pages deployment
+const basePath =
+  process.env.GITHUB_PAGES === "true" ? "/income-tax-calculator" : "";
+
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || defaultUrl),
   creator: "Evan Bonsignori",
@@ -41,7 +45,7 @@ export const defaultMetadata: Metadata = {
     address: false,
     telephone: false,
   },
-  manifest: "/manifest.webmanifest",
+  manifest: `${basePath}/manifest.webmanifest`,
 };
 
 const defaultOpenGraph = {
