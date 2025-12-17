@@ -1,6 +1,7 @@
 import { ALL_STATES } from "@/constants/states";
 import type { AutocompleteOption, AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
+import { updateURL } from "@/utils/base-path";
 import {
   snakeToDashCase,
   snakeToTitleCase,
@@ -70,16 +71,12 @@ export function StateSelect({
         const state = toSnakeCase(val);
         if (state === USAState) return;
         if (val && ALL_STATES.includes(state)) {
-          window.history.replaceState(
-            {},
-            "",
-            `${baseRoute}/${year}/${snakeToDashCase(state)}`,
-          );
+          updateURL(`${baseRoute}/${year}/${snakeToDashCase(state)}`);
           sendAnalyticsEvent(EVENTS.CHANGE_STATE, state);
           setUSAState(state);
           setUSACity("");
         } else if (!val) {
-          window.history.replaceState({}, "", `${baseRoute}/${year}`);
+          updateURL(`${baseRoute}/${year}`);
           setUSAState("");
           setUSACity("");
         }

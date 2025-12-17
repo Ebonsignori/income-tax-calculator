@@ -154,6 +154,43 @@ export default function Home({
     fetchStateBrackets();
   }, [USAState, year]);
 
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      // Parse the current URL to extract year, state, and city
+      const path = window.location.pathname;
+      const basePath = (window as any).__NEXT_DATA__?.basePath || "";
+      const relativePath = basePath ? path.replace(basePath, "") : path;
+      const segments = relativePath.split("/").filter(Boolean);
+
+      // Update state based on URL segments
+      if (segments.length >= 1 && segments[0] !== year) {
+        setYear(segments[0]);
+      }
+      if (segments.length >= 2) {
+        const stateFromUrl = segments[1].replace(/-/g, "_");
+        if (stateFromUrl !== USAState) {
+          setUSAState(stateFromUrl);
+        }
+      } else if (USAState) {
+        setUSAState("");
+      }
+      if (segments.length >= 3) {
+        const cityFromUrl = segments[2].replace(/-/g, "_");
+        if (cityFromUrl !== USACity) {
+          setUSACity(cityFromUrl);
+        }
+      } else if (USACity) {
+        setUSACity("");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [year, USAState, USACity]);
+
   const taxOptions = useGetTaxOptions({
     federalTaxes,
     stateTaxes,

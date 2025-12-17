@@ -1,10 +1,12 @@
 # Income Tax Calculator
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/000c009b-6eb5-40f7-b10f-f52779cb1caa/deploy-status)](https://app.netlify.com/sites/peppy-centaur-2b8fe8/deploys)
+[![Deploy site to Pages](https://github.com/Ebonsignori/income-tax-calculator/actions/workflows/github-pages-deploy.yml/badge.svg)](https://github.com/Ebonsignori/income-tax-calculator/actions/workflows/github-pages-deploy.yml)
 
 Calculates USA Federal, State, and City income cities tax.
 
-Accounts for city-specific taxes, unlike other online calculators.
+Accounts for city-specific taxes (like Portland OR), unlike other online calculators.
+
+If your city isn't included and you'd like to add it, see the [src/data/README.md](./src/data/README.md).
 
 ## Tax Data
 
@@ -22,25 +24,3 @@ After updating tax data, validate it with `npm run validate-tax-data`
 `public/og-images` should be populated with screen captures for each page.
 
 [get-metadata.ts](src/utils/get-metadata.ts) makes sure each page has a `<meta` tag pointing to the matching OG image.
-
-
-## TODO before launch
-
-- Add other states / cities
-
-- Ad in middle of screen
-
-- Get PWA working offline for uncached states/cities
-
-# Later TODO
-
-- Improve accessibility
-
-- Tax options {...key} error in console? may be a Next.js bug
-
-- Metadata only via tag, may be a Next.js bug
-
-- Expand Calculator tests
-
-- Use `usePathname` to get Next.js URL and aysnc load the path params, show loader, and suggest URL
-- Write about it

@@ -1,5 +1,6 @@
 import type { AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
+import { updateURL } from "@/utils/base-path";
 import {
   snakeToDashCase,
   snakeToTitleCase,
@@ -70,20 +71,14 @@ export function CitySelect({
         const city = toSnakeCase(val);
         if (city === USACity) return;
         if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
-          window.history.replaceState(
-            {},
-            "",
+          updateURL(
             `${baseRoute}/${year}/${snakeToDashCase(USAState)}/${snakeToDashCase(city)}`,
           );
           setUSACity(city);
           sendAnalyticsEvent(EVENTS.CHANGE_CITY, city);
         } else {
           setUSACity("");
-          window.history.replaceState(
-            {},
-            "",
-            `${baseRoute}/${year}/${snakeToDashCase(USAState)}`,
-          );
+          updateURL(`${baseRoute}/${year}/${snakeToDashCase(USAState)}`);
         }
       }}
       renderInput={(params) => {

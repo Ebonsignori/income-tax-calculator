@@ -1,4 +1,5 @@
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
+import { updateURL } from "@/utils/base-path";
 import { snakeToDashCase, yearDisplay } from "@/utils/string-utils";
 import { MenuItem, TextField } from "@mui/material";
 
@@ -38,7 +39,7 @@ export function YearSelect({
         if (USACity) {
           newUrl += `/${snakeToDashCase(USACity)}`;
         }
-        window.history.replaceState({}, "", newUrl);
+        updateURL(newUrl);
         setYear(e.target.value);
         sendAnalyticsEvent(EVENTS.CHANGE_YEAR, year);
       }}
