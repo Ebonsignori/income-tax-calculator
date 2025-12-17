@@ -44,8 +44,11 @@ const singleBracket = Joi.array().items(
       percent_of_total: Joi.number().optional(),
     }),
     Joi.object().keys({
-      min: Joi.number().integer().required(),
-      amount: Joi.number().integer().required(),
+      min: Joi.number().integer().optional(),
+      amount: Joi.number().required(),
+      frequency: Joi.string()
+        .valid("annually", "monthly", "semi_monthly", "biweekly", "weekly")
+        .optional(),
     })
   )
 );
