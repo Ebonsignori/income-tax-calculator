@@ -1,12 +1,14 @@
 /** @type {import('next').NextConfig} */
 import NextPWA from "next-pwa";
 
+// Use GITHUB_PAGES env var to determine if we're deploying to GitHub Pages
+const isGitHubPages = process.env.GITHUB_PAGES === "true";
+const basePath = isGitHubPages ? "/income-tax-calculator" : "";
+
 const withPWA = NextPWA({
   dest: "out",
+  disable: isGitHubPages, // Disable PWA for GitHub Pages
 });
-
-const isProd = process.env.NODE_ENV === "production";
-const basePath = isProd ? "/income-tax-calculator" : "";
 
 const nextConfig = withPWA({
   output: "export",
@@ -15,6 +17,8 @@ const nextConfig = withPWA({
   images: {
     unoptimized: true,
   },
+  // Ensure trailing slashes are handled correctly
+  trailingSlash: true,
 });
 
 export default nextConfig;
