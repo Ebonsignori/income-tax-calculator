@@ -6,8 +6,21 @@
 export function getBasePath(): string {
   // Check if we're in the browser
   if (typeof window !== "undefined") {
-    // In production, Next.js will set the __NEXT_DATA__ with the basePath
-    return (window as any).__NEXT_DATA__?.basePath || "";
+    // First try to get basePath from Next.js __NEXT_DATA__
+    const nextBasePath = (window as any).__NEXT_DATA__?.basePath;
+    if (nextBasePath) {
+      return nextBasePath;
+    }
+
+    // Fallback: detect from current URL
+    // If we're on GitHub Pages, the URL will be like:
+    // https://ebonsignori.github.io/income-tax-calculator/...
+    const pathname = window.location.pathname;
+    if (pathname.startsWith("/income-tax-calculator")) {
+      return "/income-tax-calculator";
+    }
+
+    return "";
   }
   // Server-side: use environment variable
   return process.env.GITHUB_PAGES === "true" ? "/income-tax-calculator" : "";
