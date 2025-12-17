@@ -40,14 +40,14 @@ test("expected values are displayed for portland specific tax", async ({
 }) => {
   await page.goto("/tax-tables");
 
+  // Select year first to avoid defaulting to current year (2023 has stable data)
+  await page.getByTestId("tax-year-select").locator("input").fill("2023");
+
   // Select state, Oregon
   await page.fill("input#state-select", "Oregon");
 
   // Select city, Portland
   await page.fill("input#city-select", "Portland");
-
-  // Select year, 2023 - 2024
-  await page.getByTestId("tax-year-select").locator("input").fill("2023");
 
   const portlandArtTax = "Portland Art Tax";
   await page.locator("input#tax-options-select").click();
@@ -61,11 +61,11 @@ test("expected values are displayed for portland specific tax", async ({
 test("multiple tables displayed for multiple tax types", async ({ page }) => {
   await page.goto("/tax-tables");
 
+  // Select year first to avoid defaulting to current year (2023 has stable data)
+  await page.getByTestId("tax-year-select").locator("input").fill("2023");
+
   // Select state, Oregon
   await page.fill("input#state-select", "Oregon");
-
-  // Select year, 2023 - 2024
-  await page.getByTestId("tax-year-select").locator("input").fill("2023");
 
   const oregonStateIncomeTax = "Oregon State Income";
   await page.locator("input#tax-options-select").click();
