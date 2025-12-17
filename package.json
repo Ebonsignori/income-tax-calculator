@@ -7,7 +7,7 @@
     "dev": "node open.js 3000 && next dev",
     "dev:test": "NODE_ENV=test next dev",
     "build": "next build",
-    "postbuild": "next-sitemap",
+    "postbuild": "next-sitemap && node scripts/update-manifest.js",
     "start": "serve out",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
