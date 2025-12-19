@@ -107,7 +107,7 @@ async function screenshotTaxTable(
   await page.goto(url);
   await page.getByTestId("tax-year-select").locator("input").fill(year);
 
-  await page.locator("input#tax-options-select").click();
+  await page.locator("input#tax-options-select").click({ force: true });
   await page
     .getByRole("option")
     .filter({ hasText: snakeToTitleCase(selectionText) })

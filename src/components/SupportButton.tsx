@@ -12,7 +12,7 @@ type SupportButtonProps = {
 export function SupportButton({ asLink }: SupportButtonProps) {
   const href =
     process.env.NEXT_PUBLIC_NEW_REPO_ISSUE_LINK ||
-    "https://github.com/Ebonsignori/income-calculator/issues/new";
+    "https://github.com/Ebonsignori/income-tax-calculator/issues/new";
   const onClick = () => sendAnalyticsEvent(EVENTS.OPEN_ISSUE_CLICK);
   if (asLink) {
     return (
