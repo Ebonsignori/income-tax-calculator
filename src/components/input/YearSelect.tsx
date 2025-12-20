@@ -1,5 +1,5 @@
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { updateURL } from "@/utils/base-path";
+import { updateURL, getQueryParams } from "@/utils/base-path";
 import { snakeToDashCase, yearDisplay } from "@/utils/string-utils";
 import { MenuItem, TextField } from "@mui/material";
 
@@ -35,6 +35,11 @@ export function YearSelect({
       onChange={(e) => {
         const selectedYear = e.target.value;
 
+        // Preserve income query param if it exists
+        const queryParams = getQueryParams();
+        const income = queryParams.get("income");
+        const params = income ? { income } : undefined;
+
         // If selecting current year and no state/city, go to homepage
         const isCurrentYear = selectedYear === currentYear;
         const hasStateOrCity = USAState || USACity;
@@ -52,7 +57,7 @@ export function YearSelect({
           }
         }
 
-        updateURL(newUrl);
+        updateURL(newUrl, params);
         setYear(selectedYear);
         sendAnalyticsEvent(EVENTS.CHANGE_YEAR, selectedYear);
       }}

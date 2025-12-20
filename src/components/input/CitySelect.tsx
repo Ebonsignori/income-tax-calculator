@@ -1,6 +1,6 @@
 import type { AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { updateURL } from "@/utils/base-path";
+import { updateURL, getQueryParams } from "@/utils/base-path";
 import {
   snakeToDashCase,
   snakeToTitleCase,
@@ -73,15 +73,25 @@ export function CitySelect({
       onInputChange={(e, val) => {
         const city = toSnakeCase(val);
         if (city === USACity) return;
+
+        // Preserve income query param if it exists
+        const queryParams = getQueryParams();
+        const income = queryParams.get("income");
+        const params = income ? { income } : undefined;
+
         if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
           updateURL(
             `${baseRoute}/${year}/${snakeToDashCase(USAState)}/${snakeToDashCase(city)}`,
+            params,
           );
           setUSACity(city);
           sendAnalyticsEvent(EVENTS.CHANGE_CITY, city);
         } else {
           setUSACity("");
-          updateURL(`${baseRoute}/${year}/${snakeToDashCase(USAState)}`);
+          updateURL(
+            `${baseRoute}/${year}/${snakeToDashCase(USAState)}`,
+            params,
+          );
         }
       }}
       renderInput={(params) => {

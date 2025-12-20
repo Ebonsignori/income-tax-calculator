@@ -1,7 +1,7 @@
 import { ALL_STATES } from "@/constants/states";
 import type { AutocompleteOption, AvailableStatesAndCities } from "@/types";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { updateURL } from "@/utils/base-path";
+import { updateURL, getQueryParams } from "@/utils/base-path";
 import {
   snakeToDashCase,
   snakeToTitleCase,
@@ -85,13 +85,19 @@ export function StateSelect({
       onInputChange={(e, val) => {
         const state = toSnakeCase(val);
         if (state === USAState) return;
+
+        // Preserve income query param if it exists
+        const queryParams = getQueryParams();
+        const income = queryParams.get("income");
+        const params = income ? { income } : undefined;
+
         if (val && ALL_STATES.includes(state)) {
-          updateURL(`${baseRoute}/${year}/${snakeToDashCase(state)}`);
+          updateURL(`${baseRoute}/${year}/${snakeToDashCase(state)}`, params);
           sendAnalyticsEvent(EVENTS.CHANGE_STATE, state);
           setUSAState(state);
           setUSACity("");
         } else if (!val) {
-          updateURL(`${baseRoute}/${year}`);
+          updateURL(`${baseRoute}/${year}`, params);
           setUSAState("");
           setUSACity("");
         }

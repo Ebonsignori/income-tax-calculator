@@ -41,7 +41,7 @@ import { debounce } from "@/utils/debounce";
 import { PaycheckFrequencySelect } from "./input/PaycheckFrequencySelect";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { MONTHLY } from "@/constants/paycheck-frequency";
-import { updateURL } from "@/utils/base-path";
+import { updateURL, getQueryParams } from "@/utils/base-path";
 
 type HomeProps = {
   availableYears: string[];
@@ -103,6 +103,33 @@ export default function Home({
   const resetTotalFederalDeductions = useCallback(() => {
     setTotalFederalDeductions(federalStandardDeductionMap[filingStatus]);
   }, [federalStandardDeductionMap, filingStatus]);
+
+  // Initialize income from URL query param on mount
+  useEffect(() => {
+    const queryParams = getQueryParams();
+    const incomeParam = queryParams.get("income");
+    if (incomeParam) {
+      const incomeValue = parseInt(incomeParam, 10);
+      if (!isNaN(incomeValue) && incomeValue > 0) {
+        setTotalIncome(incomeValue);
+      }
+    }
+  }, []);
+
+  // Update URL when income changes
+  useEffect(() => {
+    if (totalIncome > 0) {
+      // Build the path based on current year, state, and city
+      let path = `/${year}`;
+      if (USAState) {
+        path += `/${USAState.replace(/_/g, "-")}`;
+        if (USACity) {
+          path += `/${USACity.replace(/_/g, "-")}`;
+        }
+      }
+      updateURL(path, { income: totalIncome });
+    }
+  }, [totalIncome, year, USAState, USACity]);
 
   useEffect(() => {
     if (federalStandardDeductionMap[filingStatus]) {
@@ -201,6 +228,19 @@ export default function Home({
         }
       } else if (USACity) {
         setUSACity("");
+      }
+
+      // Parse and restore income from query params
+      const queryParams = getQueryParams();
+      const incomeParam = queryParams.get("income");
+      if (incomeParam) {
+        const incomeValue = parseInt(incomeParam, 10);
+        if (!isNaN(incomeValue) && incomeValue > 0) {
+          setTotalIncome(incomeValue);
+        }
+      } else {
+        // If no income param, clear the income
+        setTotalIncome(0);
       }
     };
 
