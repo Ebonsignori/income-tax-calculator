@@ -7,7 +7,7 @@ const basePath = isGitHubPages ? "/income-tax-calculator" : "";
 
 const withPWA = NextPWA({
   dest: "out",
-  disable: isGitHubPages, // Disable PWA for GitHub Pages
+  disable: process.env.NODE_ENV === "development" || isGitHubPages, // Disable PWA in development and for GitHub Pages
 });
 
 const nextConfig = withPWA({
