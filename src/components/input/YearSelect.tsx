@@ -21,6 +21,8 @@ export function YearSelect({
   setYear,
   baseRoute = "",
 }: YearSelectProps) {
+  const currentYear = new Date().getFullYear().toString();
+
   return (
     <TextField
       fullWidth
@@ -31,17 +33,28 @@ export function YearSelect({
       data-testid="tax-year-select"
       value={year}
       onChange={(e) => {
-        const year = e.target.value;
-        let newUrl = `${baseRoute}/${year}`;
-        if (USAState) {
-          newUrl += `/${snakeToDashCase(USAState)}`;
+        const selectedYear = e.target.value;
+
+        // If selecting current year and no state/city, go to homepage
+        const isCurrentYear = selectedYear === currentYear;
+        const hasStateOrCity = USAState || USACity;
+
+        let newUrl: string;
+        if (isCurrentYear && !hasStateOrCity) {
+          newUrl = baseRoute || "/";
+        } else {
+          newUrl = `${baseRoute}/${selectedYear}`;
+          if (USAState) {
+            newUrl += `/${snakeToDashCase(USAState)}`;
+          }
+          if (USACity) {
+            newUrl += `/${snakeToDashCase(USACity)}`;
+          }
         }
-        if (USACity) {
-          newUrl += `/${snakeToDashCase(USACity)}`;
-        }
+
         updateURL(newUrl);
-        setYear(e.target.value);
-        sendAnalyticsEvent(EVENTS.CHANGE_YEAR, year);
+        setYear(selectedYear);
+        sendAnalyticsEvent(EVENTS.CHANGE_YEAR, selectedYear);
       }}
       variant="standard"
     >

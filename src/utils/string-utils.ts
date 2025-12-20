@@ -23,5 +23,5 @@ export function snakeToDashCase(str: string): string {
 }
 
 export function yearDisplay(year: string) {
-  return `${year} - ${parseInt(year, 10) + 1}`;
+  return year;
 }

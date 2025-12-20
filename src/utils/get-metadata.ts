@@ -126,11 +126,16 @@ export function getPageSpecificMetadata(
   // Build canonical URL
   let canonical = baseUrl;
   if (year) {
-    canonical += `/${year}`;
-    if (state) {
-      canonical += `/${state}`;
-      if (city) {
-        canonical += `/${city}`;
+    // If year matches current year and no state/city, canonical should be homepage
+    if (parseInt(year, 10) === currentYear && !state && !city) {
+      canonical = baseUrl;
+    } else {
+      canonical += `/${year}`;
+      if (state) {
+        canonical += `/${state}`;
+        if (city) {
+          canonical += `/${city}`;
+        }
       }
     }
   }
