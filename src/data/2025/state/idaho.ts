@@ -1,6 +1,5 @@
 import { INFINITY } from "@/constants";
 import {
-  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
@@ -17,6 +16,21 @@ export default {
     [HEAD_OF_HOUSEHOLD]: 22500,
   },
   [STATE_INCOME]: {
-    [ALL]: [{ min: 0, max: INFINITY, rate: 5.3 }],
+    [SINGLE]: [
+      { min: 0, max: 2500, rate: 0 },
+      { min: 2500, max: INFINITY, rate: 5.3 },
+    ],
+    [MARRIED]: [
+      { min: 0, max: 5000, rate: 0 },
+      { min: 5000, max: INFINITY, rate: 5.3 },
+    ],
+    [MARRIED_SEPARATELY]: [
+      { min: 0, max: 2500, rate: 0 },
+      { min: 2500, max: INFINITY, rate: 5.3 },
+    ],
+    [HEAD_OF_HOUSEHOLD]: [
+      { min: 0, max: 3750, rate: 0 },
+      { min: 3750, max: INFINITY, rate: 5.3 },
+    ],
   },
 } as TaxData;

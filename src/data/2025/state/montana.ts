@@ -23,8 +23,8 @@ export default {
       { min: 21100, max: INFINITY, rate: 5.9 },
     ],
     [HEAD_OF_HOUSEHOLD]: [
-      { min: 0, max: 31650, rate: 4.7 },
-      { min: 31650, max: INFINITY, rate: 5.9 },
+      { min: 0, max: 31700, rate: 4.7 },
+      { min: 31700, max: INFINITY, rate: 5.9 },
     ],
   },
 } as TaxData;

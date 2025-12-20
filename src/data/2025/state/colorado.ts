@@ -18,7 +18,7 @@ export default {
       {
         min: 0,
         max: INFINITY,
-        rate: 4.25,
+        rate: 4.4,
       },
     ],
   },

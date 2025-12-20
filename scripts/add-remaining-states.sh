@@ -173,13 +173,15 @@ for ((i=0; i<$total_missing; i+=batch_size)); do
   state_list=$(IFS=,; echo "${batch[*]}")
   
   # Call copilot CLI with the batch
-  copilot -p "Please read src/data/README.md for context on the data structure and conventions. Then add state income tax data for the following states: ${state_list}. 
+  {
+    copilot -p "Please read src/data/README.md for context on the data structure and conventions. Then add state income tax data for the following states: ${state_list}. 
 
 Research the ${YEAR} tax brackets, rates, and standard deductions for each state, then create the appropriate TypeScript files following the same pattern as the existing state files in src/data/${YEAR}/state/. 
 
 Use snake_case for file names (e.g., 'new_hampshire.ts', 'district_of_columbia.ts').
 
-After creating the files, run 'npm run validate-tax-data' to verify they're correct." --allow-tool 'shell(npm,node,npx,ts-node)' --allow-tool 'web_search' --allow-tool 'read' --allow-tool 'write' --allow-all-paths | tee -a "$LOG_FILE"
+After creating the files, run 'npm run validate-tax-data' to verify they're correct." --allow-tool 'shell(npm,node,npx,ts-node)' --allow-tool 'web_search' --allow-tool 'read' --allow-tool 'write' --allow-all-paths
+  } | tee -a "$LOG_FILE"
   
   # Check results after processing
   echo "" | tee -a "$LOG_FILE"
