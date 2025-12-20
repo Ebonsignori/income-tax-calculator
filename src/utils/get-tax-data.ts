@@ -1,5 +1,6 @@
 import type { TaxData } from "@/types";
 import { useEffect } from "react";
+import { updateURL } from "./base-path";
 
 type GetTaxData = {
   year: string;
@@ -8,6 +9,11 @@ type GetTaxData = {
   setFederalTaxes: (value: TaxData) => void;
   // eslint-disable-next-line no-unused-vars
   setStateTaxes: (value: TaxData) => void;
+  // eslint-disable-next-line no-unused-vars
+  setUSAState?: (value: string) => void;
+  // eslint-disable-next-line no-unused-vars
+  setUSACity?: (value: string) => void;
+  baseRoute?: string;
 };
 
 export function useGetTaxData({
@@ -15,6 +21,9 @@ export function useGetTaxData({
   USAState,
   setFederalTaxes,
   setStateTaxes,
+  setUSAState,
+  setUSACity,
+  baseRoute = "",
 }: GetTaxData) {
   useEffect(() => {
     async function fetchFederalBrackets() {
@@ -30,9 +39,36 @@ export function useGetTaxData({
         setStateTaxes({} as TaxData);
         return;
       }
-      const stateBrackets = await import(`@/data/${year}/state/${USAState}.ts`);
-      setStateTaxes(stateBrackets.default);
+      try {
+        const stateBrackets = await import(
+          `@/data/${year}/state/${USAState}.ts`
+        );
+        setStateTaxes(stateBrackets.default);
+      } catch (error) {
+        // If the state tax data doesn't exist for this year,
+        // clear the state and city selections and update the URL
+        console.warn(
+          `Tax data not found for state "${USAState}" in year ${year}. Clearing state selection.`,
+        );
+        setStateTaxes({} as TaxData);
+        if (setUSAState) {
+          setUSAState("");
+        }
+        if (setUSACity) {
+          setUSACity("");
+        }
+        // Update URL to just show the year without state/city
+        updateURL(`${baseRoute}/${year}`);
+      }
     }
     fetchStateBrackets();
-  }, [USAState, year, setFederalTaxes, setStateTaxes]);
+  }, [
+    USAState,
+    year,
+    setFederalTaxes,
+    setStateTaxes,
+    setUSAState,
+    setUSACity,
+    baseRoute,
+  ]);
 }

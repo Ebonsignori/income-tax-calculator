@@ -93,6 +93,9 @@ export default function TaxTables({
     USAState,
     setFederalTaxes,
     setStateTaxes,
+    setUSAState,
+    setUSACity,
+    baseRoute: TAX_TABLES.route,
   });
 
   const taxOptions = useGetTaxOptions({

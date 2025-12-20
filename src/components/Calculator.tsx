@@ -41,6 +41,7 @@ import { debounce } from "@/utils/debounce";
 import { PaycheckFrequencySelect } from "./input/PaycheckFrequencySelect";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { MONTHLY } from "@/constants/paycheck-frequency";
+import { updateURL } from "@/utils/base-path";
 
 type HomeProps = {
   availableYears: string[];
@@ -148,8 +149,23 @@ export default function Home({
         setStateTaxes({} as TaxData);
         return;
       }
-      const stateBrackets = await import(`@/data/${year}/state/${USAState}.ts`);
-      setStateTaxes(stateBrackets.default);
+      try {
+        const stateBrackets = await import(
+          `@/data/${year}/state/${USAState}.ts`
+        );
+        setStateTaxes(stateBrackets.default);
+      } catch (error) {
+        // If the state tax data doesn't exist for this year,
+        // clear the state and city selections and update the URL
+        console.warn(
+          `Tax data not found for state "${USAState}" in year ${year}. Clearing state selection.`,
+        );
+        setStateTaxes({} as TaxData);
+        setUSAState("");
+        setUSACity("");
+        // Update URL to just show the year without state/city
+        updateURL(`/${year}`);
+      }
     }
     fetchStateBrackets();
   }, [USAState, year]);
