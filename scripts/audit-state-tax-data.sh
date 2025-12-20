@@ -153,7 +153,7 @@ For each state, provide a summary with a clear status indicator and details of w
 - ⚠ NEEDS REVIEW: Issues found but unable to auto-correct (explain why)
 - ✗ ERROR: Critical issues encountered (provide details)
 
-Format your response clearly so it can be easily parsed in a log file. Include specific details about what was changed for any corrections made." --allow-tool 'web_search' --allow-tool 'read' --allow-tool 'write' --allow-tool 'shell(npm,node,npx,ts-node,cd,which,find,grep)' --allow-all-paths
+Format your response clearly so it can be easily parsed in a log file. Include specific details about what was changed for any corrections made." --allow-all-tools --allow-all-paths
   } | tee -a "$LOG_FILE"
   
   echo "" | tee -a "$LOG_FILE"

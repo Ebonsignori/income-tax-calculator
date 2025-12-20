@@ -180,7 +180,7 @@ Research the ${YEAR} tax brackets, rates, and standard deductions for each state
 
 Use snake_case for file names (e.g., 'new_hampshire.ts', 'district_of_columbia.ts').
 
-After creating the files, run 'npm run validate-tax-data' to verify they're correct." --allow-tool 'shell(npm,node,npx,ts-node)' --allow-tool 'web_search' --allow-tool 'read' --allow-tool 'write' --allow-all-paths
+After creating the files, run 'npm run validate-tax-data' to verify they're correct." --allow-all-tools --allow-all-paths
   } | tee -a "$LOG_FILE"
   
   # Check results after processing
