@@ -18,11 +18,13 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 After updating tax data, validate it with `npm run validate-tax-data`
 
+
 ## Generating OG Images
 
 1. Run the server with `NODE_ENV=development`, this can be done via `npm run dev`
 2. In another terminal run `npm run generate-og-images`
 
-`public/og-images` should be populated with screen captures for each page.
+`public/og-images` should be populated with screen captures for each state and city. 
 
 [get-metadata.ts](src/utils/get-metadata.ts) makes sure each page has a `<meta` tag pointing to the matching OG image.
+

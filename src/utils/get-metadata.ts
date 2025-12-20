@@ -77,21 +77,21 @@ export function getPageSpecificMetadata(
         if (year) {
           description = `Calculate your take home pay after federal and state income taxes for the year ${year}.`;
           openGraph.title = `${year} ${INCOME_TAX_CALCULATOR.name}`;
-          openGraph.images = `/og-images/${year}/landing.png`;
+          openGraph.images = `/og-images/landing.png`;
         } else {
           description = `Calculate your take home pay after federal, state, and city income taxes.`;
           openGraph.title = `${INCOME_TAX_CALCULATOR.name}`;
-          openGraph.images = `/og-images/${currentYear}/landing.png`;
+          openGraph.images = `/og-images/landing.png`;
         }
       } else {
         description = `Calculate your take home pay after federal and state income taxes for the year ${year} in ${snakeToTitleCase(state)}.`;
         openGraph.title = `${year} ${snakeToTitleCase(state)} ${INCOME_TAX_CALCULATOR.name}`;
-        openGraph.images = `/og-images/${year}/${state}.png`;
+        openGraph.images = `/og-images/${state}.png`;
       }
     } else {
       description = `Calculate your take home pay after federal, state, and city income taxes for the year ${year} in ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)}.`;
       openGraph.title = `${year} ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)} ${INCOME_TAX_CALCULATOR.name}`;
-      openGraph.images = `/og-images/${year}/${state}/${city}.png`;
+      openGraph.images = `/og-images/${state}/${city}.png`;
     }
   } else if (pageName === TAX_TABLES.name) {
     baseUrl = `${baseUrl}/tax-tables`;
@@ -100,21 +100,21 @@ export function getPageSpecificMetadata(
         if (year) {
           description = `Tables of federal and state income tax rates for the year ${year}.`;
           openGraph.title = `${year} ${TAX_TABLES.name}`;
-          openGraph.images = `/og-images/${year}/landing.png`;
+          openGraph.images = `/og-images/tax-tables/landing.png`;
         } else {
           description = `Tables of federal, state, and city income tax rates.`;
           openGraph.title = `${TAX_TABLES.name}`;
-          openGraph.images = `/og-images/${currentYear}/landing.png`;
+          openGraph.images = `/og-images/tax-tables/landing.png`;
         }
       } else {
         description = `Tables of federal and state income tax rates for the year ${year} in ${snakeToTitleCase(state as string)}.`;
         openGraph.title = `${year} ${snakeToTitleCase(state)} ${TAX_TABLES.name}`;
-        openGraph.images = `/og-images/${year}/${state}.png`;
+        openGraph.images = `/og-images/tax-tables/${state}.png`;
       }
     } else {
       description = `Tables of federal, state, and city income tax rates for the year ${year} in ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)}.`;
       openGraph.title = `${year} ${snakeToTitleCase(city)}, ${snakeToTitleCase(state as string)} ${TAX_TABLES.name}`;
-      openGraph.images = `/og-images/${year}/${state}/${city}.png`;
+      openGraph.images = `/og-images/tax-tables/${state}/${city}.png`;
     }
   } else if (pageName === SUPPORT.name) {
     description = "Support page for the Income Tax Calculator.";
