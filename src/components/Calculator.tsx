@@ -182,6 +182,9 @@ export default function Home({
       // Update state based on URL segments
       if (segments.length >= 1 && segments[0] !== year) {
         setYear(segments[0]);
+      } else if (segments.length === 0 && year !== defaultYear) {
+        // If at root path (/), set to current year
+        setYear(defaultYear);
       }
       if (segments.length >= 2) {
         const stateFromUrl = segments[1].replace(/-/g, "_");
@@ -205,7 +208,7 @@ export default function Home({
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [year, USAState, USACity]);
+  }, [year, USAState, USACity, defaultYear]);
 
   const taxOptions = useGetTaxOptions({
     federalTaxes,

@@ -15,7 +15,7 @@ import { YearSelect } from "./input/YearSelect";
 import { StateSelect } from "./input/StateSelect";
 import { CitySelect } from "./input/CitySelect";
 import type { AvailableStatesAndCities, TaxData } from "@/types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TAX_TABLES } from "@/constants/pages";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import type { StandardDeductionMap } from "@/constants/filing-status";
@@ -97,6 +97,52 @@ export default function TaxTables({
     setUSACity,
     baseRoute: TAX_TABLES.route,
   });
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      // Parse the current URL to extract year, state, and city
+      const path = window.location.pathname;
+      const basePath = (window as any).__NEXT_DATA__?.basePath || "";
+      const relativePath = basePath ? path.replace(basePath, "") : path;
+
+      // Remove /tax-tables prefix if present
+      const pathWithoutBase = relativePath.startsWith("/tax-tables")
+        ? relativePath.substring("/tax-tables".length)
+        : relativePath;
+
+      const segments = pathWithoutBase.split("/").filter(Boolean);
+
+      // Update state based on URL segments
+      if (segments.length >= 1 && segments[0] !== year) {
+        setYear(segments[0]);
+      } else if (segments.length === 0 && year !== defaultYear) {
+        // If at root path (/tax-tables), set to current year
+        setYear(defaultYear);
+      }
+      if (segments.length >= 2) {
+        const stateFromUrl = segments[1].replace(/-/g, "_");
+        if (stateFromUrl !== USAState) {
+          setUSAState(stateFromUrl);
+        }
+      } else if (USAState) {
+        setUSAState("");
+      }
+      if (segments.length >= 3) {
+        const cityFromUrl = segments[2].replace(/-/g, "_");
+        if (cityFromUrl !== USACity) {
+          setUSACity(cityFromUrl);
+        }
+      } else if (USACity) {
+        setUSACity("");
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [year, USAState, USACity, defaultYear]);
 
   const taxOptions = useGetTaxOptions({
     federalTaxes,
