@@ -1,7 +1,7 @@
 import type { TaxOption } from "@/utils/get-tax-options";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
-import { Autocomplete, TextField } from "@mui/material";
+import { Autocomplete, Chip, TextField } from "@mui/material";
 
 type TaxOptionsSelectProps = {
   label: string;
@@ -46,6 +46,18 @@ export function TaxOptionsSelect({
           );
         }
       }}
+      renderTags={(tagValue, getTagProps) =>
+        tagValue.map((option, index) => {
+          const { key, ...tagProps } = getTagProps({ index }) as any;
+          return (
+            <Chip
+              key={key}
+              label={capitalizeFirstLetter(option?.title || "")}
+              {...tagProps}
+            />
+          );
+        })
+      }
       renderInput={(params) => {
         const { key, ...props } = params as any;
         const newKey = key || props.id || label;

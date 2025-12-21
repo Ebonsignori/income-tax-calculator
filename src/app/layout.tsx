@@ -6,10 +6,6 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v14-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { getTheme } from "@/theme";
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
 import { ColorModeContext } from "@/context/color-mode";
 import type { Viewport } from "next";
 
@@ -38,26 +34,35 @@ export default function RootLayout(props: { children: ReactNode }) {
       window.matchMedia &&
       window.matchMedia("(prefers-color-scheme: dark)").matches
     ) {
-      if (mode !== "dark") {
-        setMode("dark");
-      }
+      setMode("dark");
     }
 
-    window
-      .matchMedia("(prefers-color-scheme: dark)")
-      .addEventListener("change", (event) => {
-        const newColorScheme = event.matches ? "dark" : "light";
-        setMode(newColorScheme);
-      });
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event: MediaQueryListEvent) => {
+      const newColorScheme = event.matches ? "dark" : "light";
+      setMode(newColorScheme);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        {/* Preconnect to Mixpanel domains for faster analytics loading */}
+        <link rel="preconnect" href="https://api.mixpanel.com" />
+        <link rel="preconnect" href="https://cdn.mxpnl.com" />
+        <link rel="dns-prefetch" href="https://api.mixpanel.com" />
+        <link rel="dns-prefetch" href="https://cdn.mxpnl.com" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ColorModeContext.Provider value={colorMode}>
             <ThemeProvider theme={theme}>

@@ -13,6 +13,12 @@ const nextConfig = withPWA({
   },
   // Ensure trailing slashes are handled correctly
   trailingSlash: true,
+  // Optimize CSS loading
+  experimental: {
+    optimizeCss: true,
+  },
+  // Compress output for faster loading
+  compress: true,
 });
 
 export default nextConfig;
