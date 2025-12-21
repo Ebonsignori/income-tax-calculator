@@ -56,11 +56,6 @@ export default function RootLayout(props: { children: ReactNode }) {
       <head>
         <meta name="theme-color" content="#ffffff" />
         <meta name="mobile-web-app-capable" content="yes" />
-        {/* Preconnect to Mixpanel domains for faster analytics loading */}
-        <link rel="preconnect" href="https://api.mixpanel.com" />
-        <link rel="preconnect" href="https://cdn.mxpnl.com" />
-        <link rel="dns-prefetch" href="https://api.mixpanel.com" />
-        <link rel="dns-prefetch" href="https://cdn.mxpnl.com" />
       </head>
       <body suppressHydrationWarning>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
