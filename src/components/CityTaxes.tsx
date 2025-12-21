@@ -308,7 +308,7 @@ export default function CityTaxes({
                           }}
                         >
                           <LocationCity color="action" fontSize="small" />
-                          <Typography variant="body1">
+                          <Typography variant="body1" color="text.primary">
                             {city.cityName}
                           </Typography>
                         </MuiLink>
