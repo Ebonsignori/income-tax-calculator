@@ -233,22 +233,8 @@ export default function TaxTables({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taxOptions]);
 
-  // Clear selected taxes when state or city changes
+  // Track state and city changes for reference
   useEffect(() => {
-    if (isInitializedFromURL.current) {
-      // Only clear if state or city actually changed (not on initial mount)
-      const stateChanged =
-        prevUSAState.current !== undefined && prevUSAState.current !== USAState;
-      const cityChanged =
-        prevUSACity.current !== undefined && prevUSACity.current !== USACity;
-
-      if (stateChanged || cityChanged) {
-        // Don't push state when clearing due to navigation
-        isUpdatingFromInit.current = true;
-        setSelectedTaxes([]);
-      }
-    }
-
     // Always update refs for next comparison
     prevUSAState.current = USAState;
     prevUSACity.current = USACity;
@@ -391,9 +377,9 @@ export default function TaxTables({
       <Grid item xs={13} sm={3}>
         <YearSelect
           availableYears={availableYears}
-          year={year}
           USACity={USACity}
           USAState={USAState}
+          year={year}
           setYear={setYear}
           baseRoute={TAX_TABLES.route}
         />

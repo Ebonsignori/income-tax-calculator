@@ -74,15 +74,18 @@ export function CitySelect({
         const city = toSnakeCase(val);
         if (city === USACity) return;
 
-        // Preserve income query param if it exists
+        // Preserve income and tables query params if they exist
         const queryParams = getQueryParams();
         const income = queryParams.get("income");
-        const params = income ? { income } : undefined;
+        const tables = queryParams.get("tables");
+        const params: { income?: string; tables?: string } = {};
+        if (income) params.income = income;
+        if (tables) params.tables = tables;
 
         if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
           updateURL(
             `${baseRoute}/${year}/${snakeToDashCase(USAState)}/${snakeToDashCase(city)}`,
-            params,
+            Object.keys(params).length > 0 ? params : undefined,
           );
           setUSACity(city);
           sendAnalyticsEvent(EVENTS.CHANGE_CITY, city);
@@ -90,7 +93,7 @@ export function CitySelect({
           setUSACity("");
           updateURL(
             `${baseRoute}/${year}/${snakeToDashCase(USAState)}`,
-            params,
+            Object.keys(params).length > 0 ? params : undefined,
           );
         }
       }}

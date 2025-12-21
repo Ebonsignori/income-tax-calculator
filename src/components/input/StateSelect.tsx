@@ -86,18 +86,27 @@ export function StateSelect({
         const state = toSnakeCase(val);
         if (state === USAState) return;
 
-        // Preserve income query param if it exists
+        // Preserve income and tables query params if they exist
         const queryParams = getQueryParams();
         const income = queryParams.get("income");
-        const params = income ? { income } : undefined;
+        const tables = queryParams.get("tables");
+        const params: { income?: string; tables?: string } = {};
+        if (income) params.income = income;
+        if (tables) params.tables = tables;
 
         if (val && ALL_STATES.includes(state)) {
-          updateURL(`${baseRoute}/${year}/${snakeToDashCase(state)}`, params);
+          updateURL(
+            `${baseRoute}/${year}/${snakeToDashCase(state)}`,
+            Object.keys(params).length > 0 ? params : undefined,
+          );
           sendAnalyticsEvent(EVENTS.CHANGE_STATE, state);
           setUSAState(state);
           setUSACity("");
         } else if (!val) {
-          updateURL(`${baseRoute}/${year}`, params);
+          updateURL(
+            `${baseRoute}/${year}`,
+            Object.keys(params).length > 0 ? params : undefined,
+          );
           setUSAState("");
           setUSACity("");
         }

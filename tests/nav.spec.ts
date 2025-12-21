@@ -16,7 +16,8 @@ test("can navigate via nav drawer", async ({ page }) => {
   await page.waitForTimeout(500);
 
   await page.getByRole("button").filter({ hasText: "Tax Tables" }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForURL("**/tax-tables/**");
+  await page.waitForTimeout(500);
 
   await expect(page).toHaveTitle(/Income Tax Tables/);
   await expect(
@@ -58,7 +59,8 @@ test("can navigate via footer links", async ({ page }) => {
 
   // Navigate to Tax Tables
   await page.getByRole("link").filter({ hasText: "Tax Tables" }).click();
-  await page.waitForTimeout(1000);
+  await page.waitForURL("**/tax-tables/**");
+  await page.waitForTimeout(500);
 
   await expect(page).toHaveTitle(/Income Tax Tables/);
   await expect(
