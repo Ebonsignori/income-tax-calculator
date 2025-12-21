@@ -113,7 +113,9 @@ export function calculateTaxesPerBracket(
   // If no custom deductions provided, use standard deduction from tax data
   let deductions = totalDeductions;
   if (deductions === undefined && taxData[STANDARD_DEDUCTION]) {
-    const standardDeduction = (taxData[STANDARD_DEDUCTION] as any)[filingStatus];
+    const standardDeduction = (taxData[STANDARD_DEDUCTION] as any)[
+      filingStatus
+    ];
     if (standardDeduction !== undefined) {
       deductions = standardDeduction;
     }
@@ -121,7 +123,7 @@ export function calculateTaxesPerBracket(
 
   // Gross income after IRA (used for FICA and payroll taxes)
   const grossIncome = totalIncome.subtract(asCurrency(totalIRA));
-  
+
   // Taxable income after deductions (used for income taxes)
   const taxableIncome = grossIncome.subtract(asCurrency(deductions || 0));
 
@@ -137,7 +139,7 @@ export function calculateTaxesPerBracket(
       const incomeBase = grossIncomeTaxes.includes(taxType)
         ? grossIncome
         : taxableIncome;
-      
+
       if (taxTypeData[ALL]?.[0]?.amount) {
         let amount = asCurrency(taxTypeData[ALL][0].amount);
         if (taxTypeData[ALL]?.[0]?.frequency) {
@@ -177,7 +179,7 @@ export function calculateTaxesPerBracket(
       const incomeBase = grossIncomeTaxes.includes(taxType)
         ? grossIncome
         : taxableIncome;
-      
+
       taxesPerBracket[taxType] = calculateTaxBracket(
         incomeBase,
         taxTypeData[filingStatus],
