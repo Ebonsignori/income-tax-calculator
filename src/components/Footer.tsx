@@ -38,8 +38,7 @@ export default function Footer({ pages }: FooterProps) {
       >
         <strong>Disclaimer:</strong> This calculator is for informational
         purposes only. Tax calculations are not verified and should not be used
-        for legal, tax filing, or financial advice. Please consult a qualified
-        tax professional for official guidance.
+        for legal, tax filing, or financial advice.
       </Typography>
       <Typography
         variant="body2"
@@ -50,12 +49,15 @@ export default function Footer({ pages }: FooterProps) {
             sm: 1,
           },
           textAlign: "center",
-          flexWrap: "wrap",
           px: 2,
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 0,
         }}
       >
         {visiblePages.map(({ name, route }) => (
-          <React.Fragment key={route}>
+          <Box key={route} component="span" sx={{ whiteSpace: "nowrap" }}>
             <MuiLink
               color="inherit"
               component={Link}
@@ -67,19 +69,21 @@ export default function Footer({ pages }: FooterProps) {
             <Box component="span" sx={{ mx: 1.5 }}>
               •
             </Box>
-          </React.Fragment>
+          </Box>
         ))}
-        <MuiLink
-          color="inherit"
-          href={process.env.NEXT_PUBLIC_REPO}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() =>
-            sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, "Open Source")
-          }
-        >
-          Open Source
-        </MuiLink>
+        <Box component="span" sx={{ whiteSpace: "nowrap" }}>
+          <MuiLink
+            color="inherit"
+            href={process.env.NEXT_PUBLIC_REPO}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, "Open Source")
+            }
+          >
+            Open Source
+          </MuiLink>
+        </Box>
       </Typography>
       <Typography variant="body2" color="text.secondary">
         {"Copyright © "}
