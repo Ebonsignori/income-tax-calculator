@@ -15,7 +15,7 @@ import { YearSelect } from "./input/YearSelect";
 import { StateSelect } from "./input/StateSelect";
 import { CitySelect } from "./input/CitySelect";
 import type { AvailableStatesAndCities, TaxData } from "@/types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { TAX_TABLES } from "@/constants/pages";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import type { StandardDeductionMap } from "@/constants/filing-status";
@@ -34,6 +34,7 @@ import { NONE, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxDataSelectOption } from "./input/TaxDataSelect";
 import { TaxDataSelect } from "./input/TaxDataSelect";
 import { initEventTracking } from "@/utils/analytics";
+import { getQueryParams, updateURL } from "@/utils/base-path";
 
 type TaxTableProps = {
   availableYears: string[];
@@ -84,6 +85,14 @@ export default function TaxTables({
 
   const [max401KContribution, setMax401KContribution] = useState(0);
 
+  // Track if we've initialized from URL to prevent circular updates
+  const isInitializedFromURL = useRef(false);
+  // Track if we're currently updating from initialization to skip URL push
+  const isUpdatingFromInit = useRef(false);
+  // Track previous state and city to detect actual changes (initialize as undefined)
+  const prevUSAState = useRef<string | undefined>(undefined);
+  const prevUSACity = useRef<string | undefined>(undefined);
+
   const availableStatesAndCities = useMemo(() => {
     return statesAndCitiesForYear[year];
   }, [statesAndCitiesForYear, year]);
@@ -96,6 +105,16 @@ export default function TaxTables({
     setUSAState,
     setUSACity,
     baseRoute: TAX_TABLES.route,
+  });
+
+  const taxOptions = useGetTaxOptions({
+    federalTaxes,
+    stateTaxes,
+    USACity,
+    USAState,
+    setFederalStandardDeductionMap,
+    setStateStandardDeductionMap,
+    setMax401KContribution,
   });
 
   // Handle browser back/forward navigation
@@ -136,23 +155,126 @@ export default function TaxTables({
       } else if (USACity) {
         setUSACity("");
       }
+
+      // Parse and restore selectedTaxes from query params
+      const queryParams = getQueryParams();
+      const tablesParam = queryParams.get("tables");
+      if (tablesParam && taxOptions.length > 0) {
+        const tableValues = tablesParam.split(",").map((v) => v.trim());
+        const matchingTaxes = taxOptions.filter((option) =>
+          tableValues.includes(option.value),
+        );
+        if (matchingTaxes.length > 0) {
+          // Mark that we're updating from navigation (similar to initialization)
+          isUpdatingFromInit.current = true;
+          setSelectedTaxes(matchingTaxes);
+        }
+      } else {
+        // If no tables param, clear selectedTaxes
+        isUpdatingFromInit.current = true;
+        setSelectedTaxes([]);
+      }
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [year, USAState, USACity, defaultYear]);
+  }, [year, USAState, USACity, defaultYear, taxOptions]);
 
-  const taxOptions = useGetTaxOptions({
-    federalTaxes,
-    stateTaxes,
-    USACity,
-    USAState,
-    setFederalStandardDeductionMap,
-    setStateStandardDeductionMap,
-    setMax401KContribution,
-  });
+  // Initialize selectedTaxes from URL query param on mount
+  useEffect(() => {
+    const queryParams = getQueryParams();
+    const tablesParam = queryParams.get("tables");
+    if (tablesParam && taxOptions.length > 0) {
+      // Parse comma-separated tax table values
+      const tableValues = tablesParam.split(",").map((v) => v.trim());
+      // Find matching TaxOption objects from taxOptions
+      const matchingTaxes = taxOptions.filter((option) =>
+        tableValues.includes(option.value),
+      );
+      if (matchingTaxes.length > 0) {
+        // Mark that we're updating from initialization
+        isUpdatingFromInit.current = true;
+        setSelectedTaxes(matchingTaxes);
+      }
+    }
+    // Mark as initialized and set initial ref values
+    isInitializedFromURL.current = true;
+    prevUSAState.current = USAState;
+    prevUSACity.current = USACity;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taxOptions.length]);
+
+  // Validate and filter selected taxes when taxOptions change (e.g., when state/city changes)
+  useEffect(() => {
+    if (isInitializedFromURL.current && taxOptions.length > 0) {
+      // Filter out any selected taxes that are no longer valid
+      const validSelectedTaxes = selectedTaxes.filter((selectedTax) =>
+        taxOptions.some((option) => option.value === selectedTax.value),
+      );
+
+      // Only update if something was filtered out
+      if (validSelectedTaxes.length !== selectedTaxes.length) {
+        isUpdatingFromInit.current = true;
+        setSelectedTaxes(validSelectedTaxes);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taxOptions]);
+
+  // Clear selected taxes when state or city changes
+  useEffect(() => {
+    if (isInitializedFromURL.current) {
+      // Only clear if state or city actually changed (not on initial mount)
+      const stateChanged =
+        prevUSAState.current !== undefined && prevUSAState.current !== USAState;
+      const cityChanged =
+        prevUSACity.current !== undefined && prevUSACity.current !== USACity;
+
+      if (stateChanged || cityChanged) {
+        // Don't push state when clearing due to navigation
+        isUpdatingFromInit.current = true;
+        setSelectedTaxes([]);
+      }
+    }
+
+    // Always update refs for next comparison
+    prevUSAState.current = USAState;
+    prevUSACity.current = USACity;
+  }, [USAState, USACity]);
+
+  // Update URL when selectedTaxes changes (but not during initialization)
+  useEffect(() => {
+    // Skip URL update if we haven't initialized yet
+    if (!isInitializedFromURL.current) {
+      return;
+    }
+
+    // Skip URL update if this change is from initialization
+    if (isUpdatingFromInit.current) {
+      isUpdatingFromInit.current = false;
+      return;
+    }
+
+    // Build the path based on current year, state, and city
+    let path = `${TAX_TABLES.route}/${year}`;
+    if (USAState) {
+      path += `/${USAState.replace(/_/g, "-")}`;
+      if (USACity) {
+        path += `/${USACity.replace(/_/g, "-")}`;
+      }
+    }
+
+    if (selectedTaxes.length > 0) {
+      // Create comma-separated list of tax table values
+      const tablesValue = selectedTaxes.map((tax) => tax.value).join(",");
+      updateURL(path, { tables: tablesValue });
+    } else {
+      // If no tables selected, update URL without the tables param
+      updateURL(path);
+    }
+  }, [selectedTaxes, year, USAState, USACity]);
 
   const taxDataOptions = useMemo(() => {
     const taxDataOptions = [] as TaxDataSelectOption[];

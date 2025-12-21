@@ -77,6 +77,11 @@ export function updateURL(
   params?: Record<string, string | number | undefined>,
   preserveExistingParams = false,
 ): void {
+  // Guard against server-side rendering
+  if (typeof window === "undefined") {
+    return;
+  }
+
   let finalParams = params || {};
 
   // Preserve existing query params if requested
@@ -91,5 +96,26 @@ export function updateURL(
 
   const pathWithParams = buildURLWithParams(path, finalParams);
   const urlWithBasePath = withBasePath(pathWithParams);
-  window.history.pushState(null, "", urlWithBasePath);
+
+  // Only push state if the URL is actually changing
+  // Normalize both URLs for comparison (decode and remove trailing slashes)
+  const currentUrl = window.location.pathname + window.location.search;
+  const basePath = getBasePath();
+  const currentUrlWithoutBase = basePath
+    ? currentUrl.replace(basePath, "")
+    : currentUrl;
+
+  // Normalize URLs: decode and remove trailing slashes before query params
+  const normalizeUrl = (url: string) => {
+    const decoded = decodeURIComponent(url);
+    // Remove trailing slash before query params
+    return decoded.replace(/\/(\?|$)/, "$1");
+  };
+
+  const normalizedCurrent = normalizeUrl(currentUrlWithoutBase);
+  const normalizedNew = normalizeUrl(pathWithParams);
+
+  if (normalizedCurrent !== normalizedNew) {
+    window.history.pushState(null, "", urlWithBasePath);
+  }
 }

@@ -80,3 +80,61 @@ export async function getCityPageData(params: CityPageParams) {
     defaultUSACity: city,
   };
 }
+
+export async function getCityTaxListData(year?: string) {
+  const dataDirectory = path.join(process.cwd(), "src", "data");
+  const { years, currentYear, taxDataByYear } =
+    await getTaxDataByYear(dataDirectory);
+
+  const selectedYear = year && years.includes(year) ? year : currentYear;
+
+  // Build city tax list from the already-loaded tax data
+  const cityTaxList: {
+    [stateKey: string]: {
+      stateName: string;
+      cities: Array<{
+        cityKey: string;
+        cityName: string;
+        taxTypes: string[];
+      }>;
+    };
+  } = {};
+
+  const yearData = taxDataByYear[selectedYear];
+  if (yearData) {
+    for (const [stateKey, stateTaxData] of Object.entries(yearData)) {
+      // Skip federal and states without city taxes
+      if (stateKey === "federal" || !stateTaxData.cities) {
+        continue;
+      }
+
+      const cities = Object.keys(stateTaxData.cities);
+      if (cities.length > 0) {
+        cityTaxList[stateKey] = {
+          stateName: stateKey
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase()),
+          cities: cities.map((cityKey) => {
+            // Get all tax types for this city
+            const cityTaxData = stateTaxData.cities?.[cityKey] || {};
+            const taxTypes = Object.keys(cityTaxData);
+
+            return {
+              cityKey,
+              cityName: cityKey
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase()),
+              taxTypes,
+            };
+          }),
+        };
+      }
+    }
+  }
+
+  return {
+    availableYears: years,
+    defaultYear: selectedYear,
+    cityTaxList,
+  };
+}

@@ -1,4 +1,9 @@
-import { INCOME_TAX_CALCULATOR, SUPPORT, TAX_TABLES } from "@/constants/pages";
+import {
+  CITY_TAXES,
+  INCOME_TAX_CALCULATOR,
+  SUPPORT,
+  TAX_TABLES,
+} from "@/constants/pages";
 import type { Metadata } from "next";
 import { snakeToTitleCase } from "./string-utils";
 
@@ -121,6 +126,11 @@ export function getPageSpecificMetadata(
     openGraph.title = `${SUPPORT.name}`;
     openGraph.url = `${baseUrl}/support`;
     openGraph.images = `/og-images/support.png`;
+  } else if (pageName === CITY_TAXES.name) {
+    description = "List all cities with local income taxes by state and year.";
+    openGraph.title = `${CITY_TAXES.name}`;
+    openGraph.url = `${baseUrl}/city-taxes`;
+    openGraph.images = `/og-images/landing.png`;
   }
 
   // Build canonical URL

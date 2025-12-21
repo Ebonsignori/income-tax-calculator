@@ -21,11 +21,14 @@ import {
   TAX_TABLES,
   INCOME_TAX_CALCULATOR,
   TAX_TABLES_SHORT_TITLE,
+  CITY_TAXES,
+  CITY_TAXES_SHORT_TITLE,
 } from "@/constants/pages";
 import {
   AttachMoney,
   InfoOutlined,
   TableChartOutlined,
+  LocationCity,
 } from "@mui/icons-material";
 import Link from "next/link";
 import Footer from "./Footer";
@@ -103,6 +106,12 @@ export default function Wrapper({
         route: TAX_TABLES.route,
         icon: <TableChartOutlined />,
         selected: title === TAX_TABLES.name,
+      },
+      {
+        name: CITY_TAXES_SHORT_TITLE,
+        route: CITY_TAXES.route,
+        icon: <LocationCity />,
+        selected: title === CITY_TAXES.name,
       },
       { ...SUPPORT, icon: <InfoOutlined />, selected: title === SUPPORT.name },
     ],
