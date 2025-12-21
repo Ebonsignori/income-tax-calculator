@@ -1,11 +1,19 @@
 import { INFINITY } from "@/constants";
+import { CITIES, NEWARK } from "@/constants/cities";
 import {
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME } from "@/constants/tax_types";
+import {
+  CITY_INCOME,
+  NJ_DISABILITY_INSURANCE,
+  NJ_FAMILY_LEAVE_INSURANCE,
+  NJ_UNEMPLOYMENT_INSURANCE,
+  NJ_WORKFORCE_DEVELOPMENT,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -48,5 +56,39 @@ export default {
       { min: 500000, max: 1000000, rate: 8.97 },
       { min: 1000000, max: INFINITY, rate: 10.75 },
     ],
+  },
+  [NJ_UNEMPLOYMENT_INSURANCE]: {
+    [SINGLE]: [{ min: 0, max: 43300, rate: 0.3825 }],
+    [MARRIED]: [{ min: 0, max: 43300, rate: 0.3825 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 43300, rate: 0.3825 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 43300, rate: 0.3825 }],
+  },
+  [NJ_DISABILITY_INSURANCE]: {
+    [SINGLE]: [{ min: 0, max: 165400, rate: 0.23 }],
+    [MARRIED]: [{ min: 0, max: 165400, rate: 0.23 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 165400, rate: 0.23 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 165400, rate: 0.23 }],
+  },
+  [NJ_FAMILY_LEAVE_INSURANCE]: {
+    [SINGLE]: [{ min: 0, max: 165400, rate: 0.33 }],
+    [MARRIED]: [{ min: 0, max: 165400, rate: 0.33 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 165400, rate: 0.33 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 165400, rate: 0.33 }],
+  },
+  [NJ_WORKFORCE_DEVELOPMENT]: {
+    [SINGLE]: [{ min: 0, max: 43300, rate: 0.0425 }],
+    [MARRIED]: [{ min: 0, max: 43300, rate: 0.0425 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 43300, rate: 0.0425 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 43300, rate: 0.0425 }],
+  },
+  [CITIES]: {
+    [NEWARK]: {
+      [CITY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 1.0 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 1.0 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 1.0 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 1.0 }],
+      },
+    },
   },
 } as TaxData;

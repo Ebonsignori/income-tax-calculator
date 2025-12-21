@@ -1,11 +1,16 @@
 import { INFINITY } from "@/constants";
 import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  CALIFORNIA_SDI,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -60,5 +65,8 @@ export default {
       { min: 606251, max: 1010417, rate: 11.3 },
       { min: 1010417, max: INFINITY, rate: 12.3 },
     ],
+  },
+  [CALIFORNIA_SDI]: {
+    [ALL]: [{ min: 0, max: INFINITY, rate: 1.2 }],
   },
 } as TaxData;

@@ -6,7 +6,11 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  DC_PAID_FAMILY_LEAVE,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -26,5 +30,8 @@ export default {
       { min: 500000, max: 1000000, rate: 9.75 },
       { min: 1000000, max: INFINITY, rate: 10.75 },
     ],
+  },
+  [DC_PAID_FAMILY_LEAVE]: {
+    [ALL]: [{ min: 0, max: INFINITY, rate: 0.75 }],
   },
 } as TaxData;

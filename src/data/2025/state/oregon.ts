@@ -1,5 +1,5 @@
 import { INFINITY } from "@/constants";
-import { CITIES, PORTLAND } from "@/constants/cities";
+import { CITIES, EUGENE, PORTLAND } from "@/constants/cities";
 import {
   ALL,
   HEAD_OF_HOUSEHOLD,
@@ -9,6 +9,7 @@ import {
 } from "@/constants/filing-status";
 import {
   ART_TAX,
+  EMPLOYEE_PAYROLL_TAX,
   OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
   OREGON_TRANSIT_TAX,
   PRESCHOOL_FOR_ALL,
@@ -85,6 +86,11 @@ export default {
           { min: 125000, max: 250000, rate: 1.5 },
           { min: 250000, max: INFINITY, rate: 3.0 },
         ],
+      },
+    },
+    [EUGENE]: {
+      [EMPLOYEE_PAYROLL_TAX]: {
+        [ALL]: [{ min: 31304, max: INFINITY, rate: 0.44 }],
       },
     },
   },
