@@ -25,7 +25,14 @@ import { webkit } from "playwright";
   await screenshotPieChart(
     context,
     `http://localhost:${port}/support`,
-    `${basePath}/support.png`
+    `${basePath}/support.png`,
+  );
+
+  // Generate disclaimer page image
+  await screenshotPieChart(
+    context,
+    `http://localhost:${port}/disclaimer`,
+    `${basePath}/disclaimer.png`,
   );
 
   // Generate landing page image (not year-specific)
@@ -33,14 +40,14 @@ import { webkit } from "playwright";
   await screenshotPieChart(
     context,
     `http://localhost:${port}/${ogImageRoute}`,
-    `${basePath}/landing.png`
+    `${basePath}/landing.png`,
   );
   await screenshotTaxTable(
     context,
     `http://localhost:${port}/${taxTablesRoute}`,
     `${basePath}/${taxTablesRoute}/landing.png`,
     currentYear,
-    "Federal Income"
+    "Federal Income",
   );
 
   // Collect all unique states and cities across all years

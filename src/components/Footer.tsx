@@ -11,6 +11,8 @@ type FooterProps = {
 };
 
 export default function Footer({ pages }: FooterProps) {
+  const visiblePages = pages.filter(({ selected }) => !selected);
+
   return (
     <Box
       component="footer"
@@ -24,6 +26,22 @@ export default function Footer({ pages }: FooterProps) {
       }}
     >
       <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{
+          mb: 2,
+          textAlign: "center",
+          fontStyle: "italic",
+          maxWidth: "600px",
+          px: 2,
+        }}
+      >
+        <strong>Disclaimer:</strong> This calculator is for informational
+        purposes only. Tax calculations are not verified and should not be used
+        for legal, tax filing, or financial advice. Please consult a qualified
+        tax professional for official guidance.
+      </Typography>
+      <Typography
         variant="body2"
         color="text.secondary"
         sx={{
@@ -31,8 +49,39 @@ export default function Footer({ pages }: FooterProps) {
             xs: 1.5,
             sm: 1,
           },
+          textAlign: "center",
+          flexWrap: "wrap",
+          px: 2,
         }}
       >
+        {visiblePages.map(({ name, route }) => (
+          <React.Fragment key={route}>
+            <MuiLink
+              color="inherit"
+              component={Link}
+              href={route}
+              onClick={() => sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, name)}
+            >
+              {name}
+            </MuiLink>
+            <Box component="span" sx={{ mx: 1.5 }}>
+              •
+            </Box>
+          </React.Fragment>
+        ))}
+        <MuiLink
+          color="inherit"
+          href={process.env.NEXT_PUBLIC_REPO}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() =>
+            sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, "Open Source")
+          }
+        >
+          Open Source
+        </MuiLink>
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
         {"Copyright © "}
         <MuiLink
           color="inherit"
@@ -44,33 +93,6 @@ export default function Footer({ pages }: FooterProps) {
         </MuiLink>{" "}
         {new Date().getFullYear()}
       </Typography>
-      {pages.map(({ name, route, selected }) => {
-        if (selected) {
-          return null;
-        }
-        return (
-          <Typography
-            key={route}
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mb: {
-                xs: 1,
-                sm: 0.5,
-              },
-            }}
-          >
-            <MuiLink
-              color="inherit"
-              component={Link}
-              href={route}
-              onClick={() => sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, name)}
-            >
-              {name}
-            </MuiLink>
-          </Typography>
-        );
-      })}
     </Box>
   );
 }

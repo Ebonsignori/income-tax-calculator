@@ -23,12 +23,14 @@ import {
   TAX_TABLES_SHORT_TITLE,
   CITY_TAXES,
   CITY_TAXES_SHORT_TITLE,
+  DISCLAIMER,
 } from "@/constants/pages";
 import {
   AttachMoney,
   InfoOutlined,
   TableChartOutlined,
   LocationCity,
+  GavelOutlined,
 } from "@mui/icons-material";
 import Link from "next/link";
 import Footer from "./Footer";
@@ -114,6 +116,11 @@ export default function Wrapper({
         selected: title === CITY_TAXES.name,
       },
       { ...SUPPORT, icon: <InfoOutlined />, selected: title === SUPPORT.name },
+      {
+        ...DISCLAIMER,
+        icon: <GavelOutlined />,
+        selected: title === DISCLAIMER.name,
+      },
     ],
     [title],
   );

@@ -14,6 +14,10 @@ export const SUPPORT = {
   name: "Support",
   route: "/support",
 };
+export const DISCLAIMER = {
+  name: "Disclaimer",
+  route: "/disclaimer",
+};
 
 export const INCOME_TAX_CALCULATOR_SHORT_TITLE = "Calculator";
 
