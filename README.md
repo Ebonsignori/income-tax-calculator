@@ -18,13 +18,12 @@ All tax data used for calculations is located in [src/data](./src/data).
 
 After updating tax data, validate it with `npm run validate-tax-data`
 
-
 ## Generating OG Images
 
 1. Run a local dev instance with `npm run dev`
 2. In another terminal run `npm run generate-og-images`
 
-`public/og-images` should be populated with screen captures for each state and city. 
+`public/og-images` should be populated with screen captures for each state and city.
 
 [get-metadata.ts](src/utils/get-metadata.ts) makes sure each page has a `<meta` tag pointing to the matching OG image.
 
@@ -32,4 +31,4 @@ After updating tax data, validate it with `npm run validate-tax-data`
 
 - All URLs and files should use dash case, e.g. `/tax-tables/2025/missouri/kansas-city/?tables=city-income`, but all of our app code should use snake case for [constants](src/constants/), e.g. `kansas_city` and `city_income`.
 - Use `npm run lint` and `npm run lint:fix` to keep code formatted.
-- Write [end-to-end tests](./tests/) over unit tests.
+- See [tests/](./tests/README.md) for e2e tests and [tests/unit](./tests/unit/README.md) for unit tests.

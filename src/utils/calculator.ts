@@ -6,6 +6,22 @@ import {
   MAX_401K_CONTRIBUTION,
   NONE,
   STANDARD_DEDUCTION,
+  SOCIAL_SECURITY,
+  MEDICARE,
+  CALIFORNIA_SDI,
+  WASHINGTON_CARES_FUND,
+  OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  DC_PAID_FAMILY_LEAVE,
+  NJ_DISABILITY_INSURANCE,
+  NJ_FAMILY_LEAVE_INSURANCE,
+  NJ_UNEMPLOYMENT_INSURANCE,
+  NJ_WORKFORCE_DEVELOPMENT,
+  NY_PAID_FAMILY_LEAVE,
+  NY_DISABILITY_INSURANCE,
+  RI_TEMPORARY_DISABILITY_INSURANCE,
+  HI_TEMPORARY_DISABILITY_INSURANCE,
+  COLORADO_FAMLI,
+  CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
 } from "@/constants/tax_types";
 import { CITIES, EXEMPT, INFINITY } from "@/constants";
 import type { TaxOption } from "./get-tax-options";
@@ -13,6 +29,27 @@ import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { FREQUENCY_TO_PAYCHECKS_PER_YEAR } from "@/constants/paycheck-frequency";
 
 const nonTaxKeys = [MAX_401K_CONTRIBUTION, STANDARD_DEDUCTION];
+
+// FICA and payroll taxes are calculated on gross income (after IRA, but before deductions)
+// per IRS rules, standard/itemized deductions do not reduce FICA taxes
+const grossIncomeTaxes = [
+  SOCIAL_SECURITY,
+  MEDICARE,
+  CALIFORNIA_SDI,
+  WASHINGTON_CARES_FUND,
+  OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  DC_PAID_FAMILY_LEAVE,
+  NJ_DISABILITY_INSURANCE,
+  NJ_FAMILY_LEAVE_INSURANCE,
+  NJ_UNEMPLOYMENT_INSURANCE,
+  NJ_WORKFORCE_DEVELOPMENT,
+  NY_PAID_FAMILY_LEAVE,
+  NY_DISABILITY_INSURANCE,
+  RI_TEMPORARY_DISABILITY_INSURANCE,
+  HI_TEMPORARY_DISABILITY_INSURANCE,
+  COLORADO_FAMLI,
+  CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
+];
 
 export function calculate(
   federalTaxData: TaxData,
@@ -68,13 +105,25 @@ export function calculateTaxesPerBracket(
   selectedState?: string,
   selectedCity?: string,
 ): { taxesPerBracket: TaxResultsWithCities; taxableIncome: Dinero.Dinero } {
-  const taxableIncome = totalIncome
-    .subtract(asCurrency(totalIRA))
-    .subtract(asCurrency(totalDeductions || 0));
-
   if (!taxData) {
+    const taxableIncome = totalIncome.subtract(asCurrency(totalIRA));
     return { taxesPerBracket: {}, taxableIncome };
   }
+
+  // If no custom deductions provided, use standard deduction from tax data
+  let deductions = totalDeductions;
+  if (deductions === undefined && taxData[STANDARD_DEDUCTION]) {
+    const standardDeduction = (taxData[STANDARD_DEDUCTION] as any)[filingStatus];
+    if (standardDeduction !== undefined) {
+      deductions = standardDeduction;
+    }
+  }
+
+  // Gross income after IRA (used for FICA and payroll taxes)
+  const grossIncome = totalIncome.subtract(asCurrency(totalIRA));
+  
+  // Taxable income after deductions (used for income taxes)
+  const taxableIncome = grossIncome.subtract(asCurrency(deductions || 0));
 
   const taxesPerBracket = {} as TaxResultsWithCities;
   Object.entries(taxData).forEach(([taxType, taxTypeData]) => {
@@ -84,6 +133,11 @@ export function calculateTaxesPerBracket(
     if (exemptions.includes(taxType)) {
       taxesPerBracket[taxType] = EXEMPT;
     } else if (taxTypeData?.[ALL]) {
+      // Determine which income base to use for this tax
+      const incomeBase = grossIncomeTaxes.includes(taxType)
+        ? grossIncome
+        : taxableIncome;
+      
       if (taxTypeData[ALL]?.[0]?.amount) {
         let amount = asCurrency(taxTypeData[ALL][0].amount);
         if (taxTypeData[ALL]?.[0]?.frequency) {
@@ -93,12 +147,12 @@ export function calculateTaxesPerBracket(
             ],
           );
         }
-        if (taxableIncome.toUnit() > (taxTypeData[ALL][0].min || 0)) {
+        if (incomeBase.toUnit() > (taxTypeData[ALL][0].min || 0)) {
           taxesPerBracket[taxType] = amount;
         }
       } else {
         taxesPerBracket[taxType] = calculateTaxBracket(
-          taxableIncome,
+          incomeBase,
           taxTypeData[ALL],
         );
       }
@@ -111,15 +165,21 @@ export function calculateTaxesPerBracket(
           totalIncome,
           filingStatus,
           totalIRA,
-          totalDeductions,
+          deductions,
           exemptions,
           selectedState,
           selectedCity,
         ).taxesPerBracket as TaxResults;
       }
     } else {
+      // Determine which income base to use for this tax
+      // FICA and payroll taxes use gross income, income taxes use taxable income
+      const incomeBase = grossIncomeTaxes.includes(taxType)
+        ? grossIncome
+        : taxableIncome;
+      
       taxesPerBracket[taxType] = calculateTaxBracket(
-        taxableIncome,
+        incomeBase,
         taxTypeData[filingStatus],
       );
     }

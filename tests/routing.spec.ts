@@ -385,17 +385,22 @@ test.describe("Tax Tables Routing and Query Params", () => {
     // Verify first tax is in URL
     expect(page.url()).toContain("federal-income");
 
-    // Reopen the dropdown and select Federal FICA
-    await page.locator("input#tax-options-select").click({ force: true });
+    // The dropdown should still be open due to disableCloseOnSelect
+    // Wait a moment for UI to update
     await page.waitForTimeout(1000);
-    await page.getByRole("option").filter({ hasText: "Federal FICA" }).click();
-    await page.waitForTimeout(1500);
+
+    // Select Social Security (dropdown should still be open)
+    await page
+      .getByRole("option")
+      .filter({ hasText: "Social Security" })
+      .click();
+    await page.waitForTimeout(1000);
 
     // Should have both taxes in query param, comma-separated, dash-case
     const url = page.url();
     expect(url).toContain("tables=");
     expect(url).toContain("federal-income");
-    expect(url).toContain("federal-fica");
+    expect(url).toContain("social-security");
   });
 
   test("tax tables paths are dash-cased with state and city", async ({

@@ -40,7 +40,7 @@ test("expected values are calculated for different tax years", async ({
 
   // Expect total take home for 2023
   await expect(page.getByTestId("total-take-home-amount")).toHaveText(
-    "$70,195.20",
+    "$69,136.03",
   );
 
   // Change year to 2024 and expect total to update

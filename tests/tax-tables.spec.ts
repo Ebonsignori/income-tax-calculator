@@ -95,21 +95,27 @@ test("multiple tables displayed for multiple tax types", async ({ page }) => {
 
   const oregonStateIncomeTax = "Oregon State Income";
   await page.locator("input#tax-options-select").click({ force: true });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(500);
+  // Type to search for the option
+  await page.keyboard.type("Oregon");
+  await page.waitForTimeout(500);
   const oregonOption = page
     .getByRole("option")
-    .filter({ hasText: oregonStateIncomeTax });
-  await oregonOption.waitFor({ state: "visible", timeout: 10000 });
+    .filter({ hasText: oregonStateIncomeTax })
+    .first();
   await oregonOption.click();
   await page.waitForTimeout(500);
 
   const federalIncome = "Federal Income";
   await page.locator("input#tax-options-select").click({ force: true });
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(500);
+  // Type to search for the option
+  await page.keyboard.type("Federal");
+  await page.waitForTimeout(500);
   const federalOption = page
     .getByRole("option")
-    .filter({ hasText: federalIncome });
-  await federalOption.waitFor({ state: "visible", timeout: 10000 });
+    .filter({ hasText: federalIncome })
+    .first();
   await federalOption.click();
   await page.waitForTimeout(500);
 
@@ -119,7 +125,7 @@ test("multiple tables displayed for multiple tax types", async ({ page }) => {
 
   await expect(
     page.locator("tr#oregon_state_income_row_2").locator("td").nth(2),
-  ).toHaveText("$20,401 - $250,000");
+  ).toHaveText("$21,501 - $250,000");
 });
 
 test("tax data for deductions is displayed", async ({ page }) => {
