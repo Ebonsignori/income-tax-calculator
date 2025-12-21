@@ -76,6 +76,9 @@ export function getPageSpecificMetadata(
   if (baseUrl?.endsWith("/")) {
     baseUrl = baseUrl.slice(0, -1);
   }
+
+  // Params are already in dash-case, which matches our OG image filenames
+
   if (pageName === INCOME_TAX_CALCULATOR.name) {
     if (!city) {
       if (!state) {

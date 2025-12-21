@@ -3,7 +3,8 @@ export function capitalizeFirstLetter(str: string) {
 }
 
 export function snakeToTitleCase(snakeCase: string) {
-  return snakeCase.replace(/^_*(.)|_+(.)/g, (s, c, d) =>
+  // Handle both underscores and dashes
+  return snakeCase.replace(/^[_-]*(.)|[_-]+(.)/g, (s, c, d) =>
     c ? c.toUpperCase() : " " + d.toUpperCase(),
   );
 }
@@ -20,6 +21,10 @@ export function toSnakeCase(anyCase: string): string {
 
 export function snakeToDashCase(str: string): string {
   return str.replace(/_/g, "-");
+}
+
+export function dashToSnakeCase(str: string): string {
+  return str.replace(/-/g, "_");
 }
 
 export function yearDisplay(year: string) {

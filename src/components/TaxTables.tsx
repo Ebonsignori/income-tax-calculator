@@ -27,7 +27,12 @@ import {
 import { CITIES, INFINITY } from "@/constants";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
-import { snakeToTitleCase, toSnakeCase } from "@/utils/string-utils";
+import {
+  dashToSnakeCase,
+  snakeToDashCase,
+  snakeToTitleCase,
+  toSnakeCase,
+} from "@/utils/string-utils";
 import { useGetTaxData } from "@/utils/get-tax-data";
 import { asCurrency, formatNoZeros } from "@/utils/calculator";
 import { NONE, STATE_INCOME } from "@/constants/tax_types";
@@ -160,7 +165,10 @@ export default function TaxTables({
       const queryParams = getQueryParams();
       const tablesParam = queryParams.get("tables");
       if (tablesParam && taxOptions.length > 0) {
-        const tableValues = tablesParam.split(",").map((v) => v.trim());
+        // Convert dash-case query params to snake_case for matching
+        const tableValues = tablesParam
+          .split(",")
+          .map((v) => dashToSnakeCase(v.trim()));
         const matchingTaxes = taxOptions.filter((option) =>
           tableValues.includes(option.value),
         );
@@ -187,8 +195,10 @@ export default function TaxTables({
     const queryParams = getQueryParams();
     const tablesParam = queryParams.get("tables");
     if (tablesParam && taxOptions.length > 0) {
-      // Parse comma-separated tax table values
-      const tableValues = tablesParam.split(",").map((v) => v.trim());
+      // Parse comma-separated tax table values and convert from dash-case to snake_case
+      const tableValues = tablesParam
+        .split(",")
+        .map((v) => dashToSnakeCase(v.trim()));
       // Find matching TaxOption objects from taxOptions
       const matchingTaxes = taxOptions.filter((option) =>
         tableValues.includes(option.value),
@@ -267,8 +277,10 @@ export default function TaxTables({
     }
 
     if (selectedTaxes.length > 0) {
-      // Create comma-separated list of tax table values
-      const tablesValue = selectedTaxes.map((tax) => tax.value).join(",");
+      // Create comma-separated list of tax table values (convert to dash-case for URL)
+      const tablesValue = selectedTaxes
+        .map((tax) => snakeToDashCase(tax.value))
+        .join(",");
       updateURL(path, { tables: tablesValue });
     } else {
       // If no tables selected, update URL without the tables param

@@ -251,9 +251,9 @@ export default function CityTaxes({
               <AccordionDetails sx={{ p: 0 }}>
                 <Box>
                   {stateData.cities.map((city, index) => {
-                    // Build URL with all city tax types as query parameter
+                    // Build URL with all city tax types as query parameter (convert to dash-case)
                     const taxTablesParam = encodeURIComponent(
-                      city.taxTypes.join(","),
+                      city.taxTypes.map(snakeToDashCase).join(","),
                     );
                     const href = `/tax-tables/${year}/${snakeToDashCase(stateKey)}/${snakeToDashCase(city.cityKey)}?tables=${taxTablesParam}`;
 

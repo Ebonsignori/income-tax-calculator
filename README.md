@@ -1,8 +1,8 @@
-# Income Tax Calculator
+# [Income Tax Calculator](https://income-tax.org/)
 
-[![Deploy site to Pages](https://github.com/Ebonsignori/income-tax-calculator/actions/workflows/github-pages-deploy.yml/badge.svg)](https://github.com/Ebonsignori/income-tax-calculator/actions/workflows/github-pages-deploy.yml)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/e5febf5c-a294-4da3-aad2-97638044909d/deploy-status)](https://app.netlify.com/projects/serene-liger-7f3279/deploys)
 
-https://ebonsignori.github.io/income-tax-calculator/
+https://income-tax.org/
 
 Calculates USA Federal, State, and City income cities tax.
 
@@ -21,10 +21,15 @@ After updating tax data, validate it with `npm run validate-tax-data`
 
 ## Generating OG Images
 
-1. Run the server with `NODE_ENV=development`, this can be done via `npm run dev`
+1. Run a local dev instance with `npm run dev`
 2. In another terminal run `npm run generate-og-images`
 
 `public/og-images` should be populated with screen captures for each state and city. 
 
 [get-metadata.ts](src/utils/get-metadata.ts) makes sure each page has a `<meta` tag pointing to the matching OG image.
 
+## Standards
+
+- All URLs and files should use dash case, e.g. `/localhost:3001/tax-tables/2025/missouri/kansas-city/?tables=city-income`, but all of our app code should use snake case for [constants](src/constants/), e.g. `kansas_city` and `city_income`.
+- `npm run lint` and `npm run lint:fix` to keep code formatted.
+- Use [end-to-end tests](./tests/) over unit tests.

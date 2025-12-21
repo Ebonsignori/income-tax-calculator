@@ -3,7 +3,7 @@
 
 import { OG_SCREEN_HEIGHT, OG_SCREEN_WIDTH } from "@/constants/open-graph";
 import { getTaxDataByYear } from "@/get-tax-data";
-import { snakeToTitleCase } from "@/utils/string-utils";
+import { snakeToDashCase, snakeToTitleCase } from "@/utils/string-utils";
 import type { BrowserContext } from "@playwright/test";
 import { webkit } from "playwright";
 
@@ -12,48 +12,62 @@ import { webkit } from "playwright";
   const context = await browser.newContext();
 
   const { years, statesAndCitiesForYear } = await getTaxDataByYear(
-    process.cwd() + "/src/data",
+    process.cwd() + "/src/data"
   );
 
   const ogImageRoute = "og-image";
   const taxTablesRoute = "tax-tables";
+  const port = process.env.PORT || "3001";
 
   const basePath = process.cwd() + `/public/og-images`;
 
   // Generate support page image
   await screenshotPieChart(
     context,
-    `http://localhost:3000/support`,
-    `${basePath}/support.png`,
+    `http://localhost:${port}/support`,
+    `${basePath}/support.png`
   );
 
   // Generate landing page image (not year-specific)
   const currentYear = new Date().getFullYear().toString();
   await screenshotPieChart(
     context,
-    `http://localhost:3000/${ogImageRoute}`,
-    `${basePath}/landing.png`,
+    `http://localhost:${port}/${ogImageRoute}`,
+    `${basePath}/landing.png`
   );
   await screenshotTaxTable(
     context,
-    `http://localhost:3000/${taxTablesRoute}`,
+    `http://localhost:${port}/${taxTablesRoute}`,
     `${basePath}/${taxTablesRoute}/landing.png`,
     currentYear,
-    "Federal Income",
+    "Federal Income"
   );
 
   // Collect all unique states and cities across all years
+  // Track the most recent year for each state and city combination
   const allStatesAndCities = new Map<string, Set<string>>();
-  
+  const stateYearMap = new Map<string, string>(); // state -> most recent year
+  const cityYearMap = new Map<string, string>(); // state/city -> most recent year
+
   for (const year of years) {
     const statesAndCities = statesAndCitiesForYear[year];
     for (const [state, possibleCities] of Object.entries(statesAndCities)) {
       if (!allStatesAndCities.has(state)) {
         allStatesAndCities.set(state, new Set());
       }
+      // Track the most recent year for this state (years are sorted newest first)
+      if (!stateYearMap.has(state)) {
+        stateYearMap.set(state, year);
+      }
+
       if (possibleCities?.cities?.length) {
         for (const city of possibleCities.cities) {
           allStatesAndCities.get(state)?.add(city);
+          // Track the most recent year for this city (years are sorted newest first)
+          const cityKey = `${state}/${city}`;
+          if (!cityYearMap.has(cityKey)) {
+            cityYearMap.set(cityKey, year);
+          }
         }
       }
     }
@@ -61,33 +75,40 @@ import { webkit } from "playwright";
 
   // Generate images for each unique state and city (not year-specific)
   for (const [state, cities] of Array.from(allStatesAndCities.entries())) {
-    // Generate state-level images
+    const stateDash = snakeToDashCase(state);
+    const stateYear = stateYearMap.get(state) || currentYear;
+
+    // Generate state-level images (using dash-case for filenames to match URLs)
     await screenshotPieChart(
       context,
-      `http://localhost:3000/${ogImageRoute}/${currentYear}/${state}`,
-      `${basePath}/${state}.png`,
+      `http://localhost:${port}/${ogImageRoute}/${stateYear}/${stateDash}`,
+      `${basePath}/${stateDash}.png`
     );
     await screenshotTaxTable(
       context,
-      `http://localhost:3000/${taxTablesRoute}/${currentYear}/${state}`,
-      `${basePath}/${taxTablesRoute}/${state}.png`,
-      currentYear,
-      state,
+      `http://localhost:${port}/${taxTablesRoute}/${stateYear}/${stateDash}`,
+      `${basePath}/${taxTablesRoute}/${stateDash}.png`,
+      stateYear,
+      state
     );
 
-    // Generate city-level images
+    // Generate city-level images (using dash-case for filenames to match URLs)
     for (const city of Array.from(cities)) {
+      const cityDash = snakeToDashCase(city);
+      const cityKey = `${state}/${city}`;
+      const cityYear = cityYearMap.get(cityKey) || stateYear;
+
       await screenshotPieChart(
         context,
-        `http://localhost:3000/${ogImageRoute}/${currentYear}/${state}/${city}`,
-        `${basePath}/${state}/${city}.png`,
+        `http://localhost:${port}/${ogImageRoute}/${cityYear}/${stateDash}/${cityDash}`,
+        `${basePath}/${stateDash}/${cityDash}.png`
       );
       await screenshotTaxTable(
         context,
-        `http://localhost:3000/${taxTablesRoute}/${currentYear}/${state}/${city}`,
-        `${basePath}/${taxTablesRoute}/${state}/${city}.png`,
-        currentYear,
-        city,
+        `http://localhost:${port}/${taxTablesRoute}/${cityYear}/${stateDash}/${cityDash}`,
+        `${basePath}/${taxTablesRoute}/${stateDash}/${cityDash}.png`,
+        cityYear,
+        city
       );
     }
   }
@@ -98,7 +119,7 @@ import { webkit } from "playwright";
 async function screenshotPieChart(
   context: BrowserContext,
   url: string,
-  savePath: string,
+  savePath: string
 ) {
   console.log("Capturing screen for", url, "and saving to", savePath);
   const page = await context.newPage();
@@ -116,7 +137,7 @@ async function screenshotTaxTable(
   url: string,
   savePath: string,
   year: string,
-  selectionText: string,
+  selectionText: string
 ) {
   const page = await context.newPage();
   await page.setViewportSize({

@@ -1,7 +1,7 @@
 import { getTaxDataByYear } from "@/get-tax-data";
 import type { CityPageParams, StatePageParams } from "@/types/page";
 import path from "path";
-import { toSnakeCase } from "./string-utils";
+import { dashToSnakeCase } from "./string-utils";
 
 export async function getLandingPageData() {
   const dataDirectory = path.join(process.cwd(), "src", "data");
@@ -40,13 +40,13 @@ export async function getYearPageData(params: { year: string }) {
 
 export async function getStatePageData(params: StatePageParams) {
   const { year } = params;
-  const state = toSnakeCase(params.state);
+  const state = dashToSnakeCase(params.state);
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =
     await getTaxDataByYear(dataDirectory);
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
-  const stateTaxes = taxDataByYear[year]?.[params.state] || {};
+  const stateTaxes = taxDataByYear[year]?.[state] || {};
 
   return {
     availableYears: years,
@@ -60,15 +60,15 @@ export async function getStatePageData(params: StatePageParams) {
 
 export async function getCityPageData(params: CityPageParams) {
   const { year } = params;
-  const state = toSnakeCase(params.state);
-  const city = toSnakeCase(params.city);
+  const state = dashToSnakeCase(params.state);
+  const city = dashToSnakeCase(params.city);
 
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =
     await getTaxDataByYear(dataDirectory);
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
-  const stateTaxes = taxDataByYear[year]?.[params.state] || {};
+  const stateTaxes = taxDataByYear[year]?.[state] || {};
 
   return {
     availableYears: years,
