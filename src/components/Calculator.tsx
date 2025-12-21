@@ -392,6 +392,7 @@ export default function Home({
         </Grid>
         <Grid xs={12} sm={3} md={3}>
           <TextField
+            id="filing-status-select"
             select
             label="Filing Status"
             value={filingStatus}
@@ -462,10 +463,16 @@ export default function Home({
                 <Grid xs={12} sm={12} md={4}>
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
+                      id="401k-ira-contributions"
                       label="401k/IRA Contributions"
                       type="number"
-                      aria-label="401k/IRA Contributions"
                       helperText={max401KContributionDisplay}
+                      FormHelperTextProps={{
+                        id: "401k-helper-text",
+                      }}
+                      inputProps={{
+                        "aria-describedby": "401k-helper-text",
+                      }}
                       value={totalIRA}
                       onChange={handleNumberChange(setTotalIRA)}
                       onBlur={validateAll}
@@ -500,10 +507,16 @@ export default function Home({
                 <Grid xs={12} sm={6} md={4}>
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
+                      id="total-federal-deductions"
                       label="Total Federal Deductions"
                       type="number"
-                      aria-label="Total Federal Deductions"
                       helperText={standardFederalDeductionDisplay}
+                      FormHelperTextProps={{
+                        id: "federal-deductions-helper-text",
+                      }}
+                      inputProps={{
+                        "aria-describedby": "federal-deductions-helper-text",
+                      }}
                       value={
                         typeof totalFederalDeductions === "undefined"
                           ? 0
@@ -545,10 +558,16 @@ export default function Home({
                 <Grid xs={12} sm={6} md={4}>
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
+                      id="total-state-deductions"
                       label="Total State Deductions"
                       type="number"
-                      aria-label="Total State Deductions"
                       helperText={standardStateDeductionDisplay}
+                      FormHelperTextProps={{
+                        id: "state-deductions-helper-text",
+                      }}
+                      inputProps={{
+                        "aria-describedby": "state-deductions-helper-text",
+                      }}
                       value={
                         typeof totalStateDeductions === "undefined"
                           ? 0

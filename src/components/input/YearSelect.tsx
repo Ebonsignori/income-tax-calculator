@@ -29,7 +29,6 @@ export function YearSelect({
       select
       label="Tax Year"
       id="tax-year-select"
-      aria-label="Tax Year Select"
       data-testid="tax-year-select"
       value={year}
       onChange={(e) => {

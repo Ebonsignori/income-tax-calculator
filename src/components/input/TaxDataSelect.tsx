@@ -22,8 +22,7 @@ export function TaxDataSelect({
 }: TaxDataSelectProps) {
   return (
     <Autocomplete
-      id="tax-data-select"
-      aria-label="Tax Data Select"
+      id={`${label.toLowerCase().replace(/\s+/g, "-")}-select`}
       multiple
       isOptionEqualToValue={(option, value) => {
         return option.title === value.title;

@@ -50,13 +50,16 @@ export function CitySelect({
         variant="standard"
         disabled={true}
         value="No Specific City Taxes"
+        inputProps={{
+          "aria-label":
+            "City - No specific city taxes available for selected state",
+        }}
       />
     );
   }
   return (
     <Autocomplete
       id="city-select"
-      aria-label="City Select"
       options={cityOptions}
       getOptionLabel={(option) => snakeToTitleCase(option?.title) || ""}
       freeSolo={false}

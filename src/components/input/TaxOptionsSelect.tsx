@@ -19,8 +19,7 @@ export function TaxOptionsSelect({
 }: TaxOptionsSelectProps) {
   return (
     <Autocomplete
-      id="tax-options-select"
-      aria-label="Tax Options Select"
+      id={`${label.toLowerCase().replace(/\s+/g, "-")}-select`}
       multiple
       disableCloseOnSelect
       isOptionEqualToValue={(option, value) => {

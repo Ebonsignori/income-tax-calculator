@@ -64,7 +64,6 @@ export function StateSelect({
   return (
     <Autocomplete
       id="state-select"
-      aria-label="State Select"
       options={stateOptions}
       groupBy={(option) => option.firstLetter}
       isOptionEqualToValue={(option, value) => {
