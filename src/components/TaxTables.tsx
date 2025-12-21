@@ -420,6 +420,7 @@ export default function TaxTables({
         </Grid>
         <Grid item xs={13} sm={6.5}>
           <TaxOptionsSelect
+            data-testid="tax-options-select"
             label="Tax Tables to Display"
             taxOptions={taxOptions}
             selectedTaxOptions={selectedTaxes}
@@ -428,6 +429,7 @@ export default function TaxTables({
         </Grid>
         <Grid item xs={13} sm={6.5}>
           <TaxDataSelect
+            data-testid="tax-data-select"
             label="Tax Data to Display"
             taxData={taxDataOptions}
             selectedTaxData={selectedTaxData}

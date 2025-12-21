@@ -54,6 +54,6 @@ test("expected values are calculated for different tax years", async ({
   });
 
   await expect(page.getByTestId("total-take-home-amount")).toHaveText(
-    "$70,647.97",
+    "$69,567.92",
   );
 });

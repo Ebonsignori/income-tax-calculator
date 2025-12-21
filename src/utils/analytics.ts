@@ -113,6 +113,8 @@ export const EVENTS = {
   CHANGE_STATE: "change_state",
   CHANGE_CITY: "change_city",
   CHANGE_YEAR: "change_year",
+  CHANGE_TAX_OPTIONS: "change_tax_options",
+  CHANGE_TAX_EXEMPTIONS: "change_tax_exemptions",
   TIME_ON_PAGE: "time_on_page",
   NAV_CLICK: "nav_click",
   LINK_CLICK: "link_click",
@@ -121,7 +123,7 @@ export const EVENTS = {
 
 export function sendAnalyticsEvent(
   eventName: (typeof EVENTS)[keyof typeof EVENTS],
-  eventValue?: string | number,
+  eventValue?: string | number | string[],
   metadata: Record<string, any> = {},
 ): void {
   if (!trackingEnabled) {
@@ -147,6 +149,13 @@ export function sendAnalyticsEvent(
       newEventContext = {
         ...eventContext,
         selected_year: eventValue as string,
+      };
+      break;
+    case EVENTS.CHANGE_TAX_OPTIONS:
+    case EVENTS.CHANGE_TAX_EXEMPTIONS:
+      metadata = {
+        ...metadata,
+        selected_options: eventValue,
       };
       break;
     case EVENTS.TIME_ON_PAGE:

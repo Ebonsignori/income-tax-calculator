@@ -22,7 +22,7 @@ test("expected federal values are displayed for different tax years", async ({
   await page.waitForTimeout(500);
 
   const federalIncome = "Federal Income";
-  await page.locator("input#tax-options-select").click({ force: true });
+  await page.getByTestId("tax-options-select").click({ force: true });
   await page.waitForTimeout(800);
   await page.getByRole("option").filter({ hasText: federalIncome }).click();
   await page.waitForTimeout(800);
@@ -63,7 +63,7 @@ test("expected values are displayed for portland specific tax", async ({
   await page.waitForTimeout(300);
 
   const portlandArtTax = "Portland Art Tax";
-  await page.locator("input#tax-options-select").click({ force: true });
+  await page.getByTestId("tax-options-select").click({ force: true });
   await page.waitForTimeout(1000);
   const portlandOption = page
     .getByRole("option")
@@ -94,7 +94,7 @@ test("multiple tables displayed for multiple tax types", async ({ page }) => {
   await page.waitForTimeout(300);
 
   const oregonStateIncomeTax = "Oregon State Income";
-  await page.locator("input#tax-options-select").click({ force: true });
+  await page.getByTestId("tax-options-select").click({ force: true });
   await page.waitForTimeout(500);
   // Type to search for the option
   await page.keyboard.type("Oregon");
@@ -107,7 +107,7 @@ test("multiple tables displayed for multiple tax types", async ({ page }) => {
   await page.waitForTimeout(500);
 
   const federalIncome = "Federal Income";
-  await page.locator("input#tax-options-select").click({ force: true });
+  await page.getByTestId("tax-options-select").click({ force: true });
   await page.waitForTimeout(500);
   // Type to search for the option
   await page.keyboard.type("Federal");
@@ -135,7 +135,7 @@ test("tax data for deductions is displayed", async ({ page }) => {
   await page.getByTestId("tax-year-select").locator("input").fill("2023");
 
   const standardFederalDeductions = "Standard Federal Deductions";
-  await page.locator("input#tax-data-select").click({ force: true });
+  await page.getByTestId("tax-data-select").click({ force: true });
   await page
     .getByRole("option")
     .filter({ hasText: standardFederalDeductions })

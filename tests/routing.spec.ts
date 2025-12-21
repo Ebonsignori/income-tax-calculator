@@ -352,7 +352,7 @@ test.describe("Tax Tables Routing and Query Params", () => {
 
     // Select Federal Income tax
     const federalIncome = "Federal Income";
-    await page.locator("input#tax-options-select").click({ force: true });
+    await page.getByTestId("tax-options-select").click({ force: true });
     await page.waitForTimeout(1000);
     await page.getByRole("option").filter({ hasText: federalIncome }).click();
     await page.waitForTimeout(1500);
@@ -374,7 +374,7 @@ test.describe("Tax Tables Routing and Query Params", () => {
     await page.waitForTimeout(500);
 
     // Select Federal Income
-    await page.locator("input#tax-options-select").click({ force: true });
+    await page.getByTestId("tax-options-select").click({ force: true });
     await page.waitForTimeout(1000);
     await page
       .getByRole("option")
@@ -478,7 +478,7 @@ test.describe("Tax Tables Routing and Query Params", () => {
     await page.waitForTimeout(500);
 
     // Select Federal Income
-    await page.locator("input#tax-options-select").click({ force: true });
+    await page.getByTestId("tax-options-select").click({ force: true });
     await page.waitForTimeout(1000);
     await page
       .getByRole("option")
@@ -515,7 +515,7 @@ test.describe("Tax Tables Routing and Query Params", () => {
     await page.waitForTimeout(500);
 
     // Select Federal Income
-    await page.locator("input#tax-options-select").click({ force: true });
+    await page.getByTestId("tax-options-select").click({ force: true });
     await page.waitForTimeout(1000);
     await page
       .getByRole("option")

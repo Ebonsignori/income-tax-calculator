@@ -12,6 +12,7 @@ type TaxDataSelectProps = {
   selectedTaxData: TaxDataSelectOption[];
   // eslint-disable-next-line no-unused-vars
   setSelectedTaxData: (val: TaxDataSelectOption[]) => void;
+  "data-testid"?: string;
 };
 
 export function TaxDataSelect({
@@ -19,9 +20,11 @@ export function TaxDataSelect({
   taxData,
   selectedTaxData,
   setSelectedTaxData,
+  "data-testid": dataTestId,
 }: TaxDataSelectProps) {
   return (
     <Autocomplete
+      data-testid={dataTestId}
       id={`${label.toLowerCase().replace(/\s+/g, "-")}-select`}
       multiple
       isOptionEqualToValue={(option, value) => {
