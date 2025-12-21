@@ -4,7 +4,6 @@ import React, { memo, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { FREQUENCY_TO_FREQUENCY_LABEL } from "@/constants/paycheck-frequency";
-import { SupportButton } from "./SupportButton";
 import type { TaxData } from "@/types";
 import type { FilingStatus } from "@/constants/filing-status";
 import type { TaxOption } from "@/utils/get-tax-options";
@@ -188,12 +187,6 @@ const Results = memo(function Results({
                 federalResults={federalResults}
                 stateResults={stateResults}
               />
-            </Grid>
-            <Grid item xs={12} marginTop={4}>
-              <Typography variant="body2" textAlign="center" fontStyle="italic">
-                * Values are estimations. If values appear incorrect, please{" "}
-                <SupportButton asLink />.
-              </Typography>
             </Grid>
           </Grid>
         </>

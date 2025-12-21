@@ -5,6 +5,7 @@ import { Box } from "@mui/material";
 import type { NavPage } from "@/types";
 import Link from "next/link";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
+import { SupportButton } from "./SupportButton";
 
 type FooterProps = {
   pages: NavPage[];
@@ -36,9 +37,10 @@ export default function Footer({ pages }: FooterProps) {
           px: 2,
         }}
       >
-        <strong>Disclaimer:</strong> This calculator is for informational
-        purposes only. Tax calculations are not verified and should not be used
-        for legal, tax filing, or financial advice.
+        <strong>Disclaimer:</strong> This data is for informational purposes
+        only. Tax calculations are not verified and should not be used for
+        legal, tax filing, or financial advice. If data appears incorrect,
+        please <SupportButton asLink />.
       </Typography>
       <Typography
         variant="body2"
