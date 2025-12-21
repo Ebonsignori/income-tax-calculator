@@ -64,7 +64,12 @@ export default function Footer({ pages }: FooterProps) {
               color="inherit"
               component={Link}
               href={route}
-              onClick={() => sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, name)}
+              onClick={() =>
+                sendAnalyticsEvent(EVENTS.LINK_CLICK, route, {
+                  link_text: name,
+                  is_external: false,
+                })
+              }
             >
               {name}
             </MuiLink>
@@ -80,7 +85,14 @@ export default function Footer({ pages }: FooterProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() =>
-              sendAnalyticsEvent(EVENTS.FOOTER_NAV_CLICK, "Open Source")
+              sendAnalyticsEvent(
+                EVENTS.LINK_CLICK,
+                process.env.NEXT_PUBLIC_REPO || "",
+                {
+                  link_text: "Open Source",
+                  is_external: true,
+                },
+              )
             }
           >
             Open Source
@@ -93,7 +105,12 @@ export default function Footer({ pages }: FooterProps) {
           color="inherit"
           component={Link}
           href="https://evan.bio/"
-          onClick={() => sendAnalyticsEvent(EVENTS.AUTHOR_FOOTER_CLICK)}
+          onClick={() =>
+            sendAnalyticsEvent(EVENTS.LINK_CLICK, "https://evan.bio/", {
+              link_text: "Evan Bonsignori",
+              is_external: true,
+            })
+          }
         >
           Evan Bonsignori
         </MuiLink>{" "}

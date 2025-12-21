@@ -1,6 +1,5 @@
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { PAYCHECK_FREQUENCIES } from "@/constants/paycheck-frequency";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import { MenuItem, TextField } from "@mui/material";
 
@@ -21,7 +20,6 @@ export function PaycheckFrequencySelect({
       value={paycheckFrequency}
       onChange={(e) => {
         setPaycheckFrequency(e.target.value as PaycheckFrequency);
-        sendAnalyticsEvent(EVENTS.CHANGE_PAYCHECK_FREQUENCY, e.target.value);
       }}
       fullWidth
       variant="standard"

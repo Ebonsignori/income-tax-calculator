@@ -13,7 +13,11 @@ export function SupportButton({ asLink }: SupportButtonProps) {
   const href =
     process.env.NEXT_PUBLIC_NEW_REPO_ISSUE_LINK ||
     "https://github.com/Ebonsignori/income-tax-calculator/issues/new";
-  const onClick = () => sendAnalyticsEvent(EVENTS.OPEN_ISSUE_CLICK);
+  const onClick = () =>
+    sendAnalyticsEvent(EVENTS.LINK_CLICK, href, {
+      link_text: "open an issue on GitHub",
+      is_external: true,
+    });
   if (asLink) {
     return (
       <MuiLink color="inherit" component={Link} href={href} onClick={onClick}>

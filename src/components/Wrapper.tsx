@@ -60,10 +60,18 @@ export default function Wrapper({
     const isDev = process.env.NODE_ENV === "development";
     const isDisabled = process.env.NEXT_PUBLIC_DISABLE_ANALYTICS === "true";
     if (!isDisabled) {
+      // GDPR-compliant configuration: no IP tracking, no PII
       mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "", {
+        ip: false, // Don't collect IP addresses
         debug: isDev,
-        track_pageview: false,
+        track_pageview: false, // We manually track pageviews
         persistence: "localStorage",
+        ignore_dnt: false, // Respect Do Not Track browser setting
+        // Blacklist properties that could contain PII (income in URL params)
+        property_blacklist: [
+          "$current_url", // URLs may contain ?income= parameter
+          "$referrer", // Referrer URLs may contain income if shared
+        ],
       });
       setPageName(title);
       if (!isTrackingEnabled() && typeof window !== "undefined") {
@@ -84,10 +92,6 @@ export default function Wrapper({
           (event as React.KeyboardEvent).key === "Shift")
       ) {
         return;
-      }
-
-      if (open) {
-        sendAnalyticsEvent(EVENTS.NAV_CLICK);
       }
 
       setOpen(open);
@@ -199,7 +203,9 @@ export default function Wrapper({
                   component={Link}
                   onClick={() => {
                     if (!selected) {
-                      sendAnalyticsEvent(EVENTS.NAV_CHANGE, name);
+                      sendAnalyticsEvent(EVENTS.NAV_CLICK, route, {
+                        nav_destination: name,
+                      });
                     }
                   }}
                   href={selected ? "" : route}

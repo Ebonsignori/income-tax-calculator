@@ -32,12 +32,7 @@ import { YearSelect } from "./input/YearSelect";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
-import {
-  EVENTS,
-  initEventTracking,
-  sendAnalyticsEvent,
-} from "@/utils/analytics";
-import { debounce } from "@/utils/debounce";
+import { initEventTracking } from "@/utils/analytics";
 import { PaycheckFrequencySelect } from "./input/PaycheckFrequencySelect";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { MONTHLY } from "@/constants/paycheck-frequency";
@@ -309,10 +304,7 @@ export default function Home({
   }, [validateAll]);
 
   initEventTracking({
-    selected_income: totalIncome,
     selected_year: year,
-    selected_filing_status: filingStatus,
-    selected_paycheck_frequency: paycheckFrequency,
     selected_state: USAState,
     selected_city: USACity,
   });
@@ -348,9 +340,6 @@ export default function Home({
                 type="number"
                 value={totalIncome}
                 onChange={handleNumberChange(setTotalIncome)}
-                onBlur={() => {
-                  sendAnalyticsEvent(EVENTS.CHANGE_INCOME, totalIncome);
-                }}
                 startAdornment={
                   <InputAdornment position="start">$</InputAdornment>
                 }
@@ -369,12 +358,6 @@ export default function Home({
                   if (typeof newValue === "number") {
                     const newIncome = Math.round(Math.pow(newValue, 3));
                     setTotalIncome(newIncome);
-                    debounce(() =>
-                      sendAnalyticsEvent(
-                        EVENTS.CHANGE_INCOME_VIA_SLIDER,
-                        newIncome,
-                      ),
-                    )();
                   }
                 }}
               />
@@ -398,7 +381,6 @@ export default function Home({
             value={filingStatus}
             onChange={(e) => {
               setFilingStatus(e.target.value as FilingStatus);
-              sendAnalyticsEvent(EVENTS.CHANGE_FILING_STATUS, e.target.value);
             }}
             fullWidth
             variant="standard"
@@ -443,14 +425,7 @@ export default function Home({
           />
         </Grid>
         <Grid xs={12} sx={{ mt: 2 }}>
-          <Accordion
-            sx={{ border: 1 }}
-            onChange={(_, isExpanded: boolean) => {
-              if (isExpanded) {
-                sendAnalyticsEvent(EVENTS.OPEN_DEDUCTIONS);
-              }
-            }}
-          >
+          <Accordion sx={{ border: 1 }}>
             <AccordionSummary
               expandIcon={<ArrowDownwardIcon />}
               id="deductions-header"

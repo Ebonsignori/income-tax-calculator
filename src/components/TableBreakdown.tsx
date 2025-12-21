@@ -19,7 +19,6 @@ import {
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { CITIES, EXEMPT } from "@/constants";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 
 type TotalTax = {
   percent: number;
@@ -187,9 +186,6 @@ function CollapsibleRow(props: { row: any }) {
         size="small"
         onClick={() => {
           setOpen(!open);
-          if (!open) {
-            sendAnalyticsEvent(EVENTS.EXPAND_TABLE, row.name);
-          }
         }}
       >
         {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}

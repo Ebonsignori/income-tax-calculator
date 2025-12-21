@@ -3,8 +3,6 @@
 import type { Dinero } from "dinero.js";
 import { CITIES, EXEMPT } from "@/constants";
 import type { TaxResultsWithCities } from "@/types";
-import { sendAnalyticsEvent, EVENTS } from "@/utils/analytics";
-import { debounce } from "@/utils/debounce";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import { Typography, useTheme } from "@mui/material";
 import { PieChart } from "@mui/x-charts";
@@ -89,9 +87,6 @@ export function PieChartBreakdown({
         itemContent: (props) => {
           const dataIndex = props?.itemData?.dataIndex;
           const dataItem = props?.series?.data?.[dataIndex] as any;
-          debounce(() =>
-            sendAnalyticsEvent(EVENTS.CLICK_CHART, dataItem?.label),
-          )();
           return (
             <table
               style={{
