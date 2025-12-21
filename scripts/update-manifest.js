@@ -1,24 +1,20 @@
 const fs = require("fs");
 const path = require("path");
 
-// Use GITHUB_PAGES env var instead of NODE_ENV
-const isGitHubPages = process.env.GITHUB_PAGES === "true";
-const basePath = isGitHubPages ? "/income-tax-calculator" : "";
-
 // Read the source manifest
 const manifestPath = path.join(__dirname, "../public/manifest.webmanifest");
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
 
-// Update scope and start_url with basePath
-manifest.scope = basePath ? basePath + "/" : "/";
-manifest.start_url = basePath ? basePath + "/" : "/";
+// For Netlify deployment, no basePath is needed
+manifest.scope = "/";
+manifest.start_url = "/";
 
-// Update icon paths with basePath for production
+// Icon paths should be root-relative
 manifest.icons = manifest.icons.map((icon) => {
   const iconSrc = icon.src.startsWith("/") ? icon.src : "/" + icon.src;
   return {
     ...icon,
-    src: basePath ? basePath + iconSrc : iconSrc,
+    src: iconSrc,
   };
 });
 
@@ -27,8 +23,4 @@ const outManifestPath = path.join(__dirname, "../out/manifest.webmanifest");
 
 fs.writeFileSync(outManifestPath, JSON.stringify(manifest, null, 2));
 
-console.log(
-  `✅ Manifest updated with basePath: "${basePath}" at ${outManifestPath}`,
-);
-
-console.log(`Manifest updated with basePath: ${basePath || "/"}`);
+console.log(`✅ Manifest updated at ${outManifestPath}`);

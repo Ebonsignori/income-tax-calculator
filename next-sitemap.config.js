@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: "https://www.income-calc.com",
+  siteUrl: "https://income-tax.org",
   generateRobotsTxt: true,
   output: "export",
   generateRobotsTxt: true,
@@ -47,7 +47,7 @@ module.exports = {
         disallow: ["/_next/"],
       },
     ],
-    additionalSitemaps: ["https://www.income-calc.com/sitemap.xml"],
+    additionalSitemaps: ["https://income-tax.org/sitemap.xml"],
   },
   changefreq: "yearly",
 };
