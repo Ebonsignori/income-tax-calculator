@@ -56,7 +56,6 @@ export default function RootLayout(props: { children: ReactNode }) {
     <html lang="en">
       <head>
         <meta name="theme-color" content="#ffffff" />
-        <meta name="google-adsense-account" content="ca-pub-3786303899750150" />
       </head>
       <body>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
@@ -67,11 +66,6 @@ export default function RootLayout(props: { children: ReactNode }) {
             </ThemeProvider>
           </ColorModeContext.Provider>
         </AppRouterCacheProvider>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3786303899750150"
-          crossOrigin="anonymous"
-        ></script>
       </body>
     </html>
   );
