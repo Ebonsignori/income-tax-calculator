@@ -1,7 +1,7 @@
 import * as React from "react";
 import Typography from "@mui/material/Typography";
 import MuiLink from "@mui/material/Link";
-import { Box } from "@mui/material";
+import { Box, Divider } from "@mui/material";
 import type { NavPage } from "@/types";
 import Link from "next/link";
 import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
@@ -26,6 +26,7 @@ export default function Footer({ pages }: FooterProps) {
         sm: 3,
       }}
     >
+      <Divider sx={{ width: "100%", mb: { xs: 2, sm: 3 } }} />
       <Typography
         variant="caption"
         color="text.secondary"
@@ -42,6 +43,7 @@ export default function Footer({ pages }: FooterProps) {
         legal, tax filing, or financial advice. If data appears incorrect,
         please <SupportButton asLink />.
       </Typography>
+      <Divider sx={{ width: "100%", mb: { xs: 2, sm: 2 } }} />
       <Typography
         variant="body2"
         color="text.secondary"

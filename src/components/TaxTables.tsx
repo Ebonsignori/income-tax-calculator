@@ -382,61 +382,67 @@ export default function TaxTables({
   });
 
   return (
-    <Grid container spacing={2} columns={13}>
-      <Grid item xs={13} sm={3}>
-        <YearSelect
-          availableYears={availableYears}
-          USACity={USACity}
-          USAState={USAState}
-          year={year}
-          setYear={setYear}
-          baseRoute={TAX_TABLES.route}
-        />
+    <>
+      <Typography variant="body1" sx={{ mb: 3, color: "text.secondary" }}>
+        View detailed tax brackets, rates, and deductions for federal, state,
+        and city taxes.
+      </Typography>
+      <Grid container spacing={2} columns={13}>
+        <Grid item xs={13} sm={3}>
+          <YearSelect
+            availableYears={availableYears}
+            USACity={USACity}
+            USAState={USAState}
+            year={year}
+            setYear={setYear}
+            baseRoute={TAX_TABLES.route}
+          />
+        </Grid>
+        <Grid item xs={13} sm={5}>
+          <StateSelect
+            availableStatesAndCities={availableStatesAndCities}
+            year={year}
+            USAState={USAState}
+            setUSAState={setUSAState}
+            setUSACity={setUSACity}
+            baseRoute={TAX_TABLES.route}
+          />
+        </Grid>
+        <Grid item xs={13} sm={5}>
+          <CitySelect
+            availableStatesAndCities={availableStatesAndCities}
+            year={year}
+            USACity={USACity}
+            USAState={USAState}
+            setUSACity={setUSACity}
+            baseRoute={TAX_TABLES.route}
+          />
+        </Grid>
+        <Grid item xs={13} sm={6.5}>
+          <TaxOptionsSelect
+            label="Tax Tables to Display"
+            taxOptions={taxOptions}
+            selectedTaxOptions={selectedTaxes}
+            setSelectedTaxOptions={setSelectedTaxes}
+          />
+        </Grid>
+        <Grid item xs={13} sm={6.5}>
+          <TaxDataSelect
+            label="Tax Data to Display"
+            taxData={taxDataOptions}
+            selectedTaxData={selectedTaxData}
+            setSelectedTaxData={setSelectedTaxData}
+          />
+        </Grid>
+        <Grid container spacing={2} columns={12} sx={{ mt: 3 }}>
+          {tables.map((table, index) => (
+            <Grid item xs={12} key={index}>
+              {RenderTable(table)}
+            </Grid>
+          ))}
+        </Grid>
       </Grid>
-      <Grid item xs={13} sm={5}>
-        <StateSelect
-          availableStatesAndCities={availableStatesAndCities}
-          year={year}
-          USAState={USAState}
-          setUSAState={setUSAState}
-          setUSACity={setUSACity}
-          baseRoute={TAX_TABLES.route}
-        />
-      </Grid>
-      <Grid item xs={13} sm={5}>
-        <CitySelect
-          availableStatesAndCities={availableStatesAndCities}
-          year={year}
-          USACity={USACity}
-          USAState={USAState}
-          setUSACity={setUSACity}
-          baseRoute={TAX_TABLES.route}
-        />
-      </Grid>
-      <Grid item xs={13} sm={6.5}>
-        <TaxOptionsSelect
-          label="Tax Tables to Display"
-          taxOptions={taxOptions}
-          selectedTaxOptions={selectedTaxes}
-          setSelectedTaxOptions={setSelectedTaxes}
-        />
-      </Grid>
-      <Grid item xs={13} sm={6.5}>
-        <TaxDataSelect
-          label="Tax Data to Display"
-          taxData={taxDataOptions}
-          selectedTaxData={selectedTaxData}
-          setSelectedTaxData={setSelectedTaxData}
-        />
-      </Grid>
-      <Grid container spacing={2} columns={12} sx={{ mt: 3 }}>
-        {tables.map((table, index) => (
-          <Grid item xs={12} key={index}>
-            {RenderTable(table)}
-          </Grid>
-        ))}
-      </Grid>
-    </Grid>
+    </>
   );
 }
 

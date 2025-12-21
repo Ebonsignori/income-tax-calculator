@@ -203,6 +203,10 @@ export default function CityTaxes({
 
   return (
     <Box>
+      <Typography variant="body1" sx={{ mb: 3, color: "text.secondary" }}>
+        Explore U.S. cities that impose local income taxes and view their tax
+        structures.
+      </Typography>
       <Box sx={{ mb: 3 }}>
         <YearSelect
           availableYears={availableYears}
