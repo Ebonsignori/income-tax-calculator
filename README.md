@@ -2,33 +2,15 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/e5febf5c-a294-4da3-aad2-97638044909d/deploy-status)](https://app.netlify.com/projects/serene-liger-7f3279/deploys)
 
-https://income-tax.org/
+This is the open source repository for [income-tax.org](https://income-tax.org/), a comprehensive income tax calculator for the United States.
 
-Calculates USA Federal, State, and City income cities tax.
+## Features
 
-Accounts for city-specific taxes (like Portland OR), unlike other online calculators.
+- Calculates USA federal, state, and city-level income tax
+- Accounts for city-specific taxes (like Portland, OR), unlike other online calculators
+- Includes a [list of US cities](https://income-tax.org/city-taxes/) with specific income taxes
+- Progressive Web App (PWA) - works offline and can be installed on your device
+
+## Contributing
 
 If your city isn't included and you'd like to add it, see the [src/data/README.md](./src/data/README.md).
-
-## Tax Data
-
-All tax data used for calculations is located in [src/data](./src/data).
-
-### Validating tax data
-
-After updating tax data, validate it with `npm run validate-tax-data`
-
-## Generating OG Images
-
-1. Run a local dev instance with `npm run dev`
-2. In another terminal run `npm run generate-og-images`
-
-`public/og-images` should be populated with screen captures for each state and city.
-
-[get-metadata.ts](src/utils/get-metadata.ts) makes sure each page has a `<meta` tag pointing to the matching OG image.
-
-## Standards
-
-- All URLs and files should use dash case, e.g. `/tax-tables/2025/missouri/kansas-city/?tables=city-income`, but all of our app code should use snake case for [constants](src/constants/), e.g. `kansas_city` and `city_income`.
-- Use `npm run lint` and `npm run lint:fix` to keep code formatted.
-- See [tests/](./tests/README.md) for e2e tests and [tests/unit](./tests/unit/README.md) for unit tests.

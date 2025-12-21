@@ -4,7 +4,9 @@ All tax bracket data is organized by TypeScript files that each export a default
 
 - `{year}/federal.ts` - Values for each tax (e.g. income, medicare, social security) by filing status for the `{year}`
 
-- `{year}/states/{state}.ts` - Values for each `{state}` level tax by filing status for the `{year}`. Any city-specific taxes are under the `[CITIES]` key.
+- `{year}/state/{state}.ts` - Values for each `{state}` level tax by filing status for the `{year}`. Any city-specific taxes are under the `[CITIES]` key.
+
+For a complete example including state income tax, standard deductions, payroll taxes, and city-specific taxes, see [2025/state/oregon.ts](./2025/state/oregon.ts).
 
 ## Rate
 
@@ -30,21 +32,31 @@ Rather than adding string literals for city & tax names, add and reference a con
 
 The default object in each file is organized in the following format:
 
-```js
+```typescript
+import type { TaxData } from "@/types";
+
 export default {
   "tax type": {
     "filing status": [
-      { min: number, max: number, rate: number }
+      { min: number, max: number, rate: number }  // Progressive tax brackets
       ||
-      { min: number, amount: number }
+      { min: number, amount: number }              // Flat fee (e.g., min: 1000, amount: 35)
       ||
-      { ..., percent_of_total: number }
+      { ..., percent_of_total: number }            // Employee portion (e.g., 60 = 60% employee, 40% employer)
       ...
     ]
   }
+} as TaxData;
 ```
 
-Where "filing status" is one of [these values](../constants/filing_status.ts)
+**Filing Status:**
+- Use specific filing statuses ([SINGLE, MARRIED, etc.](../constants/filing_status.ts)) for taxes that vary by status
+- Use `ALL` for taxes applied the same way regardless of filing status (e.g., payroll taxes)
+
+**Special Formats:**
+- **Standard deductions**: Single number per filing status, not brackets (e.g., `[SINGLE]: 2835`)
+- **INFINITY constant**: Use for the max of the highest bracket (e.g., `{ min: 250000, max: INFINITY, rate: 9.9 }`)
+- **City taxes**: Nested under `[CITIES]: { [CITY_NAME]: { ... } }`
 
 For example a `federal.ts` file might contain part of this object,
 
@@ -70,9 +82,15 @@ export default {
 
 ## Contributing
 
-Feel free to make a PR to add or fix any of the brackets. Just follow the patterns above to organize the filesystem.
+When adding a new state or city:
 
-Run `npm run validate-tax-data` after updating tax data to make sure the schema is valid.
+1. Create/update the state file: `{year}/state/{state_name}.ts`
+2. Add constants to:
+   - [states.ts](../constants/states.ts) - if adding a new state
+   - [cities.ts](../constants/cities.ts) - if adding a new city
+   - [tax_types.ts](../constants/tax_types.ts) - if adding a new tax type
+3. Validate: `npm run validate-tax-data`
+4. Test: `npm test`
 
 ## Why
 
