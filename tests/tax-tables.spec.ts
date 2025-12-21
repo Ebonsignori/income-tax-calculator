@@ -93,31 +93,40 @@ test("multiple tables displayed for multiple tax types", async ({ page }) => {
   await page.keyboard.press("Escape");
   await page.waitForTimeout(300);
 
+  // Open tax options select and select both options without closing
   const oregonStateIncomeTax = "Oregon State Income";
+  const federalIncome = "Federal Income";
+
   await page.getByTestId("tax-options-select").click({ force: true });
-  await page.waitForTimeout(500);
-  // Type to search for the option
-  await page.keyboard.type("Oregon");
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
+
+  // Wait for and click Oregon State Income option
   const oregonOption = page
     .getByRole("option")
-    .filter({ hasText: oregonStateIncomeTax })
-    .first();
+    .filter({ hasText: oregonStateIncomeTax });
+  await oregonOption.waitFor({ state: "visible", timeout: 10000 });
   await oregonOption.click();
   await page.waitForTimeout(500);
 
-  const federalIncome = "Federal Income";
-  await page.getByTestId("tax-options-select").click({ force: true });
-  await page.waitForTimeout(500);
-  // Type to search for the option
-  await page.keyboard.type("Federal");
-  await page.waitForTimeout(500);
+  // Wait for Federal Income option to be visible and click it
   const federalOption = page
     .getByRole("option")
-    .filter({ hasText: federalIncome })
-    .first();
+    .filter({ hasText: federalIncome });
+  await federalOption.waitFor({ state: "visible", timeout: 10000 });
   await federalOption.click();
   await page.waitForTimeout(500);
+
+  // Close the dropdown
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(500);
+
+  // Verify both chips are visible
+  await expect(
+    page.getByTestId("tax-options-select").getByText(oregonStateIncomeTax),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId("tax-options-select").getByText(federalIncome),
+  ).toBeVisible();
 
   await expect(
     page.locator("tr#federal_income_row_0").locator("td").nth(2),

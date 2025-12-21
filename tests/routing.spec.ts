@@ -218,6 +218,10 @@ test.describe("Calculator Routing and Query Params", () => {
     await page.fill("input#city-select", "Portland");
     await page.waitForTimeout(500);
 
+    // Close any open dropdowns
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
     // URL should be dash-case
     await page.waitForURL("**/2023/oregon/portland");
     await expect(page).toHaveURL(/\/2023\/oregon\/portland$/);
@@ -231,16 +235,25 @@ test.describe("Calculator Routing and Query Params", () => {
     // Navigate to 2024
     await page.getByTestId("tax-year-select").locator("input").fill("2024");
     await page.waitForTimeout(500);
+    // Close any open dropdowns
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
     await page.waitForURL("**/2024");
 
     // Navigate to Oregon
     await page.fill("input#state-select", "Oregon");
     await page.waitForTimeout(500);
+    // Close any open dropdowns
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
     await page.waitForURL("**/2024/oregon");
 
     // Navigate to Portland
     await page.fill("input#city-select", "Portland");
     await page.waitForTimeout(500);
+    // Close any open dropdowns
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
     await page.waitForURL("**/2024/oregon/portland");
 
     // Go back - should be at /2024/oregon
