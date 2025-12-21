@@ -71,11 +71,17 @@ export function buildURLWithParams(
  * This properly handles the basePath for GitHub Pages deployment.
  * Uses pushState to add to browser history for back/forward navigation.
  * Optionally preserves or updates query parameters.
+ *
+ * @param path - The path to navigate to
+ * @param params - Query parameters to include
+ * @param preserveExistingParams - Whether to preserve existing query params
+ * @param replaceHistory - If true, uses replaceState instead of pushState (no history entry)
  */
 export function updateURL(
   path: string,
   params?: Record<string, string | number | undefined>,
   preserveExistingParams = false,
+  replaceHistory = false,
 ): void {
   // Guard against server-side rendering
   if (typeof window === "undefined") {
@@ -97,7 +103,7 @@ export function updateURL(
   const pathWithParams = buildURLWithParams(path, finalParams);
   const urlWithBasePath = withBasePath(pathWithParams);
 
-  // Only push state if the URL is actually changing
+  // Only update state if the URL is actually changing
   // Normalize both URLs for comparison (decode and remove trailing slashes)
   const currentUrl = window.location.pathname + window.location.search;
   const basePath = getBasePath();
@@ -116,6 +122,10 @@ export function updateURL(
   const normalizedNew = normalizeUrl(pathWithParams);
 
   if (normalizedCurrent !== normalizedNew) {
-    window.history.pushState(null, "", urlWithBasePath);
+    if (replaceHistory) {
+      window.history.replaceState(null, "", urlWithBasePath);
+    } else {
+      window.history.pushState(null, "", urlWithBasePath);
+    }
   }
 }

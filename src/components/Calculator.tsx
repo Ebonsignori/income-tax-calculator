@@ -127,7 +127,8 @@ export default function Home({
           path += `/${USACity.replace(/_/g, "-")}`;
         }
       }
-      updateURL(path, { income: totalIncome });
+      // Use replaceHistory=true to avoid adding income changes to browser history
+      updateURL(path, { income: totalIncome }, false, true);
     }
   }, [totalIncome, year, USAState, USACity]);
 
