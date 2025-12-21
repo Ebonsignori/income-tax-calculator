@@ -1,11 +1,24 @@
 import { INFINITY } from "@/constants";
 import {
+  CHARLESTON,
+  CITIES,
+  HUNTINGTON,
+  MORGANTOWN,
+  PARKERSBURG,
+  WEIRTON,
+  WHEELING,
+} from "@/constants/cities";
+import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME } from "@/constants/tax_types";
+import {
+  OCCUPATIONAL_PRIVILEGE_TAX,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -38,5 +51,67 @@ export default {
       { min: 40000, max: 60000, rate: 4.44 },
       { min: 60000, max: INFINITY, rate: 4.82 },
     ],
+  },
+  [CITIES]: {
+    [CHARLESTON]: {
+      [OCCUPATIONAL_PRIVILEGE_TAX]: {
+        [ALL]: [
+          {
+            amount: 3,
+            frequency: "weekly",
+          },
+        ],
+      },
+    },
+    [HUNTINGTON]: {
+      [OCCUPATIONAL_PRIVILEGE_TAX]: {
+        [ALL]: [
+          {
+            amount: 5,
+            frequency: "weekly",
+          },
+        ],
+      },
+    },
+    [PARKERSBURG]: {
+      [OCCUPATIONAL_PRIVILEGE_TAX]: {
+        [ALL]: [
+          {
+            amount: 2.5,
+            frequency: "weekly",
+          },
+        ],
+      },
+    },
+    [WHEELING]: {
+      [OCCUPATIONAL_PRIVILEGE_TAX]: {
+        [ALL]: [
+          {
+            amount: 2,
+            frequency: "weekly",
+          },
+        ],
+      },
+    },
+    [MORGANTOWN]: {
+      [OCCUPATIONAL_PRIVILEGE_TAX]: {
+        [ALL]: [
+          {
+            amount: 3,
+            frequency: "weekly",
+          },
+        ],
+      },
+    },
+    [WEIRTON]: {
+      [OCCUPATIONAL_PRIVILEGE_TAX]: {
+        [ALL]: [
+          {
+            amount: 2,
+            frequency: "weekly",
+          },
+        ],
+      },
+    },
   },
 } as TaxData;

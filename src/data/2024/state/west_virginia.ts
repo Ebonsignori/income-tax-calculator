@@ -57,7 +57,7 @@ export default {
       [OCCUPATIONAL_PRIVILEGE_TAX]: {
         [ALL]: [
           {
-            amount: 2.5,
+            amount: 3,
             frequency: "weekly",
           },
         ],
