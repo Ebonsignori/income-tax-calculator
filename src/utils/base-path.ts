@@ -1,30 +1,20 @@
 /**
  * Gets the base path for the application.
- * In production (GitHub Pages), this will be "/income-tax-calculator"
- * In development, this will be ""
+ * For Netlify deployment with custom domain, this is always empty.
  */
 export function getBasePath(): string {
-  // Check if we're in the browser
-  if (typeof window !== "undefined") {
-    // First try to get basePath from Next.js __NEXT_DATA__
-    const nextBasePath = (window as any).__NEXT_DATA__?.basePath;
-    if (nextBasePath) {
-      return nextBasePath;
-    }
-
-    // Fallback: detect from current URL
-    // If we're on GitHub Pages, the URL will be like:
-    // https://ebonsignori.github.io/income-tax-calculator/...
-    const pathname = window.location.pathname;
-    if (pathname.startsWith("/income-tax-calculator")) {
-      return "/income-tax-calculator";
-    }
-
-    return "";
-  }
-  // Server-side: use environment variable
-  return process.env.GITHUB_PAGES === "true" ? "/income-tax-calculator" : "";
+  return "";
 }
+
+// Store references to the original history methods before Next.js patches them
+const originalPushState =
+  typeof window !== "undefined"
+    ? window.history.pushState.bind(window.history)
+    : null;
+const originalReplaceState =
+  typeof window !== "undefined"
+    ? window.history.replaceState.bind(window.history)
+    : null;
 
 /**
  * Constructs a URL with the proper base path
@@ -122,10 +112,36 @@ export function updateURL(
   const normalizedNew = normalizeUrl(pathWithParams);
 
   if (normalizedCurrent !== normalizedNew) {
-    if (replaceHistory) {
-      window.history.replaceState(null, "", urlWithBasePath);
-    } else {
-      window.history.pushState(null, "", urlWithBasePath);
+    // Use the original history methods to bypass Next.js's patched versions
+    // which can throw errors when the router context isn't initialized
+    try {
+      if (replaceHistory) {
+        if (originalReplaceState) {
+          originalReplaceState(null, "", urlWithBasePath);
+        } else {
+          window.history.replaceState(null, "", urlWithBasePath);
+        }
+      } else {
+        if (originalPushState) {
+          originalPushState(null, "", urlWithBasePath);
+        } else {
+          window.history.pushState(null, "", urlWithBasePath);
+        }
+      }
+    } catch (error) {
+      // Fallback to regular methods if original refs don't work
+      try {
+        if (replaceHistory) {
+          window.history.replaceState(null, "", urlWithBasePath);
+        } else {
+          window.history.pushState(null, "", urlWithBasePath);
+        }
+      } catch (fallbackError) {
+        // Log only in development
+        if (process.env.NODE_ENV === "development") {
+          console.debug("URL navigation warning:", fallbackError);
+        }
+      }
     }
   }
 }

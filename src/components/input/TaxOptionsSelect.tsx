@@ -22,6 +22,7 @@ export function TaxOptionsSelect({
       id="tax-options-select"
       aria-label="Tax Options Select"
       multiple
+      disableCloseOnSelect
       isOptionEqualToValue={(option, value) => {
         return option.value === value.value;
       }}

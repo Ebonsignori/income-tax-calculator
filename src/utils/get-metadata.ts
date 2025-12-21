@@ -9,11 +9,7 @@ import { snakeToTitleCase } from "./string-utils";
 
 const currentYear = new Date().getFullYear();
 
-const defaultUrl = "https://income-calc.com";
-
-// Get base path for GitHub Pages deployment
-const basePath =
-  process.env.GITHUB_PAGES === "true" ? "/income-tax-calculator" : "";
+const defaultUrl = "https://income-tax.org";
 
 export const defaultMetadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || defaultUrl),
@@ -50,14 +46,14 @@ export const defaultMetadata: Metadata = {
     address: false,
     telephone: false,
   },
-  manifest: `${basePath}/manifest.webmanifest`,
+  manifest: "/manifest.webmanifest",
 };
 
 const defaultOpenGraph = {
   title: "Income Tax Calculator",
   description:
     "Calculate your take home pay after federal, state, and city income taxes.",
-  url: "https://income-calc.com",
+  url: "https://income-tax.org",
   siteName: "Income Tax Calculator",
   locale: "en_US",
   type: "website",
