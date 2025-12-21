@@ -1,5 +1,5 @@
 import { INFINITY } from "@/constants";
-import { CITIES, NEW_YORK_CITY } from "@/constants/cities";
+import { CITIES, NEW_YORK_CITY, YONKERS } from "@/constants/cities";
 import {
   HEAD_OF_HOUSEHOLD,
   MARRIED,
@@ -7,7 +7,10 @@ import {
   SINGLE,
 } from "@/constants/filing-status";
 import {
+  CITY_INCOME,
   NYC_INCOME,
+  NY_DISABILITY_INSURANCE,
+  NY_PAID_FAMILY_LEAVE,
   STANDARD_DEDUCTION,
   STATE_INCOME,
 } from "@/constants/tax_types";
@@ -66,6 +69,18 @@ export default {
       { min: 25000000, max: INFINITY, rate: 10.9 },
     ],
   },
+  [NY_PAID_FAMILY_LEAVE]: {
+    [SINGLE]: [{ min: 0, max: 89342, rate: 0.373 }],
+    [MARRIED]: [{ min: 0, max: 89342, rate: 0.373 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 89342, rate: 0.373 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 89342, rate: 0.373 }],
+  },
+  [NY_DISABILITY_INSURANCE]: {
+    [SINGLE]: [{ min: 0, max: 1560, rate: 0.5 }],
+    [MARRIED]: [{ min: 0, max: 1560, rate: 0.5 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 1560, rate: 0.5 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 1560, rate: 0.5 }],
+  },
   [CITIES]: {
     [NEW_YORK_CITY]: {
       [NYC_INCOME]: {
@@ -93,6 +108,14 @@ export default {
           { min: 30000, max: 60000, rate: 3.819 },
           { min: 60000, max: INFINITY, rate: 3.876 },
         ],
+      },
+    },
+    [YONKERS]: {
+      [CITY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 0.5 }],
       },
     },
   },

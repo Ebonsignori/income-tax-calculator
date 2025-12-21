@@ -23,8 +23,8 @@ export default {
       { min: 229550, max: INFINITY, rate: 8.75 },
     ],
     [MARRIED]: [
-      { min: 0, max: 75000, rate: 3.35 },
-      { min: 75000, max: 183400, rate: 6.6 },
+      { min: 0, max: 75850, rate: 3.35 },
+      { min: 75850, max: 183400, rate: 6.6 },
       { min: 183400, max: 279450, rate: 7.6 },
       { min: 279450, max: INFINITY, rate: 8.75 },
     ],

@@ -18,11 +18,11 @@ export default {
   },
   [STATE_INCOME]: {
     [ALL]: [
-      { min: 0, max: 5099, rate: 0 },
-      { min: 5099, max: 10299, rate: 2 },
-      { min: 10299, max: 14699, rate: 3 },
-      { min: 14699, max: 24299, rate: 3.4 },
-      { min: 24299, max: INFINITY, rate: 4.7 },
+      { min: 0, max: 5100, rate: 0 },
+      { min: 5100, max: 10300, rate: 2 },
+      { min: 10300, max: 14700, rate: 3 },
+      { min: 14700, max: 24300, rate: 3.4 },
+      { min: 24300, max: INFINITY, rate: 4.7 },
     ],
   },
 } as TaxData;

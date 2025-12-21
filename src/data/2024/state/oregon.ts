@@ -1,5 +1,5 @@
 import { INFINITY } from "@/constants";
-import { CITIES, PORTLAND } from "@/constants/cities";
+import { CITIES, EUGENE, PORTLAND } from "@/constants/cities";
 import {
   ALL,
   HEAD_OF_HOUSEHOLD,
@@ -9,6 +9,7 @@ import {
 } from "@/constants/filing-status";
 import {
   ART_TAX,
+  EMPLOYEE_PAYROLL_TAX,
   OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
   PRESCHOOL_FOR_ALL,
   STANDARD_DEDUCTION,
@@ -20,34 +21,34 @@ import type { TaxData } from "@/types";
 
 export default {
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 2350,
-    [MARRIED]: 4700,
-    [MARRIED_SEPARATELY]: 2350,
-    [HEAD_OF_HOUSEHOLD]: 3780,
+    [SINGLE]: 2745,
+    [MARRIED]: 5490,
+    [MARRIED_SEPARATELY]: 2745,
+    [HEAD_OF_HOUSEHOLD]: 4125,
   },
   [STATE_INCOME]: {
     [SINGLE]: [
-      { min: 0, max: 4050, rate: 4.75 },
-      { min: 4050, max: 10200, rate: 6.75 },
-      { min: 10200, max: 125000, rate: 8.75 },
+      { min: 0, max: 4300, rate: 4.75 },
+      { min: 4300, max: 10750, rate: 6.75 },
+      { min: 10750, max: 125000, rate: 8.75 },
       { min: 125000, max: INFINITY, rate: 9.9 },
     ],
     [MARRIED]: [
-      { min: 0, max: 8100, rate: 4.75 },
-      { min: 8100, max: 20400, rate: 6.75 },
-      { min: 20400, max: 250000, rate: 8.75 },
+      { min: 0, max: 8600, rate: 4.75 },
+      { min: 8600, max: 21500, rate: 6.75 },
+      { min: 21500, max: 250000, rate: 8.75 },
       { min: 250000, max: INFINITY, rate: 9.9 },
     ],
     [MARRIED_SEPARATELY]: [
-      { min: 0, max: 4050, rate: 4.75 },
-      { min: 4050, max: 10200, rate: 6.75 },
-      { min: 10200, max: 125000, rate: 8.75 },
+      { min: 0, max: 4300, rate: 4.75 },
+      { min: 4300, max: 10750, rate: 6.75 },
+      { min: 10750, max: 125000, rate: 8.75 },
       { min: 125000, max: INFINITY, rate: 9.9 },
     ],
     [HEAD_OF_HOUSEHOLD]: [
-      { min: 0, max: 8100, rate: 4.75 },
-      { min: 8100, max: 20400, rate: 6.75 },
-      { min: 20400, max: 250000, rate: 8.75 },
+      { min: 0, max: 8600, rate: 4.75 },
+      { min: 8600, max: 21500, rate: 6.75 },
+      { min: 21500, max: 250000, rate: 8.75 },
       { min: 250000, max: INFINITY, rate: 9.9 },
     ],
   },
@@ -84,6 +85,15 @@ export default {
         [HEAD_OF_HOUSEHOLD]: [
           { min: 125000, max: 250000, rate: 1.5 },
           { min: 250000, max: INFINITY, rate: 3.0 },
+        ],
+      },
+    },
+    [EUGENE]: {
+      [EMPLOYEE_PAYROLL_TAX]: {
+        [ALL]: [
+          { min: 0, max: 24960, rate: 0 },
+          { min: 24960, max: 31200, rate: 0.3 },
+          { min: 31200, max: INFINITY, rate: 0.44 },
         ],
       },
     },

@@ -13,6 +13,7 @@ export const STATE_INCOME = "state_income";
 
 // State specific
 export const CAPITAL_GAINS = "capital_gains";
+export const INTEREST_AND_DIVIDENDS = "interest_and_dividends";
 export const WASHINGTON_CARES_FUND = "washington_cares_fund";
 export const OREGON_TRANSIT_TAX = "oregon_transit_tax";
 export const OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE =
@@ -27,8 +28,13 @@ export const NY_PAID_FAMILY_LEAVE = "ny_paid_family_leave";
 export const NY_DISABILITY_INSURANCE = "ny_disability_insurance";
 export const RI_TEMPORARY_DISABILITY_INSURANCE =
   "ri_temporary_disability_insurance";
+export const HI_TEMPORARY_DISABILITY_INSURANCE =
+  "hi_temporary_disability_insurance";
+export const COLORADO_FAMLI = "colorado_famli";
+export const CT_PAID_FAMILY_AND_MEDICAL_LEAVE =
+  "ct_paid_family_and_medical_leave";
 
-// City specific
+// City/County specific
 export const ART_TAX = "art_tax";
 export const SUPPORTIVE_HOUSING_SERVICES = "supportive_housing_services";
 export const PRESCHOOL_FOR_ALL = "preschool_for_all";
@@ -38,3 +44,4 @@ export const OCCUPATIONAL_TAX = "occupational_tax";
 export const COUNTY_INCOME = "county_income";
 export const CITY_INCOME = "city_income";
 export const EMPLOYEE_PAYROLL_TAX = "employee_payroll_tax";
+export const LOCAL_EARNED_INCOME = "local_earned_income";

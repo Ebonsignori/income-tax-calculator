@@ -1,11 +1,19 @@
 import { INFINITY } from "@/constants";
+import { NEW_YORK_CITY, YONKERS, CITIES } from "@/constants/cities";
 import {
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+  NY_PAID_FAMILY_LEAVE,
+  NY_DISABILITY_INSURANCE,
+  NYC_INCOME,
+  CITY_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -60,5 +68,55 @@ export default {
       { min: 5000000, max: 25000000, rate: 10.3 },
       { min: 25000000, max: INFINITY, rate: 10.9 },
     ],
+  },
+  [NY_DISABILITY_INSURANCE]: {
+    [SINGLE]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+    [MARRIED]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+  },
+  [NY_PAID_FAMILY_LEAVE]: {
+    [SINGLE]: [{ min: 0, max: INFINITY, rate: 0.455 }],
+    [MARRIED]: [{ min: 0, max: INFINITY, rate: 0.455 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 0.455 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 0.455 }],
+  },
+  [CITIES]: {
+    [NEW_YORK_CITY]: {
+      [NYC_INCOME]: {
+        [SINGLE]: [
+          { min: 0, max: 12000, rate: 3.078 },
+          { min: 12000, max: 25000, rate: 3.762 },
+          { min: 25000, max: 50000, rate: 3.819 },
+          { min: 50000, max: INFINITY, rate: 3.876 },
+        ],
+        [MARRIED]: [
+          { min: 0, max: 21600, rate: 3.078 },
+          { min: 21600, max: 45000, rate: 3.762 },
+          { min: 45000, max: 90000, rate: 3.819 },
+          { min: 90000, max: INFINITY, rate: 3.876 },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: 12000, rate: 3.078 },
+          { min: 12000, max: 25000, rate: 3.762 },
+          { min: 25000, max: 50000, rate: 3.819 },
+          { min: 50000, max: INFINITY, rate: 3.876 },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: 14400, rate: 3.078 },
+          { min: 14400, max: 30000, rate: 3.762 },
+          { min: 30000, max: 60000, rate: 3.819 },
+          { min: 60000, max: INFINITY, rate: 3.876 },
+        ],
+      },
+    },
+    [YONKERS]: {
+      [CITY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+      },
+    },
   },
 } as TaxData;

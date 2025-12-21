@@ -30,6 +30,6 @@ After updating tax data, validate it with `npm run validate-tax-data`
 
 ## Standards
 
-- All URLs and files should use dash case, e.g. `/localhost:3001/tax-tables/2025/missouri/kansas-city/?tables=city-income`, but all of our app code should use snake case for [constants](src/constants/), e.g. `kansas_city` and `city_income`.
-- `npm run lint` and `npm run lint:fix` to keep code formatted.
-- Use [end-to-end tests](./tests/) over unit tests.
+- All URLs and files should use dash case, e.g. `/tax-tables/2025/missouri/kansas-city/?tables=city-income`, but all of our app code should use snake case for [constants](src/constants/), e.g. `kansas_city` and `city_income`.
+- Use `npm run lint` and `npm run lint:fix` to keep code formatted.
+- Write [end-to-end tests](./tests/) over unit tests.

@@ -1,4 +1,5 @@
 import { INFINITY } from "@/constants";
+import { CITIES, KANSAS_CITY, ST_LOUIS } from "@/constants/cities";
 import {
   ALL,
   HEAD_OF_HOUSEHOLD,
@@ -6,7 +7,11 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  CITY_INCOME,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -27,5 +32,17 @@ export default {
       { min: 7638, max: 8911, rate: 4.5 },
       { min: 8911, max: INFINITY, rate: 4.8 },
     ],
+  },
+  [CITIES]: {
+    [KANSAS_CITY]: {
+      [CITY_INCOME]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [ST_LOUIS]: {
+      [CITY_INCOME]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
   },
 } as TaxData;

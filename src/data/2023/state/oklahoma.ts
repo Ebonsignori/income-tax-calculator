@@ -29,8 +29,8 @@ export default {
       { min: 2000, max: 5000, rate: 0.75 },
       { min: 5000, max: 7500, rate: 1.75 },
       { min: 7500, max: 9800, rate: 2.75 },
-      { min: 9800, max: 14400, rate: 3.75 },
-      { min: 14400, max: INFINITY, rate: 4.75 },
+      { min: 9800, max: 12200, rate: 3.75 },
+      { min: 12200, max: INFINITY, rate: 4.75 },
     ],
     [MARRIED_SEPARATELY]: [
       { min: 0, max: 1000, rate: 0.25 },
@@ -45,8 +45,8 @@ export default {
       { min: 2000, max: 5000, rate: 0.75 },
       { min: 5000, max: 7500, rate: 1.75 },
       { min: 7500, max: 9800, rate: 2.75 },
-      { min: 9800, max: 14400, rate: 3.75 },
-      { min: 14400, max: INFINITY, rate: 4.75 },
+      { min: 9800, max: 12200, rate: 3.75 },
+      { min: 12200, max: INFINITY, rate: 4.75 },
     ],
   },
 } as TaxData;

@@ -13,7 +13,7 @@ export default {
     [SINGLE]: 7900,
     [MARRIED]: 15800,
     [MARRIED_SEPARATELY]: 7900,
-    [HEAD_OF_HOUSEHOLD]: 11650,
+    [HEAD_OF_HOUSEHOLD]: 11600,
   },
   [STATE_INCOME]: {
     [SINGLE]: [

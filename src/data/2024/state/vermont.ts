@@ -10,10 +10,10 @@ import type { TaxData } from "@/types";
 
 export default {
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 14600,
-    [MARRIED]: 29200,
-    [MARRIED_SEPARATELY]: 14600,
-    [HEAD_OF_HOUSEHOLD]: 29200,
+    [SINGLE]: 7400,
+    [MARRIED]: 14850,
+    [MARRIED_SEPARATELY]: 7400,
+    [HEAD_OF_HOUSEHOLD]: 11100,
   },
   [STATE_INCOME]: {
     [SINGLE]: [
@@ -23,8 +23,8 @@ export default {
       { min: 242000, max: INFINITY, rate: 8.75 },
     ],
     [MARRIED]: [
-      { min: 0, max: 75000, rate: 3.35 },
-      { min: 75000, max: 193300, rate: 6.6 },
+      { min: 0, max: 79950, rate: 3.35 },
+      { min: 79950, max: 193300, rate: 6.6 },
       { min: 193300, max: 294600, rate: 7.6 },
       { min: 294600, max: INFINITY, rate: 8.75 },
     ],

@@ -10,10 +10,10 @@ import type { TaxData } from "@/types";
 
 export default {
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 2340,
-    [MARRIED]: 4680,
-    [MARRIED_SEPARATELY]: 2340,
-    [HEAD_OF_HOUSEHOLD]: 2340,
+    [SINGLE]: 2410,
+    [MARRIED]: 4820,
+    [MARRIED_SEPARATELY]: 2410,
+    [HEAD_OF_HOUSEHOLD]: 2410,
   },
   [STATE_INCOME]: {
     [SINGLE]: [

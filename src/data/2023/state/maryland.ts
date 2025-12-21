@@ -1,11 +1,42 @@
 import { INFINITY } from "@/constants";
 import {
+  ALLEGANY_COUNTY,
+  ANNE_ARUNDEL_COUNTY,
+  BALTIMORE_CITY,
+  BALTIMORE_COUNTY,
+  CALVERT_COUNTY,
+  CAROLINE_COUNTY,
+  CARROLL_COUNTY,
+  CECIL_COUNTY,
+  CHARLES_COUNTY,
+  CITIES,
+  DORCHESTER_COUNTY,
+  FREDERICK_COUNTY,
+  GARRETT_COUNTY,
+  HARFORD_COUNTY,
+  HOWARD_COUNTY,
+  KENT_COUNTY,
+  MONTGOMERY_COUNTY,
+  PRINCE_GEORGES_COUNTY,
+  QUEEN_ANNES_COUNTY,
+  SAINT_MARYS_COUNTY,
+  SOMERSET_COUNTY,
+  TALBOT_COUNTY,
+  WASHINGTON_COUNTY,
+  WICOMICO_COUNTY,
+  WORCESTER_COUNTY,
+} from "@/constants/cities";
+import {
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  COUNTY_INCOME,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -56,5 +87,223 @@ export default {
       { min: 225000, max: 300000, rate: 5.5 },
       { min: 300000, max: INFINITY, rate: 5.75 },
     ],
+  },
+  [CITIES]: {
+    [ALLEGANY_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+      },
+    },
+    [ANNE_ARUNDEL_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [
+          { min: 0, max: 50000, rate: 2.7 },
+          { min: 50000, max: INFINITY, rate: 2.81 },
+        ],
+        [MARRIED]: [
+          { min: 0, max: 50000, rate: 2.7 },
+          { min: 50000, max: INFINITY, rate: 2.81 },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: 50000, rate: 2.7 },
+          { min: 50000, max: INFINITY, rate: 2.81 },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: 50000, rate: 2.7 },
+          { min: 50000, max: INFINITY, rate: 2.81 },
+        ],
+      },
+    },
+    [BALTIMORE_CITY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [BALTIMORE_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [CALVERT_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+      },
+    },
+    [CAROLINE_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [CARROLL_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+      },
+    },
+    [CECIL_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+      },
+    },
+    [CHARLES_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.03 }],
+      },
+    },
+    [DORCHESTER_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [FREDERICK_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [
+          { min: 0, max: 50000, rate: 2.75 },
+          { min: 50000, max: INFINITY, rate: 2.96 },
+        ],
+        [MARRIED]: [
+          { min: 0, max: 100000, rate: 2.75 },
+          { min: 100000, max: INFINITY, rate: 2.96 },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: 50000, rate: 2.75 },
+          { min: 50000, max: INFINITY, rate: 2.96 },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: 100000, rate: 2.75 },
+          { min: 100000, max: INFINITY, rate: 2.96 },
+        ],
+      },
+    },
+    [GARRETT_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.65 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.65 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.65 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.65 }],
+      },
+    },
+    [HARFORD_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.06 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.06 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.06 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.06 }],
+      },
+    },
+    [HOWARD_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [KENT_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [MONTGOMERY_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [PRINCE_GEORGES_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [QUEEN_ANNES_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [SAINT_MARYS_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.1 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.1 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.1 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.1 }],
+      },
+    },
+    [SOMERSET_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [TALBOT_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.4 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.4 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.4 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.4 }],
+      },
+    },
+    [WASHINGTON_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+      },
+    },
+    [WICOMICO_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.2 }],
+      },
+    },
+    [WORCESTER_COUNTY]: {
+      [COUNTY_INCOME]: {
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.25 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.25 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.25 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.25 }],
+      },
+    },
   },
 } as TaxData;

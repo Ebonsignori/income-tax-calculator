@@ -5,7 +5,10 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME } from "@/constants/tax_types";
+import {
+  CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -46,5 +49,11 @@ export default {
       { min: 400000, max: 800000, rate: 6.9 },
       { min: 800000, max: INFINITY, rate: 6.99 },
     ],
+  },
+  [CT_PAID_FAMILY_AND_MEDICAL_LEAVE]: {
+    [SINGLE]: [{ min: 0, max: 160200, rate: 0.5 }],
+    [MARRIED]: [{ min: 0, max: 160200, rate: 0.5 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: 160200, rate: 0.5 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 160200, rate: 0.5 }],
   },
 } as TaxData;

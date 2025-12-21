@@ -10,6 +10,7 @@ import { ALL } from "@/constants/filing-status";
 import {
   OCCUPATIONAL_PRIVILEGE_TAX,
   STATE_INCOME,
+  COLORADO_FAMLI,
 } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
@@ -19,7 +20,16 @@ export default {
       {
         min: 0,
         max: INFINITY,
-        rate: 4.4,
+        rate: 4.25,
+      },
+    ],
+  },
+  [COLORADO_FAMLI]: {
+    [ALL]: [
+      {
+        min: 0,
+        max: 168600,
+        rate: 0.45,
       },
     ],
   },

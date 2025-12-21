@@ -1,11 +1,24 @@
 import { INFINITY } from "@/constants";
 import {
+  BESSEMER,
+  BIRMINGHAM,
+  CITIES,
+  GADSDEN,
+  MACON_COUNTY,
+  MONTGOMERY,
+} from "@/constants/cities";
+import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME, STANDARD_DEDUCTION } from "@/constants/tax_types";
+import {
+  OCCUPATIONAL_TAX,
+  STATE_INCOME,
+  STANDARD_DEDUCTION,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -36,5 +49,32 @@ export default {
       { min: 500, max: 3000, rate: 4 },
       { min: 3000, max: INFINITY, rate: 5 },
     ],
+  },
+  [CITIES]: {
+    [BIRMINGHAM]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [BESSEMER]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [GADSDEN]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
+      },
+    },
+    [MACON_COUNTY]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [MONTGOMERY]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
   },
 } as TaxData;

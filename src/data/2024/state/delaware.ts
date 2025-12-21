@@ -1,4 +1,5 @@
 import { INFINITY } from "@/constants";
+import { WILMINGTON, CITIES } from "@/constants/cities";
 import {
   ALL,
   HEAD_OF_HOUSEHOLD,
@@ -6,7 +7,11 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME, STANDARD_DEDUCTION } from "@/constants/tax_types";
+import {
+  CITY_INCOME,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
@@ -26,5 +31,12 @@ export default {
       { min: 25000, max: 60000, rate: 5.55 },
       { min: 60000, max: INFINITY, rate: 6.6 },
     ],
+  },
+  [CITIES]: {
+    [WILMINGTON]: {
+      [CITY_INCOME]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1.25 }],
+      },
+    },
   },
 } as TaxData;
