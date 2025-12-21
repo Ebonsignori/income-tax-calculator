@@ -32,7 +32,11 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { COUNTY_INCOME, STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  COUNTY_INCOME,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {

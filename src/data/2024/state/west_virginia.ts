@@ -15,7 +15,10 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { OCCUPATIONAL_PRIVILEGE_TAX, STATE_INCOME } from "@/constants/tax_types";
+import {
+  OCCUPATIONAL_PRIVILEGE_TAX,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
