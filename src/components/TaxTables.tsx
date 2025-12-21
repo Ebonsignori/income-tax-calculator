@@ -254,11 +254,20 @@ export default function TaxTables({
     }
 
     // Build the path based on current year, state, and city
-    let path = `${TAX_TABLES.route}/${year}`;
-    if (USAState) {
-      path += `/${USAState.replace(/_/g, "-")}`;
-      if (USACity) {
-        path += `/${USACity.replace(/_/g, "-")}`;
+    const currentYear = new Date().getFullYear().toString();
+    const isCurrentYear = year === currentYear;
+    const hasStateOrCity = USAState || USACity;
+
+    let path: string;
+    if (isCurrentYear && !hasStateOrCity) {
+      path = TAX_TABLES.route;
+    } else {
+      path = `${TAX_TABLES.route}/${year}`;
+      if (USAState) {
+        path += `/${USAState.replace(/_/g, "-")}`;
+        if (USACity) {
+          path += `/${USACity.replace(/_/g, "-")}`;
+        }
       }
     }
 

@@ -51,6 +51,36 @@ export default function CityTaxes({
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
 
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      // Parse the current URL to extract year
+      const path = window.location.pathname;
+      const basePath = (window as any).__NEXT_DATA__?.basePath || "";
+      const relativePath = basePath ? path.replace(basePath, "") : path;
+
+      // Remove /city-taxes prefix if present
+      const pathWithoutBase = relativePath.startsWith("/city-taxes")
+        ? relativePath.substring("/city-taxes".length)
+        : relativePath;
+
+      const segments = pathWithoutBase.split("/").filter(Boolean);
+
+      // Update year based on URL segments
+      if (segments.length >= 1 && segments[0] !== year) {
+        setYear(segments[0]);
+      } else if (segments.length === 0 && year !== defaultYear) {
+        // If at root path (/city-taxes), set to default year
+        setYear(defaultYear);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [year, defaultYear]);
+
   // Fetch city tax list when year changes
   useEffect(() => {
     async function fetchCityTaxList() {
