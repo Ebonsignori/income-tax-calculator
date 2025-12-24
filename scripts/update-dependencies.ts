@@ -5,21 +5,20 @@
  *
  * This script automates the process of updating npm dependencies using the
  * GitHub Copilot CLI. It intelligently groups related packages (like @mui/*,
- * @emotion/*, @types/*) and processes them together to maintain compatibility.
+ * @emotion/*) and their corresponding @types/* packages together to maintain
+ * compatibility.
  *
  * The script will:
- *   1. Group related packages by namespace/prefix
- *   2. Update @types/* packages directly (simple version bumps)
- *   3. Use Copilot CLI to update other packages with code changes
- *   4. Run validation (lint, test, build) after each update
- *   5. Log all changes for review
+ *   1. Group related packages by namespace/prefix with their @types
+ *   2. Use Copilot CLI to update packages with code changes
+ *   3. Run validation (lint, test, build) after each update
+ *   4. Log all changes for review
  *
  * Usage:
  *   npm run update-dependencies [-- OPTIONS]
  *   ts-node scripts/update-dependencies.ts [OPTIONS]
  *
  * Options:
- *   --skip-types     Skip automatic @types updates
  *   --dry-run        Show what would be updated without making changes
  *   --group-only     Show package groupings without updating
  *   --help           Show this help message
@@ -27,7 +26,6 @@
  * Examples:
  *   npm run update-dependencies
  *   npm run update-dependencies -- --dry-run
- *   npm run update-dependencies -- --skip-types
  */
 
 import { execSync, spawn } from "child_process";
@@ -63,7 +61,6 @@ interface PackageInfo {
 
 class DependencyUpdater {
   private logFile: string;
-  private skipTypes: boolean;
   private dryRun: boolean;
   private groupOnly: boolean;
   private logStream: fs.WriteStream;
@@ -80,7 +77,6 @@ class DependencyUpdater {
     );
 
     // Parse arguments
-    this.skipTypes = process.argv.includes("--skip-types");
     this.dryRun = process.argv.includes("--dry-run");
     this.groupOnly = process.argv.includes("--group-only");
 
@@ -106,7 +102,6 @@ Usage:
   ts-node scripts/update-dependencies.ts [OPTIONS]
 
 Options:
-  --skip-types     Skip automatic @types updates
   --dry-run        Show what would be updated without making changes
   --group-only     Show package groupings without updating
   --help           Show this help message
@@ -114,7 +109,6 @@ Options:
 Examples:
   npm run update-dependencies
   npm run update-dependencies -- --dry-run
-  npm run update-dependencies -- --skip-types
 `;
     console.log(help);
   }
@@ -185,6 +179,7 @@ Examples:
 
     const packages = Object.keys(allDeps);
     const groups: Map<string, string[]> = new Map();
+    const typePackages: string[] = [];
 
     // Define custom package groups
     const nextGroup = [
@@ -197,13 +192,16 @@ Examples:
     const typescriptGroup = ["ts-node", "tsconfig-paths", "typescript"];
     const eslintGroup = ["prettier"]; // Will be combined with eslint* packages
 
-    // Group packages by namespace/prefix or custom groups
+    // First pass: separate @types packages and group regular packages
     packages.forEach((pkg) => {
+      if (pkg.startsWith("@types/")) {
+        typePackages.push(pkg);
+        return;
+      }
+
       let groupName: string;
 
-      if (pkg.startsWith("@types/")) {
-        groupName = "@types";
-      } else if (pkg.startsWith("@mui/")) {
+      if (pkg.startsWith("@mui/")) {
         groupName = "@mui";
       } else if (pkg.startsWith("@emotion/")) {
         groupName = "@emotion";
@@ -231,13 +229,54 @@ Examples:
       groups.get(groupName)!.push(pkg);
     });
 
+    // Second pass: assign @types packages to their corresponding groups
+    typePackages.forEach((typePkg) => {
+      // Extract the base package name from @types/package-name
+      const baseName = typePkg.replace("@types/", "");
+
+      // Try to find which group this type belongs to
+      let assigned = false;
+
+      groups.forEach((groupPackages) => {
+        if (assigned) return;
+
+        // Check if any package in the group matches this type
+        const matchesGroup = groupPackages.some((pkg: string) => {
+          // Handle scoped packages like @mui/material -> @types/mui__material
+          const scopedMatch =
+            pkg.startsWith("@") && baseName === pkg.slice(1).replace("/", "__");
+
+          // Handle regular packages like react -> @types/react
+          const regularMatch = pkg === baseName;
+
+          // Handle packages with the same base like node -> @types/node
+          const baseMatch =
+            pkg.startsWith(baseName) || baseName.startsWith(pkg);
+
+          return scopedMatch || regularMatch || baseMatch;
+        });
+
+        if (matchesGroup) {
+          groupPackages.push(typePkg);
+          assigned = true;
+        }
+      });
+
+      // If not assigned to any group, create a standalone group for it
+      if (!assigned) {
+        const standaloneName = `standalone:${baseName}`;
+        if (!groups.has(standaloneName)) {
+          groups.set(standaloneName, []);
+        }
+        groups.get(standaloneName)!.push(typePkg);
+      }
+    });
+
     // Convert to array and sort
     return Array.from(groups.entries())
       .map(([name, packages]) => ({ name, packages }))
       .sort((a, b) => {
-        // @types first, then other groups, then standalone
-        if (a.name === "@types") return -1;
-        if (b.name === "@types") return 1;
+        // Standalone packages last
         if (
           a.name.startsWith("standalone:") &&
           !b.name.startsWith("standalone:")
@@ -373,36 +412,6 @@ Examples:
     return true;
   }
 
-  private async updateTypesPackages(packages: string[]): Promise<boolean> {
-    const packagesToUpdate: string[] = [];
-
-    for (const pkg of packages) {
-      const info = this.getPackageInfo(pkg);
-      if (info.needsUpdate) {
-        packagesToUpdate.push(`${pkg}@latest`);
-        this.log(`  → Updating ${pkg}: ${info.current} → ${info.latest}`);
-      }
-    }
-
-    if (packagesToUpdate.length === 0) {
-      this.log("  All @types packages are up to date");
-      return true;
-    }
-
-    this.log(`  Running: npm install ${packagesToUpdate.join(" ")}`);
-
-    try {
-      execSync(`npm install ${packagesToUpdate.join(" ")}`, {
-        stdio: ["ignore", this.logStream, this.logStream],
-      });
-      this.log("  ✓ @types packages updated", "green");
-      return true;
-    } catch (error) {
-      this.log("  ✗ Failed to update @types packages", "red");
-      return false;
-    }
-  }
-
   private async updatePackageGroup(group: PackageGroup): Promise<boolean> {
     // Check if any packages need updates
     const needsUpdate = group.packages.some(
@@ -524,35 +533,8 @@ If there are any issues, fix them before proceeding.`;
     this.log("==========================================", "blue");
     this.log("");
 
-    // Process @types packages first
-    if (!this.skipTypes) {
-      const typesGroup = groups.find((g) => g.name === "@types");
-      if (typesGroup) {
-        this.log("Updating @types packages...", "yellow");
-
-        if (await this.updateTypesPackages(typesGroup.packages)) {
-          if (!(await this.validateChanges("@types updates"))) {
-            this.log(
-              "Validation failed after @types updates. Please review and fix manually.",
-              "red",
-            );
-            this.cleanup();
-            return;
-          }
-        } else {
-          this.log("Failed to update @types packages", "red");
-          this.cleanup();
-          return;
-        }
-
-        this.log("");
-      }
-    }
-
-    // Process other groups
+    // Process all groups
     for (const group of groups) {
-      if (group.name === "@types") continue; // Already handled
-
       await this.updatePackageGroup(group);
 
       this.log("");

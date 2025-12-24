@@ -69,7 +69,7 @@ test.describe("Calculator Routing and Query Params", () => {
 
     // Should navigate to /2024
     await page.waitForURL("**/2024");
-    await expect(page).toHaveURL(/\/2024$/);
+    await expect(page).toHaveURL(/\/2024\/?$/);
 
     // Change to 2023
     await page.getByTestId("tax-year-select").locator("input").fill("2023");
@@ -77,7 +77,7 @@ test.describe("Calculator Routing and Query Params", () => {
 
     // Should navigate to /2023
     await page.waitForURL("**/2023");
-    await expect(page).toHaveURL(/\/2023$/);
+    await expect(page).toHaveURL(/\/2023\/?$/);
 
     // Change back to current year
     await page
@@ -106,7 +106,7 @@ test.describe("Calculator Routing and Query Params", () => {
 
     // Should navigate to /2024/oregon (dash-case)
     await page.waitForURL("**/2024/oregon");
-    await expect(page).toHaveURL(/\/2024\/oregon$/);
+    await expect(page).toHaveURL(/\/2024\/oregon\/?$/);
   });
 
   test("city selection updates path correctly with year and state", async ({
@@ -131,7 +131,7 @@ test.describe("Calculator Routing and Query Params", () => {
 
     // Should navigate to /2024/oregon/portland (dash-case)
     await page.waitForURL("**/2024/oregon/portland");
-    await expect(page).toHaveURL(/\/2024\/oregon\/portland$/);
+    await expect(page).toHaveURL(/\/2024\/oregon\/portland\/?$/);
   });
 
   test("current year with state/city shows year in path", async ({ page }) => {
@@ -153,7 +153,7 @@ test.describe("Calculator Routing and Query Params", () => {
 
     // Should show year in path when state is selected
     await page.waitForURL(`**/${currentYear}/oregon`);
-    await expect(page).toHaveURL(new RegExp(`\\/${currentYear}\\/oregon$`));
+    await expect(page).toHaveURL(new RegExp(`\\/${currentYear}\\/oregon\\/?$`));
 
     // Select Portland
     await page.fill("input#city-select", "Portland");
@@ -162,7 +162,7 @@ test.describe("Calculator Routing and Query Params", () => {
     // Should show year in path with state and city
     await page.waitForURL(`**/${currentYear}/oregon/portland`);
     await expect(page).toHaveURL(
-      new RegExp(`\\/${currentYear}\\/oregon\\/portland$`),
+      new RegExp(`\\/${currentYear}\\/oregon\\/portland\\/?$`),
     );
   });
 
@@ -224,7 +224,7 @@ test.describe("Calculator Routing and Query Params", () => {
 
     // URL should be dash-case
     await page.waitForURL("**/2023/oregon/portland");
-    await expect(page).toHaveURL(/\/2023\/oregon\/portland$/);
+    await expect(page).toHaveURL(/\/2023\/oregon\/portland\/?$/);
     expect(page.url()).not.toContain("_");
   });
 
@@ -259,17 +259,17 @@ test.describe("Calculator Routing and Query Params", () => {
     // Go back - should be at /2024/oregon
     await page.goBack();
     await page.waitForTimeout(500);
-    await expect(page).toHaveURL(/\/2024\/oregon$/);
+    await expect(page).toHaveURL(/\/2024\/oregon\/?$/);
 
     // Go back - should be at /2024
     await page.goBack();
     await page.waitForTimeout(500);
-    await expect(page).toHaveURL(/\/2024$/);
+    await expect(page).toHaveURL(/\/2024\/?$/);
 
     // Go forward - should be at /2024/oregon
     await page.goForward();
     await page.waitForTimeout(500);
-    await expect(page).toHaveURL(/\/2024\/oregon$/);
+    await expect(page).toHaveURL(/\/2024\/oregon\/?$/);
   });
 });
 
