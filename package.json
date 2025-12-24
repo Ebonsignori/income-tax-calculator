@@ -21,7 +21,8 @@
     "test:e2e:ui": "npm run test:e2e -- --ui",
     "prepare": "husky",
     "validate-tax-data": "ts-node --project tsconfig.json scripts/validate-tax-data.ts",
-    "generate-og-images": "ts-node --project tsconfig.json scripts/generate-og-images.ts"
+    "generate-og-images": "ts-node --project tsconfig.json scripts/generate-og-images.ts",
+    "update-dependencies": "ts-node --project tsconfig.json scripts/update-dependencies.ts"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -68,15 +68,15 @@ This validates the schema using Joi, checking for:
 - Integer values for income thresholds
 - Proper use of constants (INFINITY, snake_case names)
 
-### Auditing Tax Data
+### Scripts & Automation
 
-The [scripts/](./scripts/) directory contains bash scripts for auditing tax data:
+The [scripts/](./scripts/) directory contains utilities for managing the project:
 
-- `audit-state-tax-data.sh` - Verify and correct state income tax brackets
-- `audit-additional-taxes.sh` - Find missing state-wide or city-specific taxes
-- `add-remaining-states.sh` - Add missing states for a year
+- **Tax Data Management**: Validate, audit, and add state tax data
+- **Dependency Updates**: Intelligently update npm packages with compatibility checks
+- **Build Tools**: Generate OG images and update PWA manifest
 
-These scripts use GitHub Copilot CLI to research and update tax data.
+See [scripts/README.md](./scripts/README.md) for detailed documentation on all available scripts.
 
 ## Generating OG Images
 
