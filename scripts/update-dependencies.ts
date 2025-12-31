@@ -73,7 +73,7 @@ class DependencyUpdater {
     this.logFile = path.join(
       process.cwd(),
       "logs",
-      `update-deps-${timestamp}.log`,
+      `update-deps-${timestamp}.log`
     );
 
     // Parse arguments
@@ -152,7 +152,7 @@ Examples:
     try {
       const packageJsonPath = path.join(process.cwd(), "package.json");
       const packageJson: PackageJson = JSON.parse(
-        fs.readFileSync(packageJsonPath, "utf-8"),
+        fs.readFileSync(packageJsonPath, "utf-8")
       );
 
       const version =
@@ -169,7 +169,7 @@ Examples:
   private groupPackages(): PackageGroup[] {
     const packageJsonPath = path.join(process.cwd(), "package.json");
     const packageJson: PackageJson = JSON.parse(
-      fs.readFileSync(packageJsonPath, "utf-8"),
+      fs.readFileSync(packageJsonPath, "utf-8")
     );
 
     const allDeps = {
@@ -306,7 +306,7 @@ Examples:
         {
           encoding: "utf-8",
           stdio: ["pipe", "pipe", "pipe"],
-        },
+        }
       );
       return JSON.parse(result);
     } catch {
@@ -321,11 +321,11 @@ Examples:
     // Check if any package in the group has peer dependencies on other packages in the group
     for (const pkg of packageNames) {
       const peerDeps = this.getPeerDependencies(pkg);
-      
+
       for (const [peerName, peerVersion] of Object.entries(peerDeps)) {
         if (packageNames.includes(peerName)) {
           warnings.push(
-            `${pkg} has peer dependency: ${peerName}@${peerVersion}`,
+            `${pkg} has peer dependency: ${peerName}@${peerVersion}`
           );
         }
       }
@@ -344,7 +344,7 @@ Examples:
     for (const group of groups) {
       this.log(
         `${group.name} (${group.packages.length} package(s)):`,
-        "yellow",
+        "yellow"
       );
 
       for (const pkg of group.packages) {
@@ -363,7 +363,7 @@ Examples:
   private async runCommand(
     command: string,
     args: string[],
-    description: string,
+    description: string
   ): Promise<boolean> {
     return new Promise((resolve) => {
       this.log(`  → ${description}...`);
@@ -415,7 +415,7 @@ Examples:
   private async updatePackageGroup(group: PackageGroup): Promise<boolean> {
     // Check if any packages need updates
     const needsUpdate = group.packages.some(
-      (pkg) => this.getPackageInfo(pkg).needsUpdate,
+      (pkg) => this.getPackageInfo(pkg).needsUpdate
     );
 
     if (!needsUpdate) {
@@ -471,14 +471,14 @@ If there are any issues, fix them before proceeding.`;
     this.log(`Calling Copilot CLI for ${group.name}...`);
 
     return new Promise((resolve) => {
-      const child = spawn(
-        "copilot",
-        ["-p", prompt, "--allow-all-tools", "--allow-all-paths"],
-        {
-          stdio: ["inherit", "pipe", "pipe"],
-          shell: true,
-        },
-      );
+      // Escape single quotes in the prompt and wrap it in single quotes
+      const escapedPrompt = prompt.replace(/'/g, "'\"'\"'");
+      const command = `copilot -p '${escapedPrompt}' --allow-all-tools --allow-all-paths`;
+
+      const child = spawn(command, {
+        stdio: ["inherit", "pipe", "pipe"],
+        shell: true,
+      });
 
       child.stdout?.on("data", (data) => {
         process.stdout.write(data);
@@ -542,11 +542,11 @@ If there are any issues, fix them before proceeding.`;
         this.log(`Validation failed after updating ${group.name}`, "red");
         this.log(
           "Please review the changes and fix any issues manually.",
-          "yellow",
+          "yellow"
         );
 
         const continueAnswer = await this.question(
-          "Continue with remaining updates? (y/N): ",
+          "Continue with remaining updates? (y/N): "
         );
         if (continueAnswer.toLowerCase() !== "y") {
           this.log(`Updates stopped by user after ${group.name}`);
@@ -577,7 +577,7 @@ If there are any issues, fix them before proceeding.`;
     this.log("1. Review the changes: git diff");
     this.log("2. Test the application manually: npm run dev");
     this.log(
-      "3. Commit the changes: git add . && git commit -m 'chore: update dependencies'",
+      "3. Commit the changes: git add . && git commit -m 'chore: update dependencies'"
     );
 
     this.cleanup();
