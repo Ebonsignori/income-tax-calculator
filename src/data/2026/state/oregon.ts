@@ -1,34 +1,96 @@
 import { INFINITY } from "@/constants";
-import { CITIES, PORTLAND } from "@/constants/cities";
+import { CITIES, EUGENE, PORTLAND } from "@/constants/cities";
 import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { PRESCHOOL_FOR_ALL } from "@/constants/tax_types";
+import {
+  ART_TAX,
+  EMPLOYEE_PAYROLL_TAX,
+  OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  OREGON_TRANSIT_TAX,
+  PRESCHOOL_FOR_ALL,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+  SUPPORTIVE_HOUSING_SERVICES,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  [STANDARD_DEDUCTION]: {
+    [SINGLE]: 2910,
+    [MARRIED]: 5820,
+    [MARRIED_SEPARATELY]: 2910,
+    [HEAD_OF_HOUSEHOLD]: 4680,
+  },
+  [STATE_INCOME]: {
+    [SINGLE]: [
+      { min: 0, max: 4550, rate: 4.75 },
+      { min: 4550, max: 11400, rate: 6.75 },
+      { min: 11400, max: 125000, rate: 8.75 },
+      { min: 125000, max: INFINITY, rate: 9.9 },
+    ],
+    [MARRIED]: [
+      { min: 0, max: 9100, rate: 4.75 },
+      { min: 9100, max: 22800, rate: 6.75 },
+      { min: 22800, max: 250000, rate: 8.75 },
+      { min: 250000, max: INFINITY, rate: 9.9 },
+    ],
+    [MARRIED_SEPARATELY]: [
+      { min: 0, max: 4550, rate: 4.75 },
+      { min: 4550, max: 11400, rate: 6.75 },
+      { min: 11400, max: 125000, rate: 8.75 },
+      { min: 125000, max: INFINITY, rate: 9.9 },
+    ],
+    [HEAD_OF_HOUSEHOLD]: [
+      { min: 0, max: 9100, rate: 4.75 },
+      { min: 9100, max: 22800, rate: 6.75 },
+      { min: 22800, max: 250000, rate: 8.75 },
+      { min: 250000, max: INFINITY, rate: 9.9 },
+    ],
+  },
+  [OREGON_TRANSIT_TAX]: {
+    [ALL]: [{ min: 0, max: INFINITY, rate: 0.1 }],
+  },
+  [OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE]: {
+    [ALL]: [{ min: 0, max: 184500, rate: 1, percent_of_total: 60 }],
+  },
   [CITIES]: {
     [PORTLAND]: {
+      [ART_TAX]: {
+        [ALL]: [{ min: 1000, amount: 35 }],
+      },
+      [SUPPORTIVE_HOUSING_SERVICES]: {
+        [SINGLE]: [{ min: 128000, max: INFINITY, rate: 1 }],
+        [MARRIED]: [{ min: 205000, max: INFINITY, rate: 1 }],
+        [MARRIED_SEPARATELY]: [{ min: 128000, max: INFINITY, rate: 1 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 205000, max: INFINITY, rate: 1 }],
+      },
       [PRESCHOOL_FOR_ALL]: {
         [SINGLE]: [
-          { min: 125000, max: 250000, rate: 2.3 },
-          { min: 250000, max: INFINITY, rate: 3.8 },
+          { min: 125000, max: 250000, rate: 1.5 },
+          { min: 250000, max: INFINITY, rate: 3.0 },
         ],
         [MARRIED_SEPARATELY]: [
-          { min: 125000, max: 250000, rate: 2.3 },
-          { min: 250000, max: INFINITY, rate: 3.8 },
+          { min: 125000, max: 250000, rate: 1.5 },
+          { min: 250000, max: INFINITY, rate: 3.0 },
         ],
         [MARRIED]: [
-          { min: 250000, max: 400000, rate: 2.3 },
-          { min: 400000, max: INFINITY, rate: 3.8 },
+          { min: 250000, max: 400000, rate: 1.5 },
+          { min: 400000, max: INFINITY, rate: 3.0 },
         ],
         [HEAD_OF_HOUSEHOLD]: [
-          { min: 250000, max: 400000, rate: 2.3 },
-          { min: 400000, max: INFINITY, rate: 3.8 },
+          { min: 125000, max: 250000, rate: 1.5 },
+          { min: 250000, max: INFINITY, rate: 3.0 },
         ],
+      },
+    },
+    [EUGENE]: {
+      [EMPLOYEE_PAYROLL_TAX]: {
+        [ALL]: [{ min: 31304, max: INFINITY, rate: 0.44 }],
       },
     },
   },
