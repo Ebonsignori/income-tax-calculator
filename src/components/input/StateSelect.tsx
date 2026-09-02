@@ -1,7 +1,6 @@
 import { ALL_STATES } from "@/constants/states";
 import type { AutocompleteOption, AvailableStatesAndCities } from "@/types";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { updateURL, getQueryParams } from "@/utils/base-path";
+import { preserveQueryParams, updateURL } from "@/utils/base-path";
 import {
   snakeToDashCase,
   snakeToTitleCase,
@@ -14,9 +13,7 @@ type StateSelectProps = {
   availableStatesAndCities: AvailableStatesAndCities;
   year: string;
   USAState: string;
-  // eslint-disable-next-line no-unused-vars
   setUSAState: (val: string) => void;
-  // eslint-disable-next-line no-unused-vars
   setUSACity: (val: string) => void;
   baseRoute?: string;
 };
@@ -85,27 +82,14 @@ export function StateSelect({
         const state = toSnakeCase(val);
         if (state === USAState) return;
 
-        // Preserve income and tables query params if they exist
-        const queryParams = getQueryParams();
-        const income = queryParams.get("income");
-        const tables = queryParams.get("tables");
-        const params: { income?: string; tables?: string } = {};
-        if (income) params.income = income;
-        if (tables) params.tables = tables;
+        const params = preserveQueryParams();
 
         if (val && ALL_STATES.includes(state)) {
-          updateURL(
-            `${baseRoute}/${year}/${snakeToDashCase(state)}`,
-            Object.keys(params).length > 0 ? params : undefined,
-          );
-          sendAnalyticsEvent(EVENTS.CHANGE_STATE, state);
+          updateURL(`${baseRoute}/${year}/${snakeToDashCase(state)}`, params);
           setUSAState(state);
           setUSACity("");
         } else if (!val) {
-          updateURL(
-            `${baseRoute}/${year}`,
-            Object.keys(params).length > 0 ? params : undefined,
-          );
+          updateURL(`${baseRoute}/${year}`, params);
           setUSAState("");
           setUSACity("");
         }

@@ -74,10 +74,22 @@ export default defineConfig({
         // },
       ],
 
-  /* Run your local dev server before starting the tests */
+  /*
+   * Serve the app for the tests.
+   *
+   * On CI this serves `out/` -- the static export that actually ships. Running
+   * these against `next dev` instead tests a different artifact: `output:
+   * "export"`, `trailingSlash: true` and next-pwa all behave differently there,
+   * which is precisely what the routing specs assert on.
+   *
+   * Locally the dev server stays the default for fast iteration, and an already
+   * running one is reused. On CI it is not: reusing whatever happens to hold the
+   * port turns a misconfiguration into a green run.
+   */
   webServer: {
-    command: "npm run dev:test",
+    command: process.env.CI ? "npm run start:test" : "npm run dev:test",
     url: "http://127.0.0.1:3001",
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });

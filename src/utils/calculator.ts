@@ -1,7 +1,17 @@
 import Dinero from "dinero.js";
-import type { FilingStatus } from "@/constants/filing-status";
+import type {
+  FilingStatus,
+  StandardDeductionMap,
+} from "@/constants/filing-status";
 import { ALL } from "@/constants/filing-status";
-import type { TaxData, TaxResults, TaxResultsWithCities } from "@/types";
+import type {
+  BracketSchedule,
+  FlatFeeBracket,
+  RateBracket,
+  TaxData,
+  TaxResults,
+  TaxResultsWithCities,
+} from "@/types";
 import {
   MAX_401K_CONTRIBUTION,
   NONE,
@@ -22,16 +32,36 @@ import {
   HI_TEMPORARY_DISABILITY_INSURANCE,
   COLORADO_FAMLI,
   CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  OCCUPATIONAL_TAX,
+  OREGON_TRANSIT_TAX,
+  EMPLOYEE_PAYROLL_TAX,
 } from "@/constants/tax_types";
-import { CITIES, EXEMPT, INFINITY } from "@/constants";
+import {
+  CITIES,
+  EXEMPT,
+  GROSS_INCOME_BASIS,
+  INFINITY,
+  TAXABLE_INCOME_BASIS,
+  TAX_FREQUENCY_PERIODS_PER_YEAR,
+} from "@/constants";
 import type { TaxOption } from "./get-tax-options";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { FREQUENCY_TO_PAYCHECKS_PER_YEAR } from "@/constants/paycheck-frequency";
+import type { TaxFrequency } from "@/types";
 
 const nonTaxKeys = [MAX_401K_CONTRIBUTION, STANDARD_DEDUCTION];
 
-// FICA and payroll taxes are calculated on gross income (after IRA, but before deductions)
-// per IRS rules, standard/itemized deductions do not reduce FICA taxes
+// Taxes levied on wages rather than on income after deductions.
+//
+// Two groups, same treatment. FICA and the state paid-leave/disability programs
+// are statutorily computed on gross income — standard and itemized deductions
+// do not reduce them. Local occupational and payroll taxes land here for the
+// same practical reason: they are withheld from gross wages, so a state
+// standard deduction must not shrink their base either.
+//
+// Everything not listed here is computed on income after deductions. That is
+// correct for genuine income taxes, including the city and county income taxes
+// that start from state taxable income (Maryland, Indiana, NYC).
 const grossIncomeTaxes = [
   SOCIAL_SECURITY,
   MEDICARE,
@@ -49,6 +79,15 @@ const grossIncomeTaxes = [
   HI_TEMPORARY_DISABILITY_INSURANCE,
   COLORADO_FAMLI,
   CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  // Alabama and Kentucky municipal occupational taxes: withheld from gross
+  // salaries and wages.
+  OCCUPATIONAL_TAX,
+  // Oregon statewide transit tax: computed on gross wages before any
+  // exemptions or deductions.
+  OREGON_TRANSIT_TAX,
+  // Eugene's community safety payroll tax: applied to wages, not to income
+  // after the Oregon standard deduction.
+  EMPLOYEE_PAYROLL_TAX,
 ];
 
 export function calculate(
@@ -112,12 +151,12 @@ export function calculateTaxesPerBracket(
 
   // If no custom deductions provided, use standard deduction from tax data
   let deductions = totalDeductions;
-  if (deductions === undefined && taxData[STANDARD_DEDUCTION]) {
-    const standardDeduction = (taxData[STANDARD_DEDUCTION] as any)[
-      filingStatus
-    ];
-    if (standardDeduction !== undefined) {
-      deductions = standardDeduction;
+  if (deductions === undefined) {
+    const standardDeductions = taxData[STANDARD_DEDUCTION] as
+      | StandardDeductionMap
+      | undefined;
+    if (standardDeductions?.[filingStatus] !== undefined) {
+      deductions = standardDeductions[filingStatus];
     }
   }
 
@@ -134,36 +173,19 @@ export function calculateTaxesPerBracket(
     }
     if (exemptions.includes(taxType)) {
       taxesPerBracket[taxType] = EXEMPT;
-    } else if (taxTypeData?.[ALL]) {
-      // Determine which income base to use for this tax
-      const incomeBase = grossIncomeTaxes.includes(taxType)
-        ? grossIncome
-        : taxableIncome;
-
-      if (taxTypeData[ALL]?.[0]?.amount) {
-        let amount = asCurrency(taxTypeData[ALL][0].amount);
-        if (taxTypeData[ALL]?.[0]?.frequency) {
-          amount = amount.multiply(
-            FREQUENCY_TO_PAYCHECKS_PER_YEAR[
-              taxTypeData[ALL][0].frequency as PaycheckFrequency
-            ],
-          );
-        }
-        if (incomeBase.toUnit() > (taxTypeData[ALL][0].min || 0)) {
-          taxesPerBracket[taxType] = amount;
-        }
-      } else {
-        taxesPerBracket[taxType] = calculateTaxBracket(
-          incomeBase,
-          taxTypeData[ALL],
-        );
-      }
-    } else if (taxTypeData === NONE) {
+      return;
+    }
+    if (taxTypeData === NONE) {
       taxesPerBracket[taxType] = asCurrency(0);
-    } else if (taxType === CITIES) {
-      if (selectedState && selectedCity) {
+      return;
+    }
+    if (taxType === CITIES) {
+      const citiesData = taxTypeData as TaxData[typeof CITIES];
+      const cityTaxes =
+        selectedState && selectedCity ? citiesData?.[selectedCity] : undefined;
+      if (cityTaxes) {
         taxesPerBracket.cities = calculateTaxesPerBracket(
-          taxTypeData[selectedCity],
+          cityTaxes,
           totalIncome,
           filingStatus,
           totalIRA,
@@ -173,26 +195,151 @@ export function calculateTaxesPerBracket(
           selectedCity,
         ).taxesPerBracket as TaxResults;
       }
+      return;
+    }
+
+    const brackets = scheduleForFilingStatus(taxTypeData, filingStatus);
+    if (!brackets?.length) {
+      return;
+    }
+
+    if (isFlatFeeSchedule(brackets)) {
+      taxesPerBracket[taxType] = calculateFlatFee(
+        brackets,
+        grossIncome,
+        taxableIncome,
+      );
+      return;
+    }
+
+    // FICA and payroll taxes use gross income, income taxes use taxable income.
+    // A schedule may override that where the tax type alone does not settle it
+    // -- `city_income` covers both Yonkers, which starts from state taxable
+    // income, and the Missouri earnings taxes, which are levied on wages.
+    const declaredBasis = brackets[0].basis;
+    let incomeBase: Dinero.Dinero;
+    if (declaredBasis === TAXABLE_INCOME_BASIS) {
+      incomeBase = taxableIncome;
+    } else if (declaredBasis === GROSS_INCOME_BASIS) {
+      incomeBase = grossIncome;
     } else {
-      // Determine which income base to use for this tax
-      // FICA and payroll taxes use gross income, income taxes use taxable income
-      const incomeBase = grossIncomeTaxes.includes(taxType)
+      incomeBase = grossIncomeTaxes.includes(taxType)
         ? grossIncome
         : taxableIncome;
-
-      taxesPerBracket[taxType] = calculateTaxBracket(
-        incomeBase,
-        taxTypeData[filingStatus],
-      );
     }
+
+    taxesPerBracket[taxType] = isRateLookupSchedule(brackets)
+      ? calculateRateLookup(incomeBase, brackets)
+      : calculateTaxBracket(incomeBase, brackets);
   });
 
   return { taxesPerBracket, taxableIncome };
 }
 
+/**
+ * The bracket list a tax applies to this taxpayer.
+ *
+ * Brackets are keyed either by ALL (the tax applies the same way to every
+ * filing status) or by the individual filing status. Values that are not
+ * bracket maps at all -- a bare number, the NONE sentinel -- yield undefined.
+ */
+function scheduleForFilingStatus(
+  taxTypeData: TaxData[string],
+  filingStatus: FilingStatus,
+): BracketSchedule | undefined {
+  if (!taxTypeData || typeof taxTypeData !== "object") {
+    return undefined;
+  }
+  // BracketsByFilingStatus is a union of two mapped types and so carries no
+  // index signature to read through. The keys are checked by
+  // scripts/validate-tax-data.ts.
+  const byStatus = taxTypeData as Record<string, BracketSchedule | undefined>;
+  const schedule = byStatus[ALL] ?? byStatus[filingStatus];
+  return Array.isArray(schedule) ? schedule : undefined;
+}
+
+export function isFlatFeeSchedule(
+  brackets: BracketSchedule,
+): brackets is FlatFeeBracket[] {
+  return (
+    typeof (brackets[0] as FlatFeeBracket | undefined)?.amount !== "undefined"
+  );
+}
+
+/**
+ * Fixed-dollar taxes: a flat fee owed once the taxpayer clears an income
+ * threshold. Portland's Arts Tax and the Colorado / West Virginia occupational
+ * privilege taxes work this way.
+ *
+ * Thresholds are inclusive ("$1,000 or more of annual income", "$500 per month
+ * or more"), and are written against gross wages rather than income after
+ * deductions — so `basis` defaults to gross. Portland's 2026 Arts Tax is the
+ * exception: it tests Oregon taxable income, and declares `basis: "taxable"`.
+ *
+ * Where a schedule has several tiers the highest one the taxpayer qualifies for
+ * applies; the fees are not cumulative.
+ */
+function calculateFlatFee(
+  brackets: FlatFeeBracket[],
+  grossIncome: Dinero.Dinero,
+  taxableIncome: Dinero.Dinero,
+): Dinero.Dinero {
+  let owed = asCurrency(0);
+
+  for (const bracket of brackets) {
+    const incomeBase =
+      bracket.basis === TAXABLE_INCOME_BASIS ? taxableIncome : grossIncome;
+    if (incomeBase.toUnit() < (bracket.min || 0)) {
+      continue;
+    }
+    let amount = asCurrency(bracket.amount);
+    if (bracket.frequency) {
+      amount = amount.multiply(
+        TAX_FREQUENCY_PERIODS_PER_YEAR[bracket.frequency as TaxFrequency],
+      );
+    }
+    owed = amount;
+  }
+
+  return owed;
+}
+
+/**
+ * A rate-lookup schedule charges one rate on the whole income base; `min` and
+ * `max` say which rate applies rather than which slice of income is taxed.
+ *
+ * Eugene's community safety payroll tax is the only one so far. Its published
+ * chart is explicit: "The purpose of the tax rate chart is to obtain the rate to
+ * be applied to *all* subject wages paid in a pay period." Charging it
+ * marginally understated the tax at every income above the exempt threshold.
+ */
+export function isRateLookupSchedule(
+  brackets: BracketSchedule,
+): brackets is RateBracket[] {
+  return (brackets[0] as RateBracket | undefined)?.rate_on_total === true;
+}
+
+function calculateRateLookup(
+  income: Dinero.Dinero,
+  brackets: RateBracket[],
+): Dinero.Dinero {
+  const amount = income.toUnit();
+  // Bands are half-open, matching the contiguous `max === next min` convention
+  // the rest of the data uses and the charts' own "at least X but less than Y".
+  const bracket = brackets.find(
+    (candidate) =>
+      amount >= candidate.min &&
+      (candidate.max === INFINITY || amount < (candidate.max as number)),
+  );
+  if (!bracket) {
+    return asCurrency(0);
+  }
+  return income.percentage(bracket.rate);
+}
+
 function calculateTaxBracket(
   income: Dinero.Dinero,
-  brackets: any,
+  brackets: RateBracket[],
 ): Dinero.Dinero {
   let totalTax = asCurrency(0);
   let incomeTaxed = asCurrency(0);
@@ -201,11 +348,9 @@ function calculateTaxBracket(
     const bracket = brackets[i];
     let minBracket = asCurrency(bracket.min);
 
-    let maxBracket = bracket.max;
-    if (bracket.max === INFINITY) {
-      maxBracket = income.toUnit();
-    }
-    maxBracket = asCurrency(maxBracket);
+    const maxBracket = asCurrency(
+      bracket.max === INFINITY ? income.toUnit() : (bracket.max as number),
+    );
 
     const max = asCurrency(Dinero.minimum([income, maxBracket]).toUnit());
     let bracketRange = max.subtract(minBracket);
@@ -241,8 +386,8 @@ export function sumTotals(
     Object.keys(federalResults),
   );
   const totalFica = sumBracketsByTaxType(federalResults, [
-    "social_security",
-    "medicare",
+    SOCIAL_SECURITY,
+    MEDICARE,
   ]);
   let totalState = sumBracketsByTaxType(
     stateResults,
@@ -321,7 +466,9 @@ export function sumBracketsByTaxType(
 // Amount always passed as full dollar amount without cents
 // So we need to multiply by 100 to get cents
 export function asCurrency(amount: number) {
-  return Dinero({ amount: amount * 100, currency: "USD" });
+  // Dinero rejects non-integer amounts, and `amount * 100` can land off a whole
+  // cent through either sub-cent data or float error (1000.1 * 100).
+  return Dinero({ amount: Math.round(amount * 100), currency: "USD" });
 }
 
 // Determine the percentage of two Dinero objects
@@ -329,7 +476,14 @@ export function getPercent(
   amount: Dinero.Dinero,
   total: Dinero.Dinero,
 ): number {
-  return Math.round((amount.getAmount() / total.getAmount()) * 10000) / 100;
+  const totalAmount = total.getAmount();
+  // Guard the divide. Reachable from the UI: contributing the 401k maximum
+  // against an income equal to it leaves a zero base, which otherwise renders
+  // as "NaN%" in every row of the breakdown table.
+  if (totalAmount === 0) {
+    return 0;
+  }
+  return Math.round((amount.getAmount() / totalAmount) * 10000) / 100;
 }
 
 export const formatNoZeros = "$0,0";

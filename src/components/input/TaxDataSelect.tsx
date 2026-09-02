@@ -1,4 +1,3 @@
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, TextField } from "@mui/material";
 
@@ -10,7 +9,6 @@ type TaxDataSelectProps = {
   label: string;
   taxData: TaxDataSelectOption[];
   selectedTaxData: TaxDataSelectOption[];
-  // eslint-disable-next-line no-unused-vars
   setSelectedTaxData: (val: TaxDataSelectOption[]) => void;
   "data-testid"?: string;
 };
@@ -37,10 +35,6 @@ export function TaxDataSelect({
       onChange={(e, val: TaxDataSelectOption[]) => {
         if (val) {
           setSelectedTaxData(val);
-          sendAnalyticsEvent(
-            EVENTS.CHANGE_TAX_OPTIONS,
-            val.map((v) => v.title?.toLowerCase()),
-          );
         }
       }}
       renderInput={(params) => {

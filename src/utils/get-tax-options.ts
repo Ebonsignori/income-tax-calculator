@@ -20,11 +20,8 @@ type GetTaxOptions = {
   stateTaxes: TaxData;
   USACity: string;
   USAState: string;
-  // eslint-disable-next-line no-unused-vars
   setFederalStandardDeductionMap: (value: StandardDeductionMap) => void;
-  // eslint-disable-next-line no-unused-vars
   setStateStandardDeductionMap: (value: StandardDeductionMap) => void;
-  // eslint-disable-next-line no-unused-vars
   setMax401KContribution: (value: number) => void;
 };
 
@@ -38,7 +35,7 @@ export function useGetTaxOptions({
   setMax401KContribution,
 }: GetTaxOptions): TaxOption[] {
   return useMemo(() => {
-    const cities = [] as any;
+    const cities: TaxOption[] = [];
     const federal = Object.entries(federalTaxes || {}).map(([key, value]) => {
       if (key === STANDARD_DEDUCTION) {
         setFederalStandardDeductionMap(value as StandardDeductionMap);
@@ -60,14 +57,15 @@ export function useGetTaxOptions({
         return null;
       }
       if (key === CITIES) {
-        if (USACity && (value as any)[USACity]) {
-          Object.entries((value as any)[USACity]).map(([key]) => {
+        const cityTaxes = (value as TaxData[typeof CITIES])?.[USACity];
+        if (USACity && cityTaxes) {
+          for (const cityTaxType of Object.keys(cityTaxes)) {
             cities.push({
-              title: snakeToTitleCase(`${USACity}_${key}`),
-              value: key,
+              title: snakeToTitleCase(`${USACity}_${cityTaxType}`),
+              value: cityTaxType,
               disabled: false,
             });
-          });
+          }
         }
         return null;
       }
@@ -79,7 +77,9 @@ export function useGetTaxOptions({
         disabled: false,
       };
     });
-    return [...federal, ...state, ...cities].filter((x) => x);
+    return [...federal, ...state, ...cities].filter(
+      (option): option is TaxOption => option !== null,
+    );
   }, [
     federalTaxes,
     stateTaxes,

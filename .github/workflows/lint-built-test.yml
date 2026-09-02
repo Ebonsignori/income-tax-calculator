@@ -21,7 +21,21 @@ jobs:
 
       - uses: ./.github/actions/cache-nextjs
 
-      # Next.js automatically lints when it builds,
+      # `next build` only typechecks its own module graph, so the test files
+      # were never checked.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # The only schema guard over src/data. AGENTS.md requires it after any
+      # data change, so enforce it rather than trusting the checklist.
+      - name: Validate tax data
+        run: npm run validate-tax-data
+
+      # Next.js lints as part of the build (see `eslint.dirs` in
+      # next.config.mjs, which matches the `lint` script's scope).
       - name: Build
         env:
           NODE_ENV: "test"
@@ -30,8 +44,11 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
+      # Playwright's `webServer` serves the `out/` export built above on the
+      # port its baseURL points at, and waits for it to answer. Backgrounding a
+      # server here instead raced the suite and left it on the wrong port.
       - name: Run Playwright tests
-        run: npm run start & sleep 5 & npx playwright test
+        run: npx playwright test
 
       - uses: actions/upload-artifact@v4
         if: always()

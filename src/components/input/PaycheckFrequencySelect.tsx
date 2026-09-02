@@ -5,7 +5,6 @@ import { MenuItem, TextField } from "@mui/material";
 
 type PaycheckFrequencyProps = {
   paycheckFrequency: PaycheckFrequency;
-  // eslint-disable-next-line no-unused-vars
   setPaycheckFrequency: (val: PaycheckFrequency) => void;
 };
 

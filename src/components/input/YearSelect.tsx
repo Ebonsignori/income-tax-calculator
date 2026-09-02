@@ -1,6 +1,5 @@
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { updateURL, getQueryParams } from "@/utils/base-path";
-import { snakeToDashCase, yearDisplay } from "@/utils/string-utils";
+import { preserveQueryParams, updateURL } from "@/utils/base-path";
+import { snakeToDashCase } from "@/utils/string-utils";
 import { MenuItem, TextField } from "@mui/material";
 
 type YearSelectProps = {
@@ -8,7 +7,6 @@ type YearSelectProps = {
   year: string;
   USAState: string;
   USACity: string;
-  // eslint-disable-next-line no-unused-vars
   setYear: (val: string) => void;
   baseRoute?: string;
 };
@@ -21,7 +19,11 @@ export function YearSelect({
   setYear,
   baseRoute = "",
 }: YearSelectProps) {
-  const currentYear = new Date().getFullYear().toString();
+  // `availableYears` is sorted newest-first by readTaxDataFromDisk. Use it rather
+  // than the calendar year: on January 1st those disagree, and the mismatch
+  // routes the newest data year to /{year} while / still serves it, producing
+  // two URLs with identical content.
+  const latestDataYear = availableYears[0];
 
   return (
     <TextField
@@ -34,13 +36,10 @@ export function YearSelect({
       onChange={(e) => {
         const selectedYear = e.target.value;
 
-        // Preserve income query param if it exists
-        const queryParams = getQueryParams();
-        const income = queryParams.get("income");
-        const params = income ? { income } : undefined;
+        const params = preserveQueryParams();
 
-        // If selecting current year and no state/city, go to homepage
-        const isCurrentYear = selectedYear === currentYear;
+        // If selecting the newest data year and no state/city, go to homepage
+        const isCurrentYear = selectedYear === latestDataYear;
         const hasStateOrCity = USAState || USACity;
 
         let newUrl: string;
@@ -58,13 +57,12 @@ export function YearSelect({
 
         updateURL(newUrl, params);
         setYear(selectedYear);
-        sendAnalyticsEvent(EVENTS.CHANGE_YEAR, selectedYear);
       }}
       variant="standard"
     >
       {availableYears.map((option: string) => (
         <MenuItem key={option} value={option}>
-          {yearDisplay(option)}
+          {option}
         </MenuItem>
       ))}
     </TextField>

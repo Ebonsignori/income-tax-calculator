@@ -19,27 +19,28 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { TAX_TABLES } from "@/constants/pages";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import type { StandardDeductionMap } from "@/constants/filing-status";
-import {
-  ALL,
-  EMPTY_STANDARD_DEDUCTION_MAP,
-  FILING_STATUSES,
-} from "@/constants/filing-status";
-import { CITIES, INFINITY } from "@/constants";
+import { EMPTY_STANDARD_DEDUCTION_MAP } from "@/constants/filing-status";
+import { CITIES } from "@/constants";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
 import {
   dashToSnakeCase,
   snakeToDashCase,
   snakeToTitleCase,
-  toSnakeCase,
 } from "@/utils/string-utils";
-import { useGetTaxData } from "@/utils/get-tax-data";
+import { useGetTaxData } from "@/utils/use-get-tax-data";
 import { asCurrency, formatNoZeros } from "@/utils/calculator";
-import { NONE, STATE_INCOME } from "@/constants/tax_types";
+// Aliased: MUI exports a `Table` in the type space too.
+import type { Table as TaxTableModel } from "@/utils/tax-table-data";
+import {
+  standardDeductionMapToTable,
+  tableDataFromTaxData,
+} from "@/utils/tax-table-data";
+import { STATE_INCOME } from "@/constants/tax_types";
 import type { TaxDataSelectOption } from "./input/TaxDataSelect";
 import { TaxDataSelect } from "./input/TaxDataSelect";
-import { initEventTracking } from "@/utils/analytics";
 import { getQueryParams, updateURL } from "@/utils/base-path";
+import { useUrlSelectionOnPopState } from "@/utils/url-selection";
 
 type TaxTableProps = {
   availableYears: string[];
@@ -57,6 +58,26 @@ const taxDataMap = {
     `Standard ${snakeToTitleCase(state)} Deductions`,
   max401kContributions: () => "Max 401(k) Contributions",
 };
+
+/**
+ * Resolve a `?tables=` value against the options currently available.
+ *
+ * Returns null when there is nothing to resolve against -- no param, or the
+ * options for this year/state/city have not been derived yet -- which callers
+ * treat as "clear the selection" rather than "match nothing".
+ */
+function matchTaxOptions(
+  tablesParam: string | null,
+  taxOptions: TaxOption[],
+): TaxOption[] | null {
+  if (!tablesParam || taxOptions.length === 0) {
+    return null;
+  }
+  const wanted = tablesParam
+    .split(",")
+    .map((value) => dashToSnakeCase(value.trim()));
+  return taxOptions.filter((option) => wanted.includes(option.value));
+}
 
 export default function TaxTables({
   availableYears,
@@ -90,13 +111,10 @@ export default function TaxTables({
 
   const [max401KContribution, setMax401KContribution] = useState(0);
 
-  // Track if we've initialized from URL to prevent circular updates
+  // Both guard the URL-writing effect below, which must not push a history
+  // entry for a selection that came from the URL in the first place.
   const isInitializedFromURL = useRef(false);
-  // Track if we're currently updating from initialization to skip URL push
   const isUpdatingFromInit = useRef(false);
-  // Track previous state and city to detect actual changes (initialize as undefined)
-  const prevUSAState = useRef<string | undefined>(undefined);
-  const prevUSACity = useRef<string | undefined>(undefined);
 
   const availableStatesAndCities = useMemo(() => {
     return statesAndCitiesForYear[year];
@@ -122,97 +140,40 @@ export default function TaxTables({
     setMax401KContribution,
   });
 
-  // Handle browser back/forward navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      // Parse the current URL to extract year, state, and city
-      const path = window.location.pathname;
-      const basePath = (window as any).__NEXT_DATA__?.basePath || "";
-      const relativePath = basePath ? path.replace(basePath, "") : path;
-
-      // Remove /tax-tables prefix if present
-      const pathWithoutBase = relativePath.startsWith("/tax-tables")
-        ? relativePath.substring("/tax-tables".length)
-        : relativePath;
-
-      const segments = pathWithoutBase.split("/").filter(Boolean);
-
-      // Update state based on URL segments
-      if (segments.length >= 1 && segments[0] !== year) {
-        setYear(segments[0]);
-      } else if (segments.length === 0 && year !== defaultYear) {
-        // If at root path (/tax-tables), set to current year
-        setYear(defaultYear);
-      }
-      if (segments.length >= 2) {
-        const stateFromUrl = segments[1].replace(/-/g, "_");
-        if (stateFromUrl !== USAState) {
-          setUSAState(stateFromUrl);
-        }
-      } else if (USAState) {
-        setUSAState("");
-      }
-      if (segments.length >= 3) {
-        const cityFromUrl = segments[2].replace(/-/g, "_");
-        if (cityFromUrl !== USACity) {
-          setUSACity(cityFromUrl);
-        }
-      } else if (USACity) {
-        setUSACity("");
-      }
-
-      // Parse and restore selectedTaxes from query params
-      const queryParams = getQueryParams();
-      const tablesParam = queryParams.get("tables");
-      if (tablesParam && taxOptions.length > 0) {
-        // Convert dash-case query params to snake_case for matching
-        const tableValues = tablesParam
-          .split(",")
-          .map((v) => dashToSnakeCase(v.trim()));
-        const matchingTaxes = taxOptions.filter((option) =>
-          tableValues.includes(option.value),
-        );
-        if (matchingTaxes.length > 0) {
-          // Mark that we're updating from navigation (similar to initialization)
-          isUpdatingFromInit.current = true;
-          setSelectedTaxes(matchingTaxes);
-        }
-      } else {
-        // If no tables param, clear selectedTaxes
+  useUrlSelectionOnPopState({
+    year,
+    defaultYear,
+    setYear,
+    USAState,
+    setUSAState,
+    USACity,
+    setUSACity,
+    baseRoute: TAX_TABLES.route,
+    onQueryParams: (params) => {
+      const matching = matchTaxOptions(params.get("tables"), taxOptions);
+      if (matching === null) {
         isUpdatingFromInit.current = true;
         setSelectedTaxes([]);
+        return;
       }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [year, USAState, USACity, defaultYear, taxOptions]);
+      if (matching.length > 0) {
+        isUpdatingFromInit.current = true;
+        setSelectedTaxes(matching);
+      }
+    },
+  });
 
   // Initialize selectedTaxes from URL query param on mount
   useEffect(() => {
-    const queryParams = getQueryParams();
-    const tablesParam = queryParams.get("tables");
-    if (tablesParam && taxOptions.length > 0) {
-      // Parse comma-separated tax table values and convert from dash-case to snake_case
-      const tableValues = tablesParam
-        .split(",")
-        .map((v) => dashToSnakeCase(v.trim()));
-      // Find matching TaxOption objects from taxOptions
-      const matchingTaxes = taxOptions.filter((option) =>
-        tableValues.includes(option.value),
-      );
-      if (matchingTaxes.length > 0) {
-        // Mark that we're updating from initialization
-        isUpdatingFromInit.current = true;
-        setSelectedTaxes(matchingTaxes);
-      }
+    const matching = matchTaxOptions(
+      getQueryParams().get("tables"),
+      taxOptions,
+    );
+    if (matching && matching.length > 0) {
+      isUpdatingFromInit.current = true;
+      setSelectedTaxes(matching);
     }
-    // Mark as initialized and set initial ref values
     isInitializedFromURL.current = true;
-    prevUSAState.current = USAState;
-    prevUSACity.current = USACity;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taxOptions.length]);
 
@@ -233,13 +194,6 @@ export default function TaxTables({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taxOptions]);
 
-  // Track state and city changes for reference
-  useEffect(() => {
-    // Always update refs for next comparison
-    prevUSAState.current = USAState;
-    prevUSACity.current = USACity;
-  }, [USAState, USACity]);
-
   // Update URL when selectedTaxes changes (but not during initialization)
   useEffect(() => {
     // Skip URL update if we haven't initialized yet
@@ -254,8 +208,7 @@ export default function TaxTables({
     }
 
     // Build the path based on current year, state, and city
-    const currentYear = new Date().getFullYear().toString();
-    const isCurrentYear = year === currentYear;
+    const isCurrentYear = year === availableYears[0];
     const hasStateOrCity = USAState || USACity;
 
     let path: string;
@@ -281,7 +234,7 @@ export default function TaxTables({
       // If no tables selected, update URL without the tables param
       updateURL(path);
     }
-  }, [selectedTaxes, year, USAState, USACity]);
+  }, [selectedTaxes, year, USAState, USACity, availableYears]);
 
   const taxDataOptions = useMemo(() => {
     const taxDataOptions = [] as TaxDataSelectOption[];
@@ -309,10 +262,10 @@ export default function TaxTables({
   ]);
 
   const taxTables = useMemo(() => {
-    const tables: Table[] = [] as Table[];
+    const tables: TaxTableModel[] = [] as TaxTableModel[];
 
     for (const selectedTax of selectedTaxes) {
-      const tax = selectedTax.value as keyof TaxData;
+      const tax = selectedTax.value;
       if (federalTaxes[tax]) {
         tables.push(tableDataFromTaxData(tax, federalTaxes[tax]));
       }
@@ -334,7 +287,7 @@ export default function TaxTables({
   }, [selectedTaxes, stateTaxes, federalTaxes, USACity, USAState]);
 
   const taxDataTables = useMemo(() => {
-    const tables: Table[] = [] as Table[];
+    const tables: TaxTableModel[] = [] as TaxTableModel[];
 
     for (const selectedData of selectedTaxData) {
       if (selectedData.title === taxDataMap.standardFederalDeductions()) {
@@ -374,12 +327,6 @@ export default function TaxTables({
   const tables = useMemo(() => {
     return taxTables.concat(taxDataTables);
   }, [taxTables, taxDataTables]);
-
-  initEventTracking({
-    selected_year: year,
-    selected_state: USAState,
-    selected_city: USACity,
-  });
 
   return (
     <>
@@ -448,13 +395,7 @@ export default function TaxTables({
   );
 }
 
-type Table = {
-  name: string;
-  headers: string[];
-  rows: (string | number)[][];
-};
-
-function RenderTable(table: Table) {
+function RenderTable(table: TaxTableModel) {
   const { name, headers, rows } = table;
 
   return (
@@ -486,100 +427,4 @@ function RenderTable(table: Table) {
       </TableContainer>
     </>
   );
-}
-
-function tableDataFromTaxData(name: string, taxData: any): Table {
-  if (taxData === NONE) {
-    return {
-      name,
-      headers: ["No Taxes"],
-      rows: [],
-    };
-  }
-
-  let headers: string[] = [] as string[];
-  let rows = [] as (string | number)[][];
-  for (const [key, bracket] of Object.entries(taxData)) {
-    if (key === ALL) {
-      for (const status of FILING_STATUSES) {
-        for (let i = 0; i < (bracket as any).length; i++) {
-          if (!rows?.[i]) {
-            rows.push([] as (string | number)[]);
-          }
-          const bracketItem = (bracket as any)[i];
-          rows[i].push(...bracketItemToRow(bracketItem, i, headers, rows[i]));
-        }
-        headers.push(snakeToTitleCase(status));
-      }
-    } else {
-      for (let i = 0; i < (bracket as any).length; i++) {
-        if (!rows?.[i]) {
-          rows.push([] as (string | number)[]);
-        }
-        const bracketItem = (bracket as any)[i];
-        rows[i].push(...bracketItemToRow(bracketItem, i, headers, rows[i]));
-      }
-      headers.push(snakeToTitleCase(key));
-    }
-  }
-
-  return {
-    name,
-    headers,
-    rows,
-  };
-}
-
-function bracketItemToRow(
-  bracketItem: any,
-  columnIndex: number,
-  headers: string[],
-  row: (string | number)[] = [] as (string | number)[],
-): (string | number)[] {
-  if (bracketItem?.amount) {
-    return [`Fixed ${asCurrency(bracketItem.amount).toFormat(formatNoZeros)}`];
-  } else if (bracketItem?.rate) {
-    let newRow = [];
-    if (!headers.length) {
-      if (bracketItem?.percent_of_total) {
-        headers.push("Employee Portion");
-      }
-      headers.push("Rate");
-    }
-    if (!row.length) {
-      if (bracketItem?.percent_of_total) {
-        newRow.push(`${bracketItem.percent_of_total}%`);
-      }
-      newRow.push(`${bracketItem.rate}%`);
-    }
-    const minValue = asCurrency(
-      bracketItem.min + (columnIndex === 0 ? 0 : 1),
-    ).toFormat(formatNoZeros);
-    let range = `${minValue}+`;
-    if (bracketItem.max !== INFINITY) {
-      range = `${minValue} - ${asCurrency(bracketItem.max).toFormat(formatNoZeros)}`;
-    }
-    return [...newRow, range];
-  }
-  return [""];
-}
-
-function standardDeductionMapToTable(
-  name: string,
-  standardDeductionMap: StandardDeductionMap,
-): Table {
-  const rows = [] as (string | number)[][];
-  const headers = ["Filing Status", "Amount"];
-  for (const [filingStatus, amount] of Object.entries(standardDeductionMap)) {
-    rows.push([
-      snakeToTitleCase(filingStatus),
-      asCurrency(amount).toFormat(formatNoZeros),
-    ]);
-  }
-
-  return {
-    name: toSnakeCase(name),
-    headers,
-    rows,
-  };
 }

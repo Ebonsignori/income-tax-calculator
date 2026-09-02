@@ -14,11 +14,12 @@ import {
 import { ExpandMore, LocationCity, Search } from "@mui/icons-material";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import { snakeToDashCase } from "@/utils/string-utils";
+import { snakeToDashCase, snakeToTitleCase } from "@/utils/string-utils";
 import { YearSelect } from "./input/YearSelect";
 import { CITY_TAXES } from "@/constants/pages";
 import type { TaxData } from "@/types";
 import { ALL_STATES } from "@/constants/states";
+import { useUrlSelectionOnPopState } from "@/utils/url-selection";
 
 interface City {
   cityKey: string;
@@ -51,85 +52,71 @@ export default function CityTaxes({
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
 
-  // Handle browser back/forward navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      // Parse the current URL to extract year
-      const path = window.location.pathname;
-      const basePath = (window as any).__NEXT_DATA__?.basePath || "";
-      const relativePath = basePath ? path.replace(basePath, "") : path;
-
-      // Remove /city-taxes prefix if present
-      const pathWithoutBase = relativePath.startsWith("/city-taxes")
-        ? relativePath.substring("/city-taxes".length)
-        : relativePath;
-
-      const segments = pathWithoutBase.split("/").filter(Boolean);
-
-      // Update year based on URL segments
-      if (segments.length >= 1 && segments[0] !== year) {
-        setYear(segments[0]);
-      } else if (segments.length === 0 && year !== defaultYear) {
-        // If at root path (/city-taxes), set to default year
-        setYear(defaultYear);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [year, defaultYear]);
+  // This page selects a year only; state and city are links, not local state.
+  useUrlSelectionOnPopState({
+    year,
+    defaultYear,
+    setYear,
+    baseRoute: CITY_TAXES.route,
+  });
 
   // Fetch city tax list when year changes
   useEffect(() => {
+    // Guards against a slower earlier year resolving after a faster later one
+    // and overwriting it.
+    let cancelled = false;
+
     async function fetchCityTaxList() {
       const cityTaxList: CityTaxListData = {};
 
-      // Iterate through all states and try to load their data
-      for (const stateKey of ALL_STATES) {
-        try {
-          const stateTaxData = (await import(
-            `@/data/${year}/state/${stateKey}.ts`
-          )) as { default: TaxData };
-
-          // Skip states without city taxes
-          if (!stateTaxData.default.cities) {
-            continue;
+      // Load every state's data for this year in parallel rather than in
+      // sequence — this is 51 chunk fetches.
+      const loaded = await Promise.all(
+        ALL_STATES.map(async (stateKey: string) => {
+          try {
+            const stateTaxData = (await import(
+              `@/data/${year}/state/${stateKey}.ts`
+            )) as { default: TaxData };
+            return { stateKey, taxData: stateTaxData.default };
+          } catch {
+            // No data file for this state in this year
+            return null;
           }
+        }),
+      );
 
-          const cities = Object.keys(stateTaxData.default.cities);
-          if (cities.length > 0) {
-            cityTaxList[stateKey] = {
-              stateName: stateKey
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, (l) => l.toUpperCase()),
-              cities: cities.map((cityKey) => {
-                // Get all tax types for this city
-                const cityTaxData =
-                  stateTaxData.default.cities?.[cityKey] || {};
-                const taxTypes = Object.keys(cityTaxData);
-
-                return {
-                  cityKey,
-                  cityName: cityKey
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (l) => l.toUpperCase()),
-                  taxTypes,
-                };
-              }),
-            };
-          }
-        } catch (err) {
-          // State file doesn't exist for this year or has no cities
+      for (const entry of loaded) {
+        if (!entry) {
           continue;
         }
+        const { stateKey, taxData } = entry;
+
+        // Skip states without city taxes
+        const cities = Object.keys(taxData.cities || {});
+        if (cities.length === 0) {
+          continue;
+        }
+
+        cityTaxList[stateKey] = {
+          stateName: snakeToTitleCase(stateKey),
+          cities: cities.map((cityKey) => ({
+            cityKey,
+            cityName: snakeToTitleCase(cityKey),
+            taxTypes: Object.keys(taxData.cities?.[cityKey] || {}),
+          })),
+        };
       }
 
-      setCityTaxList(cityTaxList);
+      if (!cancelled) {
+        setCityTaxList(cityTaxList);
+      }
     }
 
     fetchCityTaxList();
+
+    return () => {
+      cancelled = true;
+    };
   }, [year]);
 
   // Filter states and cities based on search query

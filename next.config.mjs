@@ -8,6 +8,11 @@ const withPWA = NextPWA({
 
 const nextConfig = withPWA({
   output: "export",
+  // Keep `next build`'s lint pass in step with the `lint` script; the
+  // default set omits scripts/ and tests/.
+  eslint: {
+    dirs: ["src", "scripts", "tests"],
+  },
   images: {
     unoptimized: true,
   },

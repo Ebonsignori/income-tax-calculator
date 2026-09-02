@@ -145,3 +145,28 @@ export function updateURL(
     }
   }
 }
+
+/**
+ * Query params that should survive a state / city / year navigation.
+ *
+ * `income` on the calculator and `tables` on the tax-tables page are both user
+ * selections rather than incidental URL noise, so dropping either on navigation
+ * loses work. Each select used to inline its own copy of this, and they had
+ * already drifted: the year select preserved `income` but not `tables`, so
+ * changing the year on a tax-tables page silently cleared the chosen tables.
+ */
+export const PRESERVED_QUERY_PARAMS = ["income", "tables"] as const;
+
+export function preserveQueryParams(
+  keys: readonly string[] = PRESERVED_QUERY_PARAMS,
+): Record<string, string> | undefined {
+  const existing = getQueryParams();
+  const preserved: Record<string, string> = {};
+  for (const key of keys) {
+    const value = existing.get(key);
+    if (value) {
+      preserved[key] = value;
+    }
+  }
+  return Object.keys(preserved).length > 0 ? preserved : undefined;
+}

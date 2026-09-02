@@ -41,3 +41,6 @@ next-env.d.ts
 
 # LLM tax script logs
 logs/
+# local agent/tooling scratch
+.claude/
+.playwright-mcp/

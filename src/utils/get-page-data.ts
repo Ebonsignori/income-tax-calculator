@@ -1,12 +1,12 @@
-import { getTaxDataByYear } from "@/get-tax-data";
+import { readTaxDataFromDisk } from "@/utils/read-tax-data";
 import type { CityPageParams, StatePageParams } from "@/types/page";
 import path from "path";
-import { dashToSnakeCase } from "./string-utils";
+import { dashToSnakeCase, snakeToTitleCase } from "./string-utils";
 
 export async function getLandingPageData() {
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, currentYear, taxDataByYear, statesAndCitiesForYear } =
-    await getTaxDataByYear(dataDirectory);
+    await readTaxDataFromDisk(dataDirectory);
 
   const federalTaxes = taxDataByYear[currentYear]?.federal || {};
   const stateTaxes = {};
@@ -24,7 +24,7 @@ export async function getYearPageData(params: { year: string }) {
   const { year } = params;
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =
-    await getTaxDataByYear(dataDirectory);
+    await readTaxDataFromDisk(dataDirectory);
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = {};
@@ -43,7 +43,7 @@ export async function getStatePageData(params: StatePageParams) {
   const state = dashToSnakeCase(params.state);
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =
-    await getTaxDataByYear(dataDirectory);
+    await readTaxDataFromDisk(dataDirectory);
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = taxDataByYear[year]?.[state] || {};
@@ -65,7 +65,7 @@ export async function getCityPageData(params: CityPageParams) {
 
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, taxDataByYear, statesAndCitiesForYear } =
-    await getTaxDataByYear(dataDirectory);
+    await readTaxDataFromDisk(dataDirectory);
 
   const federalTaxes = taxDataByYear[year]?.federal || {};
   const stateTaxes = taxDataByYear[year]?.[state] || {};
@@ -84,7 +84,7 @@ export async function getCityPageData(params: CityPageParams) {
 export async function getCityTaxListData(year?: string) {
   const dataDirectory = path.join(process.cwd(), "src", "data");
   const { years, currentYear, taxDataByYear } =
-    await getTaxDataByYear(dataDirectory);
+    await readTaxDataFromDisk(dataDirectory);
 
   const selectedYear = year && years.includes(year) ? year : currentYear;
 
@@ -111,9 +111,7 @@ export async function getCityTaxListData(year?: string) {
       const cities = Object.keys(stateTaxData.cities);
       if (cities.length > 0) {
         cityTaxList[stateKey] = {
-          stateName: stateKey
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, (l) => l.toUpperCase()),
+          stateName: snakeToTitleCase(stateKey),
           cities: cities.map((cityKey) => {
             // Get all tax types for this city
             const cityTaxData = stateTaxData.cities?.[cityKey] || {};
@@ -121,9 +119,7 @@ export async function getCityTaxListData(year?: string) {
 
             return {
               cityKey,
-              cityName: cityKey
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, (l) => l.toUpperCase()),
+              cityName: snakeToTitleCase(cityKey),
               taxTypes,
             };
           }),

@@ -16,7 +16,7 @@ import type {
   FilingStatus,
   StandardDeductionMap,
 } from "@/constants/filing-status";
-import { snakeToTitleCase, yearDisplay } from "@/utils/string-utils";
+import { snakeToTitleCase } from "@/utils/string-utils";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { Box, IconButton, Slider, Tooltip } from "@mui/material";
 import type { AvailableStatesAndCities, TaxData } from "@/types";
@@ -32,11 +32,21 @@ import { YearSelect } from "./input/YearSelect";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
-import { initEventTracking } from "@/utils/analytics";
+import { useGetTaxData } from "@/utils/use-get-tax-data";
 import { PaycheckFrequencySelect } from "./input/PaycheckFrequencySelect";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { MONTHLY } from "@/constants/paycheck-frequency";
 import { updateURL, getQueryParams } from "@/utils/base-path";
+import { useUrlSelectionOnPopState } from "@/utils/url-selection";
+
+/** `?income=` is user input; anything not a positive integer is ignored. */
+function parseIncomeParam(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+  const income = parseInt(value, 10);
+  return !isNaN(income) && income > 0 ? income : null;
+}
 
 type HomeProps = {
   availableYears: string[];
@@ -101,13 +111,9 @@ export default function Home({
 
   // Initialize income from URL query param on mount
   useEffect(() => {
-    const queryParams = getQueryParams();
-    const incomeParam = queryParams.get("income");
-    if (incomeParam) {
-      const incomeValue = parseInt(incomeParam, 10);
-      if (!isNaN(incomeValue) && incomeValue > 0) {
-        setTotalIncome(incomeValue);
-      }
+    const income = parseIncomeParam(getQueryParams().get("income"));
+    if (income !== null) {
+      setTotalIncome(income);
     }
   }, []);
 
@@ -158,93 +164,35 @@ export default function Home({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stateStandardDeductionMap, federalStandardDeductionMap]);
 
-  useEffect(() => {
-    async function fetchFederalBrackets() {
-      const federalBrackets = await import(`@/data/${year}/federal.ts`);
-      setFederalTaxes(federalBrackets.default);
-    }
-    fetchFederalBrackets();
-  }, [year]);
+  useGetTaxData({
+    year,
+    USAState,
+    setFederalTaxes,
+    setStateTaxes,
+    setUSAState,
+    setUSACity,
+  });
 
-  useEffect(() => {
-    async function fetchStateBrackets() {
-      if (!USAState) {
-        setStateTaxes({} as TaxData);
+  useUrlSelectionOnPopState({
+    year,
+    defaultYear,
+    setYear,
+    USAState,
+    setUSAState,
+    USACity,
+    setUSACity,
+    onQueryParams: (params) => {
+      const incomeParam = params.get("income");
+      if (!incomeParam) {
+        setTotalIncome(0);
         return;
       }
-      try {
-        const stateBrackets = await import(
-          `@/data/${year}/state/${USAState}.ts`
-        );
-        setStateTaxes(stateBrackets.default);
-      } catch (error) {
-        // If the state tax data doesn't exist for this year,
-        // clear the state and city selections and update the URL
-        console.warn(
-          `Tax data not found for state "${USAState}" in year ${year}. Clearing state selection.`,
-        );
-        setStateTaxes({} as TaxData);
-        setUSAState("");
-        setUSACity("");
-        // Update URL to just show the year without state/city
-        updateURL(`/${year}`);
+      const income = parseIncomeParam(incomeParam);
+      if (income !== null) {
+        setTotalIncome(income);
       }
-    }
-    fetchStateBrackets();
-  }, [USAState, year]);
-
-  // Handle browser back/forward navigation
-  useEffect(() => {
-    const handlePopState = () => {
-      // Parse the current URL to extract year, state, and city
-      const path = window.location.pathname;
-      const basePath = (window as any).__NEXT_DATA__?.basePath || "";
-      const relativePath = basePath ? path.replace(basePath, "") : path;
-      const segments = relativePath.split("/").filter(Boolean);
-
-      // Update state based on URL segments
-      if (segments.length >= 1 && segments[0] !== year) {
-        setYear(segments[0]);
-      } else if (segments.length === 0 && year !== defaultYear) {
-        // If at root path (/), set to current year
-        setYear(defaultYear);
-      }
-      if (segments.length >= 2) {
-        const stateFromUrl = segments[1].replace(/-/g, "_");
-        if (stateFromUrl !== USAState) {
-          setUSAState(stateFromUrl);
-        }
-      } else if (USAState) {
-        setUSAState("");
-      }
-      if (segments.length >= 3) {
-        const cityFromUrl = segments[2].replace(/-/g, "_");
-        if (cityFromUrl !== USACity) {
-          setUSACity(cityFromUrl);
-        }
-      } else if (USACity) {
-        setUSACity("");
-      }
-
-      // Parse and restore income from query params
-      const queryParams = getQueryParams();
-      const incomeParam = queryParams.get("income");
-      if (incomeParam) {
-        const incomeValue = parseInt(incomeParam, 10);
-        if (!isNaN(incomeValue) && incomeValue > 0) {
-          setTotalIncome(incomeValue);
-        }
-      } else {
-        // If no income param, clear the income
-        setTotalIncome(0);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [year, USAState, USACity, defaultYear]);
+    },
+  });
 
   const taxOptions = useGetTaxOptions({
     federalTaxes,
@@ -257,18 +205,25 @@ export default function Home({
   });
 
   const handleNumberChange = useCallback(
-    // eslint-disable-next-line no-unused-vars
-    (setterFunction: (...args: any) => void) => {
-      return (event: React.ChangeEvent<HTMLInputElement>, newValue?: any) => {
-        let value = event.target.value;
-        if (newValue) {
+    (setterFunction: (value: number) => void) => {
+      return (
+        event: React.ChangeEvent<HTMLInputElement>,
+        newValue?: number | string,
+      ) => {
+        let value: number | string = event.target.value;
+        if (typeof newValue !== "undefined" && newValue !== null) {
           value = newValue;
         }
-        const numberValue = parseInt(value, 10);
+        if (!value) {
+          setterFunction(0);
+          return;
+        }
+        const numberValue =
+          typeof value === "number" ? value : parseInt(value, 10);
         if (!isNaN(numberValue)) {
-          setterFunction(numberValue);
-        } else if (!value) {
-          setterFunction("");
+          // Nothing here is meaningful below zero, and a negative income
+          // otherwise flows through to a negative take-home figure.
+          setterFunction(Math.max(0, numberValue));
         }
       };
     },
@@ -282,7 +237,7 @@ export default function Home({
   const standardStateDeductionDisplay = useMemo(() => {
     return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions &&
       stateStandardDeductionMap?.[filingStatus] !== 0
-      ? `Standard deduction for ${yearDisplay(year)}`
+      ? `Standard deduction for ${year}`
       : " ";
   }, [stateStandardDeductionMap, filingStatus, totalStateDeductions, year]);
 
@@ -290,7 +245,7 @@ export default function Home({
     return federalStandardDeductionMap?.[filingStatus] ===
       totalFederalDeductions &&
       federalStandardDeductionMap?.[filingStatus] !== 0
-      ? `Standard deduction for ${yearDisplay(year)}`
+      ? `Standard deduction for ${year}`
       : " ";
   }, [federalStandardDeductionMap, filingStatus, totalFederalDeductions, year]);
 
@@ -302,12 +257,6 @@ export default function Home({
   useEffect(() => {
     validateAll();
   }, [validateAll]);
-
-  initEventTracking({
-    selected_year: year,
-    selected_state: USAState,
-    selected_city: USACity,
-  });
 
   let resultsRender = null;
   if (totalIncome) {
@@ -458,11 +407,7 @@ export default function Home({
                         endAdornment:
                           max401KContributionDisplay === " " ? (
                             <InputAdornment position="end">
-                              <Tooltip
-                                title={`Set to max allowed for ${yearDisplay(
-                                  year,
-                                )}`}
-                              >
+                              <Tooltip title={`Set to max allowed for ${year}`}>
                                 <IconButton
                                   aria-label="Set to max allowed for year"
                                   onClick={() => {
@@ -508,9 +453,7 @@ export default function Home({
                           totalFederalDeductions ? (
                             <InputAdornment position="end">
                               <Tooltip
-                                title={`Set to standard deduction for ${yearDisplay(
-                                  year,
-                                )}`}
+                                title={`Set to standard deduction for ${year}`}
                               >
                                 <IconButton
                                   aria-label="Reset to standard deduction for year"
@@ -558,9 +501,7 @@ export default function Home({
                           stateStandardDeductionMap?.[filingStatus] !== 0 ? (
                             <InputAdornment position="end">
                               <Tooltip
-                                title={`Set to standard deduction for ${yearDisplay(
-                                  year,
-                                )}`}
+                                title={`Set to standard deduction for ${year}`}
                               >
                                 <IconButton
                                   aria-label="Reset to standard deduction for year"

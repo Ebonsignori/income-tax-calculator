@@ -5,13 +5,9 @@ import { updateURL } from "./base-path";
 type GetTaxData = {
   year: string;
   USAState: string;
-  // eslint-disable-next-line no-unused-vars
   setFederalTaxes: (value: TaxData) => void;
-  // eslint-disable-next-line no-unused-vars
   setStateTaxes: (value: TaxData) => void;
-  // eslint-disable-next-line no-unused-vars
   setUSAState?: (value: string) => void;
-  // eslint-disable-next-line no-unused-vars
   setUSACity?: (value: string) => void;
   baseRoute?: string;
 };

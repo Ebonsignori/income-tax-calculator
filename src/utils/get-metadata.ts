@@ -1,13 +1,13 @@
 import {
   CITY_TAXES,
+  DISCLAIMER,
   INCOME_TAX_CALCULATOR,
   SUPPORT,
   TAX_TABLES,
 } from "@/constants/pages";
 import type { Metadata } from "next";
 import { snakeToTitleCase } from "./string-utils";
-
-const currentYear = new Date().getFullYear();
+import { getLatestDataYear } from "./get-latest-year";
 
 const defaultUrl = "https://income-tax.org";
 
@@ -53,12 +53,53 @@ const defaultOpenGraph = {
   title: "Income Tax Calculator",
   description:
     "Calculate your take home pay after federal, state, and city income taxes.",
-  url: "https://income-tax.org",
+  url: defaultUrl,
   siteName: "Income Tax Calculator",
   locale: "en_US",
   type: "website",
   images: "/og-image.png",
 };
+
+// The route each page's canonical URL is built from. Without this, pages that
+// take no year param fall back to the site root and tell search engines the
+// homepage supersedes them.
+const PAGE_ROUTES: Record<string, string> = {
+  [INCOME_TAX_CALCULATOR.name]: "",
+  [TAX_TABLES.name]: TAX_TABLES.route,
+  [SUPPORT.name]: SUPPORT.route,
+  [CITY_TAXES.name]: CITY_TAXES.route,
+  [DISCLAIMER.name]: DISCLAIMER.route,
+};
+
+/**
+ * Canonical URL for a page, built from that page's own route.
+ *
+ * The newest data year with no state or city is served at the route root (`/`
+ * and `/tax-tables`), so it canonicalizes there rather than to a duplicate
+ * `/{year}` URL. Every other combination canonicalizes to itself.
+ */
+function buildCanonicalUrl(
+  baseUrl: string,
+  route: string,
+  year?: string,
+  state?: string,
+  city?: string,
+): string {
+  let path = route;
+  const isRouteRoot = year === getLatestDataYear() && !state && !city;
+  if (year && !isRouteRoot) {
+    path += `/${year}`;
+    if (state) {
+      path += `/${state}`;
+      if (city) {
+        path += `/${city}`;
+      }
+    }
+  }
+  // next.config.mjs sets trailingSlash: true, so a canonical without one points
+  // at a URL that immediately redirects.
+  return `${baseUrl}${path}/`;
+}
 
 export function getPageSpecificMetadata(
   pageName: string,
@@ -66,10 +107,14 @@ export function getPageSpecificMetadata(
   state?: string,
   city?: string,
 ): Metadata {
-  let openGraph = defaultOpenGraph;
+  // Copy rather than alias. defaultOpenGraph is module-level and the fields
+  // below are assigned, so sharing the reference lets one page's metadata
+  // overwrite every other page's.
+  const openGraph = { ...defaultOpenGraph };
   let description = "";
+
   let baseUrl = defaultMetadata.metadataBase?.href || defaultUrl;
-  if (baseUrl?.endsWith("/")) {
+  if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, -1);
   }
 
@@ -81,12 +126,11 @@ export function getPageSpecificMetadata(
         if (year) {
           description = `Calculate your take home pay after federal and state income taxes for the year ${year}.`;
           openGraph.title = `${year} ${INCOME_TAX_CALCULATOR.name}`;
-          openGraph.images = `/og-images/landing.png`;
         } else {
           description = `Calculate your take home pay after federal, state, and city income taxes.`;
           openGraph.title = `${INCOME_TAX_CALCULATOR.name}`;
-          openGraph.images = `/og-images/landing.png`;
         }
+        openGraph.images = `/og-images/landing.png`;
       } else {
         description = `Calculate your take home pay after federal and state income taxes for the year ${year} in ${snakeToTitleCase(state)}.`;
         openGraph.title = `${year} ${snakeToTitleCase(state)} ${INCOME_TAX_CALCULATOR.name}`;
@@ -98,18 +142,16 @@ export function getPageSpecificMetadata(
       openGraph.images = `/og-images/${state}/${city}.png`;
     }
   } else if (pageName === TAX_TABLES.name) {
-    baseUrl = `${baseUrl}/tax-tables`;
     if (!city) {
       if (!state) {
         if (year) {
           description = `Tables of federal and state income tax rates for the year ${year}.`;
           openGraph.title = `${year} ${TAX_TABLES.name}`;
-          openGraph.images = `/og-images/tax-tables/landing.png`;
         } else {
           description = `Tables of federal, state, and city income tax rates.`;
           openGraph.title = `${TAX_TABLES.name}`;
-          openGraph.images = `/og-images/tax-tables/landing.png`;
         }
+        openGraph.images = `/og-images/tax-tables/landing.png`;
       } else {
         description = `Tables of federal and state income tax rates for the year ${year} in ${snakeToTitleCase(state as string)}.`;
         openGraph.title = `${year} ${snakeToTitleCase(state)} ${TAX_TABLES.name}`;
@@ -123,31 +165,25 @@ export function getPageSpecificMetadata(
   } else if (pageName === SUPPORT.name) {
     description = "Support page for the Income Tax Calculator.";
     openGraph.title = `${SUPPORT.name}`;
-    openGraph.url = `${baseUrl}/support`;
     openGraph.images = `/og-images/support.png`;
   } else if (pageName === CITY_TAXES.name) {
     description = "List all cities with local income taxes by state and year.";
     openGraph.title = `${CITY_TAXES.name}`;
-    openGraph.url = `${baseUrl}/city-taxes`;
+    openGraph.images = `/og-images/landing.png`;
+  } else if (pageName === DISCLAIMER.name) {
+    description =
+      "Important disclaimer about the use of this income tax calculator. This tool provides estimates for informational purposes only and should not be used for legal or tax filing purposes.";
+    openGraph.title = `${DISCLAIMER.name}`;
     openGraph.images = `/og-images/landing.png`;
   }
 
-  // Build canonical URL
-  let canonical = baseUrl;
-  if (year) {
-    // If year matches current year and no state/city, canonical should be homepage
-    if (parseInt(year, 10) === currentYear && !state && !city) {
-      canonical = baseUrl;
-    } else {
-      canonical += `/${year}`;
-      if (state) {
-        canonical += `/${state}`;
-        if (city) {
-          canonical += `/${city}`;
-        }
-      }
-    }
-  }
+  const canonical = buildCanonicalUrl(
+    baseUrl,
+    PAGE_ROUTES[pageName] ?? "",
+    year,
+    state,
+    city,
+  );
 
   openGraph.url = canonical;
   openGraph.description = description;

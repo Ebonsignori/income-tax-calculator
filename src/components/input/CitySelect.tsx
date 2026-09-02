@@ -1,6 +1,5 @@
 import type { AvailableStatesAndCities } from "@/types";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
-import { updateURL, getQueryParams } from "@/utils/base-path";
+import { preserveQueryParams, updateURL } from "@/utils/base-path";
 import {
   snakeToDashCase,
   snakeToTitleCase,
@@ -14,7 +13,6 @@ type CitySelectProps = {
   year: string;
   USAState: string;
   USACity: string;
-  // eslint-disable-next-line no-unused-vars
   setUSACity: (val: string) => void;
   baseRoute?: string;
 };
@@ -77,26 +75,19 @@ export function CitySelect({
         const city = toSnakeCase(val);
         if (city === USACity) return;
 
-        // Preserve income and tables query params if they exist
-        const queryParams = getQueryParams();
-        const income = queryParams.get("income");
-        const tables = queryParams.get("tables");
-        const params: { income?: string; tables?: string } = {};
-        if (income) params.income = income;
-        if (tables) params.tables = tables;
+        const params = preserveQueryParams();
 
         if (val && cityOptions.find((c) => c.title?.toLowerCase() === city)) {
           updateURL(
             `${baseRoute}/${year}/${snakeToDashCase(USAState)}/${snakeToDashCase(city)}`,
-            Object.keys(params).length > 0 ? params : undefined,
+            params,
           );
           setUSACity(city);
-          sendAnalyticsEvent(EVENTS.CHANGE_CITY, city);
         } else {
           setUSACity("");
           updateURL(
             `${baseRoute}/${year}/${snakeToDashCase(USAState)}`,
-            Object.keys(params).length > 0 ? params : undefined,
+            params,
           );
         }
       }}

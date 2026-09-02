@@ -2,7 +2,7 @@
 // Images are generated per state/city and reused across all years
 
 import { OG_SCREEN_HEIGHT, OG_SCREEN_WIDTH } from "@/constants/open-graph";
-import { getTaxDataByYear } from "@/get-tax-data";
+import { readTaxDataFromDisk } from "@/utils/read-tax-data";
 import { snakeToDashCase, snakeToTitleCase } from "@/utils/string-utils";
 import type { BrowserContext } from "@playwright/test";
 import { webkit } from "playwright";
@@ -11,8 +11,8 @@ import { webkit } from "playwright";
   const browser = await webkit.launch();
   const context = await browser.newContext();
 
-  const { years, statesAndCitiesForYear } = await getTaxDataByYear(
-    process.cwd() + "/src/data"
+  const { years, statesAndCitiesForYear } = await readTaxDataFromDisk(
+    process.cwd() + "/src/data",
   );
 
   const ogImageRoute = "og-image";
@@ -89,14 +89,14 @@ import { webkit } from "playwright";
     await screenshotPieChart(
       context,
       `http://localhost:${port}/${ogImageRoute}/${stateYear}/${stateDash}`,
-      `${basePath}/${stateDash}.png`
+      `${basePath}/${stateDash}.png`,
     );
     await screenshotTaxTable(
       context,
       `http://localhost:${port}/${taxTablesRoute}/${stateYear}/${stateDash}`,
       `${basePath}/${taxTablesRoute}/${stateDash}.png`,
       stateYear,
-      state
+      state,
     );
 
     // Generate city-level images (using dash-case for filenames to match URLs)
@@ -108,14 +108,14 @@ import { webkit } from "playwright";
       await screenshotPieChart(
         context,
         `http://localhost:${port}/${ogImageRoute}/${cityYear}/${stateDash}/${cityDash}`,
-        `${basePath}/${stateDash}/${cityDash}.png`
+        `${basePath}/${stateDash}/${cityDash}.png`,
       );
       await screenshotTaxTable(
         context,
         `http://localhost:${port}/${taxTablesRoute}/${cityYear}/${stateDash}/${cityDash}`,
         `${basePath}/${taxTablesRoute}/${stateDash}/${cityDash}.png`,
         cityYear,
-        city
+        city,
       );
     }
   }
@@ -126,7 +126,7 @@ import { webkit } from "playwright";
 async function screenshotPieChart(
   context: BrowserContext,
   url: string,
-  savePath: string
+  savePath: string,
 ) {
   console.log("Capturing screen for", url, "and saving to", savePath);
   const page = await context.newPage();
@@ -144,7 +144,7 @@ async function screenshotTaxTable(
   url: string,
   savePath: string,
   year: string,
-  selectionText: string
+  selectionText: string,
 ) {
   const page = await context.newPage();
   await page.setViewportSize({

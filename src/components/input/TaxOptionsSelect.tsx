@@ -1,5 +1,4 @@
 import type { TaxOption } from "@/utils/get-tax-options";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { capitalizeFirstLetter } from "@/utils/string-utils";
 import { Autocomplete, Chip, TextField } from "@mui/material";
 
@@ -7,7 +6,6 @@ type TaxOptionsSelectProps = {
   label: string;
   taxOptions: TaxOption[];
   selectedTaxOptions: TaxOption[];
-  // eslint-disable-next-line no-unused-vars
   setSelectedTaxOptions: (val: TaxOption[]) => void;
   "data-testid"?: string;
 };
@@ -36,14 +34,6 @@ export function TaxOptionsSelect({
       onChange={(e, val: TaxOption[]) => {
         if (val) {
           setSelectedTaxOptions(val);
-          let event = EVENTS.CHANGE_TAX_OPTIONS;
-          if (label.includes("exemptions")) {
-            event = EVENTS.CHANGE_TAX_EXEMPTIONS;
-          }
-          sendAnalyticsEvent(
-            event,
-            val.map((v) => v.value),
-          );
         }
       }}
       renderTags={(tagValue, getTagProps) =>

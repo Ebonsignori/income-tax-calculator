@@ -1,4 +1,4 @@
-import { getTaxDataByYear } from "@/get-tax-data";
+import { readTaxDataFromDisk } from "@/utils/read-tax-data";
 import type {
   CityPageParams,
   StatePageParams,
@@ -9,7 +9,7 @@ import { snakeToDashCase } from "./string-utils";
 
 export async function getYearPageParams(): Promise<YearPageParams[]> {
   const dataDirectory = path.join(process.cwd(), "src", "data");
-  const { taxDataByYear } = await getTaxDataByYear(dataDirectory);
+  const { taxDataByYear } = await readTaxDataFromDisk(dataDirectory);
 
   return Object.keys(taxDataByYear).map((year) => {
     return { year };
@@ -18,7 +18,7 @@ export async function getYearPageParams(): Promise<YearPageParams[]> {
 
 export async function getStatePageParams(): Promise<StatePageParams[]> {
   const dataDirectory = path.join(process.cwd(), "src", "data");
-  const { taxDataByYear } = await getTaxDataByYear(dataDirectory);
+  const { taxDataByYear } = await readTaxDataFromDisk(dataDirectory);
 
   const yearsAndStates = [];
   for (const year of Object.keys(taxDataByYear)) {
@@ -35,7 +35,7 @@ export async function getStatePageParams(): Promise<StatePageParams[]> {
 
 export async function getCityPageParams(): Promise<CityPageParams[]> {
   const dataDirectory = path.join(process.cwd(), "src", "data");
-  const { taxDataByYear } = await getTaxDataByYear(dataDirectory);
+  const { taxDataByYear } = await readTaxDataFromDisk(dataDirectory);
 
   const yearsStatesAndCities = [];
   for (const year of Object.keys(taxDataByYear)) {

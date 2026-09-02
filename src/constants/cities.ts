@@ -18,14 +18,6 @@ export const SHERIDAN = "sheridan";
 // Delaware
 export const WILMINGTON = "wilmington";
 
-// California
-export const SAN_FRANCISCO = "san_francisco";
-export const LOS_ANGELES = "los_angeles";
-export const SAN_DIEGO = "san_diego";
-export const SAN_JOSE = "san_jose";
-export const SACRAMENTO = "sacramento";
-export const ANAHEIM = "anaheim";
-
 // New Jersey
 export const NEWARK = "newark";
 
@@ -34,8 +26,29 @@ export const BIRMINGHAM = "birmingham";
 export const BESSEMER = "bessemer";
 export const GADSDEN = "gadsden";
 export const MACON_COUNTY = "macon_county";
-export const MONTGOMERY = "montgomery";
-export const MOBILE = "mobile";
+export const ATTALLA = "attalla";
+export const AUBURN = "auburn";
+export const BEAR_CREEK = "bear_creek";
+export const BRILLIANT = "brilliant";
+export const FAIRFIELD = "fairfield";
+export const GLENCOE = "glencoe";
+export const GOODWATER = "goodwater";
+export const GUIN = "guin";
+export const HACKLEBURG = "hackleburg";
+export const HALEYVILLE = "haleyville";
+export const HAMILTON = "hamilton";
+export const IRONDALE = "irondale";
+export const LEEDS = "leeds";
+export const LYNN = "lynn";
+export const MIDFIELD = "midfield";
+export const MOSSES = "mosses";
+export const OPELIKA = "opelika";
+export const RAINBOW_CITY = "rainbow_city";
+export const RED_BAY = "red_bay";
+export const SHORTER = "shorter";
+export const SOUTHSIDE = "southside";
+export const SULLIGENT = "sulligent";
+export const TUSKEGEE = "tuskegee";
 
 // Kentucky
 export const LOUISVILLE = "louisville";
