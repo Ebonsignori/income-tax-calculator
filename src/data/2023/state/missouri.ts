@@ -1,4 +1,4 @@
-import { INFINITY } from "@/constants";
+import { GROSS_INCOME_BASIS, INFINITY } from "@/constants";
 import { CITIES, KANSAS_CITY, ST_LOUIS } from "@/constants/cities";
 import { ALL } from "@/constants/filing-status";
 import {
@@ -35,13 +35,21 @@ export default {
   },
   [CITIES]: {
     [KANSAS_CITY]: {
+      // RSMo 92.111(2)(1): the earnings tax is levied on "salaries, wages,
+      // commissions and other compensation", not on Missouri taxable income, so
+      // the state standard deduction must not shrink its base. St. Louis's own
+      // taxable-items list matches -- gross pay less pre-tax deferrals only.
       [CITY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS }],
       },
     },
     [ST_LOUIS]: {
+      // RSMo 92.111(2)(1): the earnings tax is levied on "salaries, wages,
+      // commissions and other compensation", not on Missouri taxable income, so
+      // the state standard deduction must not shrink its base. St. Louis's own
+      // taxable-items list matches -- gross pay less pre-tax deferrals only.
       [CITY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS }],
       },
     },
   },

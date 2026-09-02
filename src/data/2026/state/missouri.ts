@@ -1,4 +1,4 @@
-import { INFINITY } from "@/constants";
+import { GROSS_INCOME_BASIS, INFINITY } from "@/constants";
 import { CITIES, KANSAS_CITY, ST_LOUIS } from "@/constants/cities";
 import {
   HEAD_OF_HOUSEHOLD,
@@ -64,19 +64,43 @@ export default {
   },
   [CITIES]: {
     [KANSAS_CITY]: {
+      // RSMo 92.111(2)(1): the earnings tax is levied on "salaries, wages,
+      // commissions and other compensation", not on Missouri taxable income, so
+      // the state standard deduction must not shrink its base. St. Louis's own
+      // taxable-items list matches -- gross pay less pre-tax deferrals only.
       [CITY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 1 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 1 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 1 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 1 }],
+        [SINGLE]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
+        [MARRIED]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
       },
     },
     [ST_LOUIS]: {
+      // RSMo 92.111(2)(1): the earnings tax is levied on "salaries, wages,
+      // commissions and other compensation", not on Missouri taxable income, so
+      // the state standard deduction must not shrink its base. St. Louis's own
+      // taxable-items list matches -- gross pay less pre-tax deferrals only.
       [CITY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 1 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 1 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 1 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 1 }],
+        [SINGLE]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
+        [MARRIED]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: INFINITY, rate: 1, basis: GROSS_INCOME_BASIS },
+        ],
       },
     },
   },

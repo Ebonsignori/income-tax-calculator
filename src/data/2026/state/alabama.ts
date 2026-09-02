@@ -1,12 +1,33 @@
 import { INFINITY } from "@/constants";
 import {
+  ATTALLA,
+  AUBURN,
+  BEAR_CREEK,
   BESSEMER,
   BIRMINGHAM,
+  BRILLIANT,
   CITIES,
+  FAIRFIELD,
   GADSDEN,
+  GLENCOE,
+  GOODWATER,
+  GUIN,
+  HACKLEBURG,
+  HALEYVILLE,
+  HAMILTON,
+  IRONDALE,
+  LEEDS,
+  LYNN,
   MACON_COUNTY,
-  MOBILE,
-  MONTGOMERY,
+  MIDFIELD,
+  MOSSES,
+  OPELIKA,
+  RAINBOW_CITY,
+  RED_BAY,
+  SHORTER,
+  SOUTHSIDE,
+  SULLIGENT,
+  TUSKEGEE,
 } from "@/constants/cities";
 import {
   ALL,
@@ -52,7 +73,17 @@ export default {
     ],
   },
   [CITIES]: {
-    [BIRMINGHAM]: {
+    [ATTALLA]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
+      },
+    },
+    [AUBURN]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [BEAR_CREEK]: {
       [OCCUPATIONAL_TAX]: {
         [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
       },
@@ -62,9 +93,69 @@ export default {
         [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
       },
     },
+    [BIRMINGHAM]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [BRILLIANT]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [FAIRFIELD]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
     [GADSDEN]: {
       [OCCUPATIONAL_TAX]: {
         [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
+      },
+    },
+    [GLENCOE]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
+      },
+    },
+    [GOODWATER]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 0.75 }],
+      },
+    },
+    [GUIN]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [HACKLEBURG]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [HALEYVILLE]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [HAMILTON]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [IRONDALE]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+      },
+    },
+    [LEEDS]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [LYNN]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
       },
     },
     [MACON_COUNTY]: {
@@ -72,14 +163,50 @@ export default {
         [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
       },
     },
-    [MONTGOMERY]: {
+    [MIDFIELD]: {
       [OCCUPATIONAL_TAX]: {
         [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
       },
     },
-    [MOBILE]: {
+    [MOSSES]: {
       [OCCUPATIONAL_TAX]: {
         [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    // Opelika cut this from 1.5% to 1% effective 2025-04-01
+    [OPELIKA]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [RAINBOW_CITY]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
+      },
+    },
+    [RED_BAY]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+      },
+    },
+    [SHORTER]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [SOUTHSIDE]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
+      },
+    },
+    [SULLIGENT]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+      },
+    },
+    [TUSKEGEE]: {
+      [OCCUPATIONAL_TAX]: {
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2 }],
       },
     },
   },

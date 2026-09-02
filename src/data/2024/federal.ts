@@ -31,7 +31,7 @@ export default {
       { min: 100525, max: 191950, rate: 24 },
       { min: 191950, max: 243725, rate: 32 },
       { min: 243725, max: 609350, rate: 35 },
-      { min: 609351, max: INFINITY, rate: 37 },
+      { min: 609350, max: INFINITY, rate: 37 },
     ],
     [MARRIED]: [
       { min: 0, max: 23200, rate: 10 },

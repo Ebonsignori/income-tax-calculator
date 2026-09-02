@@ -1,14 +1,25 @@
 import { INFINITY } from "@/constants";
 import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  [CT_PAID_FAMILY_AND_MEDICAL_LEAVE]: {
+    [ALL]: [
+      { min: 0, max: 184500, rate: 0.5 },
+      { min: 184500, max: INFINITY, rate: 0 },
+    ],
+  },
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 15000,
     [MARRIED]: 24000,

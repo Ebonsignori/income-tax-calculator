@@ -9,11 +9,13 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // South Carolina begins from federal taxable income, so the federal
+  // standard deduction is already reflected before SC computes tax.
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 14600,
     [MARRIED]: 29200,
     [MARRIED_SEPARATELY]: 14600,
-    [HEAD_OF_HOUSEHOLD]: 14600,
+    [HEAD_OF_HOUSEHOLD]: 21900,
   },
   [STATE_INCOME]: {
     [SINGLE]: [

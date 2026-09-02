@@ -8,6 +8,7 @@ import {
 } from "@/constants/filing-status";
 import {
   CITY_INCOME,
+  NJ_DISABILITY_INSURANCE,
   NJ_FAMILY_LEAVE_INSURANCE,
   NJ_UNEMPLOYMENT_INSURANCE,
   NJ_WORKFORCE_DEVELOPMENT,
@@ -67,6 +68,15 @@ export default {
     [MARRIED]: [{ min: 0, max: 42300, rate: 0.0425 }],
     [MARRIED_SEPARATELY]: [{ min: 0, max: 42300, rate: 0.0425 }],
     [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 42300, rate: 0.0425 }],
+  },
+  // New Jersey set the employee TDI contribution rate to 0% for 2023 and
+  // 2024 before restoring it at 0.23% in 2025. Modelled explicitly, as in
+  // the 2023 file, so the tax stays visible rather than silently absent.
+  [NJ_DISABILITY_INSURANCE]: {
+    [SINGLE]: [{ min: 0, max: INFINITY, rate: 0 }],
+    [MARRIED]: [{ min: 0, max: INFINITY, rate: 0 }],
+    [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 0 }],
+    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 0 }],
   },
   [NJ_FAMILY_LEAVE_INSURANCE]: {
     [SINGLE]: [{ min: 0, max: 161400, rate: 0.09 }],

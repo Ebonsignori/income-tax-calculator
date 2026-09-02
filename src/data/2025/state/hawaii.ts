@@ -1,14 +1,27 @@
 import { INFINITY } from "@/constants";
 import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  HI_TEMPORARY_DISABILITY_INSURANCE,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Employee share is half the premium, capped at 0.5% of the maximum weekly
+  // wage base of $1,441.72 (2025), i.e. $74969 a year.
+  [HI_TEMPORARY_DISABILITY_INSURANCE]: {
+    [ALL]: [
+      { min: 0, max: 74969, rate: 0.5 },
+      { min: 74969, max: INFINITY, rate: 0 },
+    ],
+  },
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 4400,
     [MARRIED]: 8800,

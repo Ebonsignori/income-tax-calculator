@@ -89,8 +89,16 @@ export default {
       },
     },
     [EUGENE]: {
+      // Community safety payroll tax. The rate chart is a lookup, not a
+      // marginal schedule: wages pick a rate, and that rate is charged on all
+      // subject wages. `rate_on_total` is what says so.
       [EMPLOYEE_PAYROLL_TAX]: {
-        [ALL]: [{ min: 31304, max: INFINITY, rate: 0.44 }],
+        [ALL]: [
+          // Chart of 7/1/2025 - 6/30/2026. The minimum wage passed $15.00, so
+          // Ordinance 20616's reduced 0.30% band no longer has any range.
+          { min: 0, max: 31304, rate: 0, rate_on_total: true },
+          { min: 31304, max: INFINITY, rate: 0.44, rate_on_total: true },
+        ],
       },
     },
   },

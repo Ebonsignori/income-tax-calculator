@@ -1,4 +1,4 @@
-import { INFINITY } from "@/constants";
+import { INFINITY, TAXABLE_INCOME_BASIS } from "@/constants";
 import { CITIES, EUGENE, PORTLAND } from "@/constants/cities";
 import {
   ALL,
@@ -60,8 +60,20 @@ export default {
   },
   [CITIES]: {
     [PORTLAND]: {
+      // Ordinance 192185 (passed 2026-05-27) rewrote the Arts Tax for tax year
+      // 2026: $35 flat becomes $50 ($100 filing jointly), and the $1,000 income
+      // and federal-poverty exemptions are replaced by an Oregon-taxable-income
+      // threshold of $20,000 (single/MFS) or $40,000 (MFJ/HoH). Rate and
+      // threshold begin inflation-indexing in tax year 2027.
       [ART_TAX]: {
-        [ALL]: [{ min: 1000, amount: 35 }],
+        [SINGLE]: [{ min: 20000, amount: 50, basis: TAXABLE_INCOME_BASIS }],
+        [MARRIED]: [{ min: 40000, amount: 100, basis: TAXABLE_INCOME_BASIS }],
+        [MARRIED_SEPARATELY]: [
+          { min: 20000, amount: 50, basis: TAXABLE_INCOME_BASIS },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 40000, amount: 50, basis: TAXABLE_INCOME_BASIS },
+        ],
       },
       [SUPPORTIVE_HOUSING_SERVICES]: {
         [SINGLE]: [{ min: 128000, max: INFINITY, rate: 1 }],
@@ -89,8 +101,15 @@ export default {
       },
     },
     [EUGENE]: {
+      // Community safety payroll tax. The rate chart is a lookup, not a
+      // marginal schedule: wages pick a rate, and that rate is charged on all
+      // subject wages. `rate_on_total` is what says so.
       [EMPLOYEE_PAYROLL_TAX]: {
-        [ALL]: [{ min: 31304, max: INFINITY, rate: 0.44 }],
+        [ALL]: [
+          // Chart of 7/1/2026 - 6/30/2027.
+          { min: 0, max: 32344, rate: 0, rate_on_total: true },
+          { min: 32344, max: INFINITY, rate: 0.44, rate_on_total: true },
+        ],
       },
     },
   },

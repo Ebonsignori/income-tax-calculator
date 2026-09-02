@@ -5,16 +5,10 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import { STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
-  [STANDARD_DEDUCTION]: {
-    [SINGLE]: 14600,
-    [MARRIED]: 29200,
-    [MARRIED_SEPARATELY]: 14600,
-    [HEAD_OF_HOUSEHOLD]: 21900,
-  },
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 1053750, rate: 5 },

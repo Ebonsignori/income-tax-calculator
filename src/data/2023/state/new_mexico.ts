@@ -9,11 +9,12 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // New Mexico uses the federal standard deduction amounts.
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 14600,
-    [MARRIED]: 29200,
-    [MARRIED_SEPARATELY]: 14600,
-    [HEAD_OF_HOUSEHOLD]: 29200,
+    [SINGLE]: 13850,
+    [MARRIED]: 27700,
+    [MARRIED_SEPARATELY]: 13850,
+    [HEAD_OF_HOUSEHOLD]: 20800,
   },
   [STATE_INCOME]: {
     [SINGLE]: [

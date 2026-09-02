@@ -14,10 +14,13 @@ export default {
     [ALL]: [{ min: 0, max: INFINITY, rate: 0.58 }],
   },
   [CAPITAL_GAINS]: {
+    // Standard deduction $278,000 (DOR, indexed annually). The 9.9% tier is
+    // the 2.9-point surcharge SB 5813 added on Washington capital gains above
+    // $1,000,000, i.e. $278,000 + $1,000,000 of gains.
     [ALL]: [
-      { min: 0, max: 270000, rate: 0 },
-      { min: 270000, max: 1270000, rate: 7 },
-      { min: 1270000, max: INFINITY, rate: 9.9 },
+      { min: 0, max: 278000, rate: 0 },
+      { min: 278000, max: 1278000, rate: 7 },
+      { min: 1278000, max: INFINITY, rate: 9.9 },
     ],
   },
 } as TaxData;

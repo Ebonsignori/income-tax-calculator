@@ -7,6 +7,7 @@ import {
 } from "@/constants/cities";
 import { ALL } from "@/constants/filing-status";
 import {
+  COLORADO_FAMLI,
   OCCUPATIONAL_PRIVILEGE_TAX,
   STATE_INCOME,
 } from "@/constants/tax_types";
@@ -22,6 +23,16 @@ export default {
       },
     ],
   },
+  // Employee half of the FAMLI premium, capped at the Social Security wage
+  // base. Total premium is 0.9%, split evenly with the employer.
+  [COLORADO_FAMLI]: {
+    [ALL]: [
+      { min: 0, max: 176100, rate: 0.45 },
+      { min: 176100, max: INFINITY, rate: 0 },
+    ],
+  },
+  // Aurora's occupational privilege tax was repealed effective 2025-01-01
+  // (Ordinance 2022-77), so it is intentionally absent here.
   [CITIES]: {
     [DENVER]: {
       [OCCUPATIONAL_PRIVILEGE_TAX]: {

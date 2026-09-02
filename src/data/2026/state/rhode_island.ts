@@ -8,11 +8,20 @@ import {
 } from "@/constants/filing-status";
 import {
   RI_TEMPORARY_DISABILITY_INSURANCE,
+  STANDARD_DEDUCTION,
   STATE_INCOME,
 } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // CARRIED FROM 2025 — RI indexes annually and the 2026 RI-1040
+  // instructions were not published yet. Revisit.
+  [STANDARD_DEDUCTION]: {
+    [SINGLE]: 10900,
+    [MARRIED]: 21800,
+    [MARRIED_SEPARATELY]: 10900,
+    [HEAD_OF_HOUSEHOLD]: 16350,
+  },
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 82050, rate: 3.75 },
