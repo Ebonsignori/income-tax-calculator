@@ -1,13 +1,20 @@
 import { describe, it, expect } from "vitest";
-import Dinero from "dinero.js";
-import { calculate } from "@/utils/calculator";
+import type Dinero from "dinero.js";
+import { calculate, getPercent } from "@/utils/calculator";
 import { asCurrency } from "@/utils/calculator";
 import federal2025 from "@/data/2025/federal";
 import oregon2025 from "@/data/2025/state/oregon";
+import federal2026 from "@/data/2026/federal";
+import oregon2026 from "@/data/2026/state/oregon";
+import oregon2023 from "@/data/2023/state/oregon";
+import missouri2026 from "@/data/2026/state/missouri";
+import newYork2026 from "@/data/2026/state/new_york";
+import colorado2025 from "@/data/2025/state/colorado";
+import alabama2025 from "@/data/2025/state/alabama";
+import westVirginia2025 from "@/data/2025/state/west_virginia";
 import {
   SINGLE,
   MARRIED,
-  MARRIED_SEPARATELY,
   HEAD_OF_HOUSEHOLD,
   ALL,
 } from "@/constants/filing-status";
@@ -22,7 +29,6 @@ import {
   OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
 } from "@/constants/tax_types";
 import { INFINITY } from "@/constants";
-import type { TaxData } from "@/types";
 
 /**
  * Manually calculate tax for a progressive bracket system using Dinero
@@ -125,11 +131,12 @@ function calculateExpectedTaxes(
     stateIncomeBrackets,
   );
 
-  // Oregon Transit Tax
+  // Oregon Transit Tax (on gross wages, not income after deductions — Oregon
+  // DOR computes it "before any exemptions or deductions")
   const transitBrackets = (oregon2025[OREGON_TRANSIT_TAX] as any)?.[
     ALL
   ] as any[];
-  const transitTax = calculateProgressiveTax(stateTaxableIncome, transitBrackets);
+  const transitTax = calculateProgressiveTax(incomeAfterIRA, transitBrackets);
 
   // Oregon Paid Family and Medical Leave (on gross income after IRA)
   const paidLeaveBrackets = (
@@ -140,9 +147,7 @@ function calculateExpectedTaxes(
     paidLeaveBrackets,
   );
 
-  const totalFederal = federalIncomeTax
-    .add(socialSecurityTax)
-    .add(medicareTax);
+  const totalFederal = federalIncomeTax.add(socialSecurityTax).add(medicareTax);
   const totalState = stateIncomeTax.add(transitTax).add(paidLeaveTax);
   const totalTaxes = totalFederal.add(totalState);
   const takeHome = incomeAfterIRA.subtract(totalTaxes);
@@ -186,12 +191,18 @@ describe("Calculator Audit Tests", () => {
       const expected = calculateExpectedTaxes(income, filingStatus, ira);
 
       // Verify taxable income includes standard deduction
-      expect(results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome)).toBe(true);
-      expect(results.stateTaxableIncome.equalsTo(expected.stateTaxableIncome)).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+      ).toBe(true);
+      expect(
+        results.stateTaxableIncome.equalsTo(expected.stateTaxableIncome),
+      ).toBe(true);
 
       // Standard deduction for single filer in 2025
       const expectedFederalTaxableIncome = asCurrency(100000 - 15000);
-      expect(results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome)).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+      ).toBe(true);
     });
 
     it("should apply standard deduction - Married filer", () => {
@@ -216,8 +227,12 @@ describe("Calculator Audit Tests", () => {
 
       // Standard deduction for married filer in 2025
       const expectedFederalTaxableIncome = asCurrency(200000 - 30000);
-      expect(results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome)).toBe(true);
-      expect(results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome)).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+      ).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+      ).toBe(true);
     });
 
     it("should apply standard deduction - Head of Household", () => {
@@ -242,8 +257,12 @@ describe("Calculator Audit Tests", () => {
 
       // Standard deduction for head of household in 2025
       const expectedFederalTaxableIncome = asCurrency(80000 - 22500);
-      expect(results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome)).toBe(true);
-      expect(results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome)).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+      ).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+      ).toBe(true);
     });
 
     it("should use custom deductions when provided", () => {
@@ -278,10 +297,18 @@ describe("Calculator Audit Tests", () => {
       const expectedFederalTaxableIncome = asCurrency(50000 - 5000 - 2000);
       const expectedStateTaxableIncome = asCurrency(50000 - 5000 - 1000);
 
-      expect(results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome)).toBe(true);
-      expect(results.stateTaxableIncome.equalsTo(expectedStateTaxableIncome)).toBe(true);
-      expect(results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome)).toBe(true);
-      expect(results.stateTaxableIncome.equalsTo(expected.stateTaxableIncome)).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+      ).toBe(true);
+      expect(
+        results.stateTaxableIncome.equalsTo(expectedStateTaxableIncome),
+      ).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+      ).toBe(true);
+      expect(
+        results.stateTaxableIncome.equalsTo(expected.stateTaxableIncome),
+      ).toBe(true);
     });
   });
 
@@ -370,8 +397,7 @@ describe("Calculator Audit Tests", () => {
       // Oregon Paid Leave should be on gross income after IRA, not taxable income
       expect(
         (
-          results.stateResults
-            .oregon_paid_family_and_medical_leave as any
+          results.stateResults.oregon_paid_family_and_medical_leave as any
         ).equalsTo(expected.paidLeaveTax),
       ).toBe(true);
     });
@@ -412,7 +438,9 @@ describe("Calculator Audit Tests", () => {
       expect(
         (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(true);
+      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+        true,
+      );
 
       expect(
         (results.stateResults.state_income as any).equalsTo(
@@ -426,11 +454,12 @@ describe("Calculator Audit Tests", () => {
       ).toBe(true);
       expect(
         (
-          results.stateResults
-            .oregon_paid_family_and_medical_leave as any
+          results.stateResults.oregon_paid_family_and_medical_leave as any
         ).equalsTo(expected.paidLeaveTax),
       ).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(true);
+      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
+        true,
+      );
 
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
       expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
@@ -469,8 +498,12 @@ describe("Calculator Audit Tests", () => {
       expect(
         (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(true);
+      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+        true,
+      );
+      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
+        true,
+      );
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
       expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
     });
@@ -508,8 +541,12 @@ describe("Calculator Audit Tests", () => {
       expect(
         (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(true);
+      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+        true,
+      );
+      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
+        true,
+      );
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
       expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
     });
@@ -547,8 +584,12 @@ describe("Calculator Audit Tests", () => {
       expect(
         (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(true);
+      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+        true,
+      );
+      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
+        true,
+      );
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
       expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
     });
@@ -577,8 +618,12 @@ describe("Calculator Audit Tests", () => {
       expect(
         (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(true);
+      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+        true,
+      );
+      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
+        true,
+      );
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
       expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
     });
@@ -624,8 +669,12 @@ describe("Calculator Audit Tests", () => {
       expect(
         (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(true);
+      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+        true,
+      );
+      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
+        true,
+      );
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
       expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
     });
@@ -713,7 +762,9 @@ describe("Calculator Audit Tests", () => {
 
       // Federal income tax should be on reduced amount
       const expectedFederalTaxableIncome = asCurrency(100000 - 23500 - 15000);
-      expect(results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome)).toBe(true);
+      expect(
+        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+      ).toBe(true);
 
       // But FICA should be on income after IRA only (not after standard deduction)
       const incomeAfterIRA = asCurrency(100000 - 23500);
@@ -730,6 +781,368 @@ describe("Calculator Audit Tests", () => {
       ).toBe(true);
 
       expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
+    });
+  });
+
+  describe("Percentages with a zero income base", () => {
+    it("returns 0 rather than NaN when income is fully offset by IRA contributions", () => {
+      // Reachable from the UI: the 401k field has a "set to max" button, and
+      // the 2025 cap equals this income.
+      const results = calculate(
+        federal2025,
+        oregon2025,
+        23500,
+        SINGLE,
+        23500,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+
+      expect(Number.isNaN(results.takeHome.percent)).toBe(false);
+      expect(results.takeHome.percent).toBe(0);
+      expect(results.totalFederal.percent).toBe(0);
+      expect(results.totalState.percent).toBe(0);
+    });
+
+    it("guards getPercent directly", () => {
+      expect(getPercent(asCurrency(0), asCurrency(0))).toBe(0);
+      expect(getPercent(asCurrency(100), asCurrency(0))).toBe(0);
+    });
+  });
+
+  describe("Flat fee thresholds", () => {
+    it("applies Portland's Arts Tax at exactly $1,000 of gross income", () => {
+      // The $1,000 test is against gross income, not income after Oregon's
+      // standard deduction, and the rule is "$1,000 or more".
+      const below = calculate(
+        federal2025,
+        oregon2025,
+        999,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+      const atThreshold = calculate(
+        federal2025,
+        oregon2025,
+        1000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+
+      expect(below.totalCity.amount.equalsTo(asCurrency(0))).toBe(true);
+      expect(atThreshold.totalCity.amount.equalsTo(asCurrency(35))).toBe(true);
+    });
+
+    it("does not let the state standard deduction suppress the Arts Tax", () => {
+      // $3,500 gross is above $1,000 even though it is below it after
+      // Oregon's $2,835 standard deduction.
+      const results = calculate(
+        federal2025,
+        oregon2025,
+        3500,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(35))).toBe(true);
+    });
+
+    it("applies Denver's occupational privilege tax at exactly $6,000", () => {
+      const below = calculate(
+        federal2025,
+        colorado2025,
+        5999,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "colorado",
+        "denver",
+      );
+      const atThreshold = calculate(
+        federal2025,
+        colorado2025,
+        6000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "colorado",
+        "denver",
+      );
+
+      expect(below.totalCity.amount.equalsTo(asCurrency(0))).toBe(true);
+      // $5.75 a month, annualized
+      expect(atThreshold.totalCity.amount.equalsTo(asCurrency(69))).toBe(true);
+    });
+
+    it("annualizes a weekly flat fee", () => {
+      // Charleston charges $3 a week.
+      const results = calculate(
+        federal2025,
+        westVirginia2025,
+        50000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "west_virginia",
+        "charleston",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(3 * 52))).toBe(true);
+    });
+  });
+
+  describe("Portland Arts Tax, tax year 2026", () => {
+    // Ordinance 192185: $50 single / $100 filing jointly, on Oregon taxable
+    // income above $20,000 / $40,000.
+    it("charges $50 to a single filer above the taxable income threshold", () => {
+      const results = calculate(
+        federal2026,
+        oregon2026,
+        40000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(50))).toBe(true);
+    });
+
+    it("charges $100 to joint filers above their higher threshold", () => {
+      const results = calculate(
+        federal2026,
+        oregon2026,
+        80000,
+        MARRIED,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(100))).toBe(true);
+    });
+
+    it("charges nothing below the threshold", () => {
+      const results = calculate(
+        federal2026,
+        oregon2026,
+        15000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "portland",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(0))).toBe(true);
+    });
+  });
+
+  describe("asCurrency", () => {
+    it("rounds to whole cents instead of throwing", () => {
+      expect(() => asCurrency(1000.005)).not.toThrow();
+      expect(asCurrency(2.5).getAmount()).toBe(250);
+      expect(asCurrency(5.75).getAmount()).toBe(575);
+    });
+  });
+
+  describe("Wage-based taxes ignore the state standard deduction", () => {
+    it("charges Birmingham's occupational tax on gross wages", () => {
+      // Alabama municipal occupational taxes are withheld from gross wages, so
+      // Alabama's standard deduction must not shrink the base.
+      const income = 100000;
+      const results = calculate(
+        federal2025,
+        alabama2025,
+        income,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "alabama",
+        "birmingham",
+      );
+
+      // 1% of the full $100,000, not of income after the state deduction
+      expect(results.totalCity.amount.equalsTo(asCurrency(1000))).toBe(true);
+    });
+
+    it("still nets out 401k contributions before charging it", () => {
+      // Gross income here means after IRA but before deductions, the same
+      // base FICA uses.
+      const results = calculate(
+        federal2025,
+        alabama2025,
+        100000,
+        SINGLE,
+        10000,
+        undefined,
+        undefined,
+        [],
+        "alabama",
+        "birmingham",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(900))).toBe(true);
+    });
+
+    it("charges Oregon's transit tax on gross wages", () => {
+      // 0.1% of $100,000, not of income after Oregon's standard deduction
+      const results = calculate(
+        federal2025,
+        oregon2025,
+        100000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "",
+      );
+      expect(
+        (results.stateResults.oregon_transit_tax as any).equalsTo(
+          asCurrency(100),
+        ),
+      ).toBe(true);
+    });
+  });
+  describe("Eugene's payroll tax is a rate lookup, not a marginal schedule", () => {
+    // The City's rate chart says its purpose is "to obtain the rate to be
+    // applied to all subject wages paid in a pay period". Charging it
+    // marginally understated it at every income above the exempt threshold.
+    const eugene = (
+      stateData: typeof oregon2026,
+      income: number,
+      totalIRA = 0,
+    ) =>
+      calculate(
+        federal2026,
+        stateData,
+        income,
+        SINGLE,
+        totalIRA,
+        undefined,
+        undefined,
+        [],
+        "oregon",
+        "eugene",
+      ).totalCity.amount;
+
+    it("charges 0.44% of all wages once the threshold is cleared", () => {
+      // $440, not the $302.26 a marginal reading of { min: 32344 } produces
+      expect(eugene(oregon2026, 100000).equalsTo(asCurrency(440))).toBe(true);
+    });
+
+    it("charges nothing below the exempt threshold", () => {
+      expect(eugene(oregon2026, 32343).equalsTo(asCurrency(0))).toBe(true);
+    });
+
+    it("charges the full rate at exactly the threshold", () => {
+      // The chart reads "equal to or more than $32,344", so the band is
+      // inclusive at its floor.
+      expect(
+        eugene(oregon2026, 32344).equalsTo(asCurrency(32344 * 0.0044)),
+      ).toBe(true);
+    });
+
+    it("uses the reduced 0.30% band in years that still had one", () => {
+      // 2023 chart: at least $29,557 but less than $31,221 pays 0.30% on all
+      // wages. $30,000 x 0.003 = $90.
+      expect(
+        calculate(
+          federal2025,
+          oregon2023,
+          30000,
+          SINGLE,
+          0,
+          undefined,
+          undefined,
+          [],
+          "oregon",
+          "eugene",
+        ).totalCity.amount.equalsTo(asCurrency(90)),
+      ).toBe(true);
+    });
+
+    it("looks the rate up after 401k contributions, not before", () => {
+      // Subject wages are gross wages after pre-tax deductions, so a big
+      // deferral can drop the employee below the exempt threshold entirely.
+      expect(eugene(oregon2026, 40000, 8000).equalsTo(asCurrency(0))).toBe(
+        true,
+      );
+    });
+  });
+
+  describe("City taxes levied on wages rather than state taxable income", () => {
+    it("charges the Kansas City earnings tax on gross wages", () => {
+      // RSMo 92.111(2)(1) levies it on "salaries, wages, commissions and other
+      // compensation". Missouri's standard deduction tracks the federal one, so
+      // charging it on taxable income understated this by $161 at any income.
+      const results = calculate(
+        federal2026,
+        missouri2026,
+        100000,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "missouri",
+        "kansas_city",
+      );
+      expect(results.totalCity.amount.equalsTo(asCurrency(1000))).toBe(true);
+    });
+
+    it("leaves Yonkers on state taxable income", () => {
+      // The counter-case the per-schedule basis exists for: `city_income`
+      // covers both kinds, and New York's does start after the deduction.
+      const income = 100000;
+      const deduction = (newYork2026[STANDARD_DEDUCTION] as any)[SINGLE];
+      const results = calculate(
+        federal2026,
+        newYork2026,
+        income,
+        SINGLE,
+        0,
+        undefined,
+        undefined,
+        [],
+        "new_york",
+        "yonkers",
+      );
+      expect(
+        (results.stateResults.cities as any).city_income.equalsTo(
+          asCurrency((income - deduction) * 0.005),
+        ),
+      ).toBe(true);
     });
   });
 });

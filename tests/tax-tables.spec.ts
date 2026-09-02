@@ -72,9 +72,42 @@ test("expected values are displayed for portland specific tax", async ({
   await portlandOption.click();
   await page.waitForTimeout(500);
 
+  // The threshold is part of the answer: this fee only applies at $1,000+.
   await expect(
     page.locator("tr#portland_art_tax_row_0").locator("td").nth(2),
-  ).toHaveText("Fixed $35");
+  ).toHaveText("$35 at $1,000+");
+});
+
+test("per-period city fees are shown annualized", async ({ page }) => {
+  // Denver's occupational privilege tax is $5.75 a month. The table used to
+  // print the raw amount, disagreeing with the calculator by a factor of 12.
+  await page.goto("/tax-tables", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1000);
+
+  await page.getByTestId("tax-year-select").locator("input").fill("2023");
+  await page.waitForTimeout(500);
+
+  await page.fill("input#state-select", "Colorado");
+  await page.waitForTimeout(500);
+
+  await page.fill("input#city-select", "Denver");
+  await page.waitForTimeout(500);
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
+
+  await page.getByTestId("tax-options-select").click({ force: true });
+  await page.waitForTimeout(1000);
+  const denverOption = page
+    .getByRole("option")
+    .filter({ hasText: "Denver Occupational Privilege" });
+  await denverOption.waitFor({ state: "visible", timeout: 10000 });
+  await denverOption.click();
+  await page.waitForTimeout(500);
+
+  await expect(
+    page.locator("tr#denver_occupational_privilege_row_0").locator("td").nth(2),
+  ).toHaveText("$69/yr ($5.75 monthly) at $6,000+");
 });
 
 test("multiple tables displayed for multiple tax types", async ({ page }) => {

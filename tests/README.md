@@ -32,8 +32,11 @@ The Playwright configuration is defined in `playwright.config.ts`:
 
 - **Base URL**: `http://127.0.0.1:3001`
 - **Test Pattern**: `**/*.spec.ts` (excludes `.test.ts` files in `unit/`)
-- **Web Server**: Automatically starts Next.js dev server in test mode before running tests
-- **Browsers**: 
+- **Web Server**: Started automatically. Locally this is the Next.js dev
+  server (`npm run dev:test`), reusing one already running if there is one. On
+  CI (`CI=1`) it serves the built static export instead (`npm run start:test`),
+  so the suite tests what actually ships rather than a dev build
+- **Browsers**:
   - Desktop Chrome (Chromium)
   - Mobile Chrome (Pixel 5)
 - **CI Settings**: Runs serially with 2 retries on CI, parallel locally
@@ -52,6 +55,7 @@ Tests the main calculator functionality:
 - ✅ Proper result rendering and formatting
 
 **Key Test Pattern:**
+
 ```typescript
 // Set year first to avoid defaulting to current year
 await page.getByTestId("tax-year-select").locator("input").fill("2023");
@@ -60,8 +64,9 @@ await page.fill("input#city-select", "Portland");
 await page.fill("input#total-income", "100000");
 
 // Verify calculated result
-await expect(page.getByTestId("total-take-home-amount"))
-  .toHaveText("$69,136.03");
+await expect(page.getByTestId("total-take-home-amount")).toHaveText(
+  "$69,136.03",
+);
 ```
 
 ### `nav.spec.ts`
@@ -74,6 +79,7 @@ Tests navigation between pages:
 - ✅ Navigation between: Calculator ↔ Tax Tables ↔ Support
 
 **Test Coverage:**
+
 - Opens nav drawer with `button#open-nav-drawer`
 - Clicks navigation buttons/links
 - Verifies URL changes and page content
@@ -83,6 +89,7 @@ Tests navigation between pages:
 Tests URL routing, query parameters, and browser history:
 
 #### Calculator Routing Tests
+
 - ✅ Income changes update `?income=` query param (using `replaceState`, not added to history)
 - ✅ Year changes update path (`/2024`, `/2023`, `/` for current year)
 - ✅ State/city selections create proper URLs (`/2024/oregon/portland`)
@@ -92,6 +99,7 @@ Tests URL routing, query parameters, and browser history:
 - ✅ Browser back/forward navigation works correctly
 
 #### Tax Tables Routing Tests
+
 - ✅ Year changes update path (`/tax-tables/2024`)
 - ✅ State and city selections update URL
 - ✅ Tax type selections show as `?tables=` query param (dash-cased)
@@ -100,6 +108,7 @@ Tests URL routing, query parameters, and browser history:
 - ✅ Clearing state removes state from path but keeps year and tables param
 
 **Example URL Patterns:**
+
 ```
 /                              # Current year, no location
 /2024                          # Specific year
@@ -121,6 +130,7 @@ Tests the tax tables page:
 - ✅ Tax deduction data display (Standard Federal Deductions)
 
 **Key Interaction Pattern:**
+
 ```typescript
 // Select year
 await page.getByTestId("tax-year-select").locator("input").fill("2023");
@@ -135,7 +145,7 @@ await page.getByRole("option").filter({ hasText: "Portland Art Tax" }).click();
 
 // Verify table content
 await expect(
-  page.locator("tr#portland_art_tax_row_0").locator("td").nth(2)
+  page.locator("tr#portland_art_tax_row_0").locator("td").nth(2),
 ).toHaveText("Fixed $35");
 ```
 
@@ -146,8 +156,8 @@ await expect(
 Tests use strategic waits to ensure UI has updated:
 
 ```typescript
-await page.waitForTimeout(500);  // Brief wait for UI update
-await page.waitForURL("**/2024/**");  // Wait for navigation
+await page.waitForTimeout(500); // Brief wait for UI update
+await page.waitForURL("**/2024/**"); // Wait for navigation
 await page.waitForSelector('[data-testid="total-take-home-amount"]', {
   state: "visible",
 });
@@ -174,7 +184,10 @@ await page.locator("input#tax-options-select").click({ force: true });
 await page.keyboard.type("Oregon");
 
 // Select from filtered results
-await page.getByRole("option").filter({ hasText: "Oregon State Income" }).click();
+await page
+  .getByRole("option")
+  .filter({ hasText: "Oregon State Income" })
+  .click();
 ```
 
 ## Best Practices
@@ -224,6 +237,7 @@ npx playwright test --debug
 ## CI/CD Considerations
 
 On CI environments:
+
 - Tests run serially (`workers: 1`) to avoid resource contention
 - 2 retries for flaky tests (`retries: 2`)
 - Only Chromium and Mobile Chrome run (Firefox/Safari commented out for speed)
