@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import mixpanel from "mixpanel-browser";
+import { useCallback, useContext, useMemo, useState } from "react";
 import Box from "@mui/material/Box";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
@@ -37,15 +36,7 @@ import Footer from "./Footer";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { ColorModeContext } from "@/context/color-mode";
-import {
-  EVENTS,
-  isTrackingEnabled,
-  sendAnalyticsEvent,
-  setPageName,
-  setTrackingEnabled,
-} from "@/utils/analytics";
 import type { NavPage } from "@/types";
-import { trackUserTimeOnPage } from "@/utils/user-time-on-page-event";
 
 const drawerWidth = 240;
 
@@ -56,30 +47,6 @@ export default function Wrapper({
   children: ReactNode;
   title: string;
 }) {
-  useEffect(() => {
-    const isDev = process.env.NODE_ENV === "development";
-    const isDisabled = process.env.NEXT_PUBLIC_DISABLE_ANALYTICS === "true";
-    if (!isDisabled) {
-      // GDPR-compliant configuration: no IP tracking, no PII
-      mixpanel.init(process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || "", {
-        ip: false, // Don't collect IP addresses
-        debug: isDev,
-        track_pageview: false, // We manually track pageviews
-        persistence: "localStorage",
-        ignore_dnt: false, // Respect Do Not Track browser setting
-        // Blacklist properties that could contain PII (income in URL params)
-        property_blacklist: [
-          "$current_url", // URLs may contain ?income= parameter
-          "$referrer", // Referrer URLs may contain income if shared
-        ],
-      });
-      setPageName(title);
-      if (!isTrackingEnabled() && typeof window !== "undefined") {
-        setTrackingEnabled();
-      }
-    }
-  }, [title]);
-
   const [open, setOpen] = useState(false);
   const colorMode = useContext(ColorModeContext);
   const theme = useTheme();
@@ -128,10 +95,6 @@ export default function Wrapper({
     ],
     [title],
   );
-
-  useEffect(() => {
-    trackUserTimeOnPage(title);
-  }, [title]);
 
   return (
     <>
@@ -201,13 +164,6 @@ export default function Wrapper({
                   key={name}
                   disablePadding
                   component={Link}
-                  onClick={() => {
-                    if (!selected) {
-                      sendAnalyticsEvent(EVENTS.NAV_CLICK, route, {
-                        nav_destination: name,
-                      });
-                    }
-                  }}
                   href={selected ? "" : route}
                   sx={{
                     textDecoration: "none",

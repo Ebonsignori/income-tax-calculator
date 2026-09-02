@@ -4,7 +4,6 @@ import MuiLink from "@mui/material/Link";
 import { Box, Divider } from "@mui/material";
 import type { NavPage } from "@/types";
 import Link from "next/link";
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { SupportButton } from "./SupportButton";
 
 type FooterProps = {
@@ -62,17 +61,7 @@ export default function Footer({ pages }: FooterProps) {
       >
         {visiblePages.map(({ name, route }) => (
           <Box key={route} component="span" sx={{ whiteSpace: "nowrap" }}>
-            <MuiLink
-              color="inherit"
-              component={Link}
-              href={route}
-              onClick={() =>
-                sendAnalyticsEvent(EVENTS.LINK_CLICK, route, {
-                  link_text: name,
-                  is_external: false,
-                })
-              }
-            >
+            <MuiLink color="inherit" component={Link} href={route}>
               {name}
             </MuiLink>
             <Box component="span" sx={{ mx: 1.5 }}>
@@ -86,16 +75,6 @@ export default function Footer({ pages }: FooterProps) {
             href={process.env.NEXT_PUBLIC_REPO}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() =>
-              sendAnalyticsEvent(
-                EVENTS.LINK_CLICK,
-                process.env.NEXT_PUBLIC_REPO || "",
-                {
-                  link_text: "Open Source",
-                  is_external: true,
-                },
-              )
-            }
           >
             Open Source
           </MuiLink>
@@ -103,17 +82,7 @@ export default function Footer({ pages }: FooterProps) {
       </Typography>
       <Typography variant="body2" color="text.secondary">
         {"Copyright © "}
-        <MuiLink
-          color="inherit"
-          component={Link}
-          href="https://evan.bio/"
-          onClick={() =>
-            sendAnalyticsEvent(EVENTS.LINK_CLICK, "https://evan.bio/", {
-              link_text: "Evan Bonsignori",
-              is_external: true,
-            })
-          }
-        >
+        <MuiLink color="inherit" component={Link} href="https://evan.bio/">
           Evan Bonsignori
         </MuiLink>{" "}
         {new Date().getFullYear()}

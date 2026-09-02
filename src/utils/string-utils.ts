@@ -26,7 +26,3 @@ export function snakeToDashCase(str: string): string {
 export function dashToSnakeCase(str: string): string {
   return str.replace(/-/g, "_");
 }
-
-export function yearDisplay(year: string) {
-  return year;
-}

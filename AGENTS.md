@@ -12,7 +12,6 @@ This is a **Next.js 14** income tax calculator for the United States with:
 - Next.js 14 (App Router), TypeScript, Material-UI
 - Testing: Playwright (e2e) + Vitest (unit)
 - Deployment: Netlify (https://income-tax.org)
-- Analytics: Mixpanel (production + development tokens in env files)
 
 ## Development Workflow
 
@@ -31,9 +30,6 @@ All imports use `@/` to reference `src/`, e.g., `import { CITIES } from "@/const
 ### Environment Variables
 
 - `.env` - Base config (app URL, repo links)
-- `.env.development` - Dev Mixpanel token
-- `.env.production` - Production Mixpanel token  
-- `.env.test` - Disables analytics for tests
 
 ## Tax Data
 
@@ -116,7 +112,7 @@ npm run test:e2e               # Run all e2e tests
 npm run test:e2e:ui            # Interactive UI mode
 ```
 
-**Important:** E2E tests run against `localhost:3001` in test mode with analytics disabled.
+**Important:** E2E tests run against `localhost:3001` in test mode.
 
 See [tests/README.md](./tests/README.md) for test patterns and examples.
 

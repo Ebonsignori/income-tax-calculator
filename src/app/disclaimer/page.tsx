@@ -2,13 +2,13 @@ import Wrapper from "@/components/Wrapper";
 import { DISCLAIMER } from "@/constants/pages";
 import { Container, Typography, Box } from "@mui/material";
 import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
-import { initEventTracking } from "@/utils/analytics";
+
+// Update this whenever the disclaimer text below changes. It is deliberately a
+// constant: this page is statically exported, so `new Date()` here would freeze
+// at build time and report every deploy as a change to the disclaimer.
+const LAST_UPDATED = "December 20, 2025";
 
 export default function Disclaimer() {
-  initEventTracking({
-    selected_year: new Date().getFullYear().toString(),
-  });
-
   return (
     <Wrapper title={DISCLAIMER.name}>
       <Container maxWidth="md">
@@ -116,12 +116,7 @@ export default function Disclaimer() {
           }}
         >
           <Typography variant="body2" fontStyle="italic">
-            Last updated:{" "}
-            {new Date().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            Last updated: {LAST_UPDATED}
           </Typography>
         </Box>
       </Container>
@@ -132,8 +127,6 @@ export default function Disclaimer() {
 export async function generateMetadata() {
   return {
     title: "Disclaimer - Income Tax Calculator",
-    description:
-      "Important disclaimer about the use of this income tax calculator. This tool provides estimates for informational purposes only and should not be used for legal or tax filing purposes.",
     ...defaultMetadata,
     ...getPageSpecificMetadata(DISCLAIMER.name),
   };

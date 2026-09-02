@@ -1,13 +1,10 @@
 "use client";
 
-import { EVENTS, sendAnalyticsEvent } from "@/utils/analytics";
 import { Box, Typography, Button } from "@mui/material";
 import Link from "next/link";
 
 export function NotFoundPage() {
   const href = "/";
-  const onClick = () =>
-    sendAnalyticsEvent(EVENTS.RETURN_TO_LINK_404, window?.location?.href);
 
   return (
     <Box
@@ -31,7 +28,6 @@ export function NotFoundPage() {
         }}
         variant="contained"
         component={Link}
-        onClick={onClick}
         href={href}
       >
         Return Home

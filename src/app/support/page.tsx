@@ -3,7 +3,6 @@ import { SUPPORT } from "@/constants/pages";
 import { Container, Typography } from "@mui/material";
 import { ArrowRightOutlined } from "@mui/icons-material";
 import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
-import { initEventTracking } from "@/utils/analytics";
 import { SupportButton } from "@/components/SupportButton";
 
 function SupportItem({ text, sx }: { text: string; sx?: object }) {
@@ -32,10 +31,6 @@ function SupportItem({ text, sx }: { text: string; sx?: object }) {
 }
 
 export default function Support() {
-  initEventTracking({
-    selected_year: new Date().getFullYear().toString(),
-  });
-
   return (
     <Wrapper title={SUPPORT.name}>
       <Typography variant="h2" textAlign="center">

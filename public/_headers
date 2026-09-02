@@ -3,8 +3,6 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
-  Link: <https://api.mixpanel.com>; rel=preconnect
-  Link: <https://cdn.mxpnl.com>; rel=preconnect; crossorigin
 
 # Cache static assets for 1 year
 /icon-*.png
