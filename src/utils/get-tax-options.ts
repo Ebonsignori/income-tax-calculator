@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { snakeToTitleCase } from "./string-utils";
+import { cityTaxKey, snakeToTitleCase } from "./string-utils";
 import {
   MAX_401K_CONTRIBUTION,
   STANDARD_DEDUCTION,
@@ -61,7 +61,7 @@ export function useGetTaxOptions({
         if (USACity && cityTaxes) {
           for (const cityTaxType of Object.keys(cityTaxes)) {
             cities.push({
-              title: snakeToTitleCase(`${USACity}_${cityTaxType}`),
+              title: snakeToTitleCase(cityTaxKey(USACity, cityTaxType)),
               value: cityTaxType,
               disabled: false,
             });

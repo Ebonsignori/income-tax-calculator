@@ -39,6 +39,24 @@ import { MONTHLY } from "@/constants/paycheck-frequency";
 import { updateURL, getQueryParams } from "@/utils/base-path";
 import { useUrlSelectionOnPopState } from "@/utils/url-selection";
 
+/**
+ * The income slider is cube-root scaled so the low end, where most incomes
+ * sit, gets most of the travel. 215 cubed is a little under $10M.
+ */
+const SLIDER_MAX = 215;
+
+function sliderToIncome(sliderValue: number): number {
+  return Math.round(Math.pow(sliderValue, 3));
+}
+
+function incomeToSlider(income: number): number {
+  return Math.cbrt(income);
+}
+
+const INCOME_SLIDER_MARKS = [50_000, 100_000, 250_000, 1_000_000].map(
+  (income) => ({ value: incomeToSlider(income) }),
+);
+
 /** `?income=` is user input; anything not a positive integer is ignored. */
 function parseIncomeParam(value: string | null): number | null {
   if (!value) {
@@ -214,12 +232,17 @@ export default function Home({
         if (typeof newValue !== "undefined" && newValue !== null) {
           value = newValue;
         }
-        if (!value) {
+        if (!value || (typeof value === "string" && !/[0-9]/.test(value))) {
           setterFunction(0);
           return;
         }
+        // The income field renders with thousands separators, so strip
+        // anything that is not a digit before parsing -- parseInt("75,000")
+        // would otherwise yield 75.
         const numberValue =
-          typeof value === "number" ? value : parseInt(value, 10);
+          typeof value === "number"
+            ? value
+            : parseInt(value.replace(/[^0-9]/g, ""), 10);
         if (!isNaN(numberValue)) {
           // Nothing here is meaningful below zero, and a negative income
           // otherwise flows through to a negative take-home figure.
@@ -231,8 +254,10 @@ export default function Home({
   );
 
   const max401KContributionDisplay = useMemo(() => {
-    return totalIRA === max401KContribution ? `Max 401K contribution` : " ";
-  }, [totalIRA, max401KContribution]);
+    return totalIRA === max401KContribution
+      ? `Max 401(k) contribution for ${year}`
+      : " ";
+  }, [totalIRA, max401KContribution, year]);
 
   const standardStateDeductionDisplay = useMemo(() => {
     return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions &&
@@ -279,15 +304,28 @@ export default function Home({
 
   return (
     <>
-      <Grid container spacing={2} sx={{ mb: 2 }} component="main">
+      {/*
+        Capped independently of the page container: the container widened so
+        the breakdown can use a large screen, but a 600px-wide text field is
+        harder to use, not easier.
+      */}
+      <Grid container spacing={2} sx={{ mb: 2, maxWidth: 900, mx: "auto" }}>
         <Grid xs={12} sm={6} md={6}>
           <Box>
             <FormControl fullWidth>
               <InputLabel htmlFor="total-income">Total Income</InputLabel>
               <OutlinedInput
                 id="total-income"
-                type="number"
-                value={totalIncome}
+                // Not type="number": that forbids the thousands separators
+                // that every figure this page outputs uses, and makes a stray
+                // scroll over a focused field silently change the income.
+                type="text"
+                inputProps={{
+                  inputMode: "numeric",
+                  autoComplete: "off",
+                }}
+                placeholder="75,000"
+                value={totalIncome ? totalIncome.toLocaleString("en-US") : ""}
                 onChange={handleNumberChange(setTotalIncome)}
                 startAdornment={
                   <InputAdornment position="start">$</InputAdornment>
@@ -298,15 +336,32 @@ export default function Home({
             <Box display="flex" justifyContent="center">
               <Slider
                 aria-label="Total Income"
-                value={Math.cbrt(totalIncome)}
-                min={1}
+                value={incomeToSlider(totalIncome)}
+                min={0}
                 step={1}
-                max={215}
+                max={SLIDER_MAX}
+                marks={INCOME_SLIDER_MARKS}
+                valueLabelDisplay="auto"
+                // Without this the cube-root scale is what gets announced --
+                // "49" for a $120,000 income.
+                getAriaValueText={(value) =>
+                  sliderToIncome(value).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    maximumFractionDigits: 0,
+                  })
+                }
+                valueLabelFormat={(value) =>
+                  sliderToIncome(value).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    maximumFractionDigits: 0,
+                  })
+                }
                 sx={{ padding: "0 !important", width: "80%", mt: 1.5 }}
                 onChange={(event: Event, newValue: number | number[]) => {
                   if (typeof newValue === "number") {
-                    const newIncome = Math.round(Math.pow(newValue, 3));
-                    setTotalIncome(newIncome);
+                    setTotalIncome(sliderToIncome(newValue));
                   }
                 }}
               />
@@ -367,6 +422,7 @@ export default function Home({
         </Grid>
         <Grid xs={12} sm={6} md={6}>
           <TaxOptionsSelect
+            id="tax-exemptions-select"
             label="Tax Exemptions"
             taxOptions={taxOptions}
             selectedTaxOptions={exemptTaxes}
@@ -374,7 +430,7 @@ export default function Home({
           />
         </Grid>
         <Grid xs={12} sx={{ mt: 2 }}>
-          <Accordion sx={{ border: 1 }}>
+          <Accordion variant="outlined" disableGutters>
             <AccordionSummary
               expandIcon={<ArrowDownwardIcon />}
               id="deductions-header"
@@ -387,17 +443,19 @@ export default function Home({
                 <Grid xs={12} sm={12} md={4}>
                   <FormControl fullWidth sx={{ mt: 2 }}>
                     <TextField
-                      id="401k-ira-contributions"
-                      label="401k/IRA Contributions"
-                      type="number"
+                      id="ira-401k-contributions"
+                      label="401(k) / IRA Contributions"
+                      type="text"
                       helperText={max401KContributionDisplay}
                       FormHelperTextProps={{
-                        id: "401k-helper-text",
+                        id: "ira-401k-helper-text",
                       }}
                       inputProps={{
-                        "aria-describedby": "401k-helper-text",
+                        inputMode: "numeric",
+                        autoComplete: "off",
+                        "aria-describedby": "ira-401k-helper-text",
                       }}
-                      value={totalIRA}
+                      value={totalIRA ? totalIRA.toLocaleString("en-US") : ""}
                       onChange={handleNumberChange(setTotalIRA)}
                       onBlur={validateAll}
                       InputProps={{
@@ -429,18 +487,20 @@ export default function Home({
                     <TextField
                       id="total-federal-deductions"
                       label="Total Federal Deductions"
-                      type="number"
+                      type="text"
                       helperText={standardFederalDeductionDisplay}
                       FormHelperTextProps={{
                         id: "federal-deductions-helper-text",
                       }}
                       inputProps={{
+                        inputMode: "numeric",
+                        autoComplete: "off",
                         "aria-describedby": "federal-deductions-helper-text",
                       }}
                       value={
-                        typeof totalFederalDeductions === "undefined"
-                          ? 0
-                          : totalFederalDeductions
+                        totalFederalDeductions
+                          ? totalFederalDeductions.toLocaleString("en-US")
+                          : ""
                       }
                       onChange={handleNumberChange(setTotalFederalDeductions)}
                       InputProps={{
@@ -478,18 +538,20 @@ export default function Home({
                     <TextField
                       id="total-state-deductions"
                       label="Total State Deductions"
-                      type="number"
+                      type="text"
                       helperText={standardStateDeductionDisplay}
                       FormHelperTextProps={{
                         id: "state-deductions-helper-text",
                       }}
                       inputProps={{
+                        inputMode: "numeric",
+                        autoComplete: "off",
                         "aria-describedby": "state-deductions-helper-text",
                       }}
                       value={
-                        typeof totalStateDeductions === "undefined"
-                          ? 0
-                          : totalStateDeductions
+                        totalStateDeductions
+                          ? totalStateDeductions.toLocaleString("en-US")
+                          : ""
                       }
                       onChange={handleNumberChange(setTotalStateDeductions)}
                       InputProps={{

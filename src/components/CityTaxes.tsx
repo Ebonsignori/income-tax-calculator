@@ -194,7 +194,8 @@ export default function CityTaxes({
         Explore U.S. cities that impose local income taxes and view their tax
         structures.
       </Typography>
-      <Box sx={{ mb: 3 }}>
+      {/* A four-option dropdown does not need the full page width. */}
+      <Box sx={{ mb: 3, maxWidth: 220 }}>
         <YearSelect
           availableYears={availableYears}
           year={year}

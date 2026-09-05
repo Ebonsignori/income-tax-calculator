@@ -3,6 +3,7 @@ import {
   capitalizeFirstLetter,
   dashToSnakeCase,
   snakeToDashCase,
+  cityTaxKey,
   snakeToTitleCase,
   toSnakeCase,
 } from "@/utils/string-utils";
@@ -25,6 +26,20 @@ describe("string-utils", () => {
       expect(snakeToTitleCase("max_401k_contribution")).toBe(
         "Max 401k Contribution",
       );
+    });
+
+    it("keeps small words lowercase inside the title", () => {
+      expect(snakeToTitleCase("head_of_household")).toBe("Head of Household");
+      expect(snakeToTitleCase("district_of_columbia")).toBe(
+        "District of Columbia",
+      );
+      expect(snakeToTitleCase("oregon_paid_family_and_medical_leave")).toBe(
+        "Oregon Paid Family and Medical Leave",
+      );
+    });
+
+    it("capitalizes a small word when it leads", () => {
+      expect(snakeToTitleCase("of_counsel")).toBe("Of Counsel");
     });
   });
 
@@ -59,6 +74,26 @@ describe("string-utils", () => {
 
     it("tolerates an empty string", () => {
       expect(capitalizeFirstLetter("")).toBe("");
+    });
+  });
+
+  describe("cityTaxKey", () => {
+    it("does not double the word when the tax type is city-prefixed", () => {
+      expect(snakeToTitleCase(cityTaxKey("kansas_city", "city_income"))).toBe(
+        "Kansas City Income",
+      );
+    });
+
+    it("leaves a tax type that is not city-prefixed alone", () => {
+      expect(snakeToTitleCase(cityTaxKey("portland", "art_tax"))).toBe(
+        "Portland Art Tax",
+      );
+    });
+
+    it("only strips a leading city_ prefix", () => {
+      expect(cityTaxKey("denver", "occupational_privilege")).toBe(
+        "denver_occupational_privilege",
+      );
     });
   });
 });

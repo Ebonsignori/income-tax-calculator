@@ -41,16 +41,21 @@ export function CitySelect({
   }, [availableStatesAndCities, USAState]);
 
   if (!cityOptions) {
+    // Before a state is chosen there is nothing to make a claim about; saying
+    // "no specific city taxes" there reads as a statement about a state the
+    // user has not picked yet.
+    const message = USAState
+      ? "No specific city taxes"
+      : "Select a state first";
     return (
       <TextField
         fullWidth
         label="City"
         variant="standard"
         disabled={true}
-        value="No Specific City Taxes"
+        value={message}
         inputProps={{
-          "aria-label":
-            "City - No specific city taxes available for selected state",
+          "aria-label": `City - ${message}`,
         }}
       />
     );

@@ -7,6 +7,8 @@ export type TaxDataSelectOption = {
 
 type TaxDataSelectProps = {
   label: string;
+  /** Explicit so a label rename cannot silently change the DOM id. */
+  id: string;
   taxData: TaxDataSelectOption[];
   selectedTaxData: TaxDataSelectOption[];
   setSelectedTaxData: (val: TaxDataSelectOption[]) => void;
@@ -15,6 +17,7 @@ type TaxDataSelectProps = {
 
 export function TaxDataSelect({
   label,
+  id,
   taxData,
   selectedTaxData,
   setSelectedTaxData,
@@ -23,7 +26,7 @@ export function TaxDataSelect({
   return (
     <Autocomplete
       data-testid={dataTestId}
-      id={`${label.toLowerCase().replace(/\s+/g, "-")}-select`}
+      id={id}
       multiple
       isOptionEqualToValue={(option, value) => {
         return option.title === value.title;

@@ -4,6 +4,8 @@ import { Autocomplete, Chip, TextField } from "@mui/material";
 
 type TaxOptionsSelectProps = {
   label: string;
+  /** Explicit so a label rename cannot silently change the DOM id. */
+  id: string;
   taxOptions: TaxOption[];
   selectedTaxOptions: TaxOption[];
   setSelectedTaxOptions: (val: TaxOption[]) => void;
@@ -12,6 +14,7 @@ type TaxOptionsSelectProps = {
 
 export function TaxOptionsSelect({
   label,
+  id,
   taxOptions,
   selectedTaxOptions,
   setSelectedTaxOptions,
@@ -20,7 +23,7 @@ export function TaxOptionsSelect({
   return (
     <Autocomplete
       data-testid={dataTestId}
-      id={`${label.toLowerCase().replace(/\s+/g, "-")}-select`}
+      id={id}
       multiple
       disableCloseOnSelect
       isOptionEqualToValue={(option, value) => {

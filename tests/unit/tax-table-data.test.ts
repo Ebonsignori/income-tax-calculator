@@ -42,7 +42,7 @@ describe("tableDataFromTaxData", () => {
       "Single",
       "Married",
       "Married Separately",
-      "Head Of Household",
+      "Head of Household",
     ]);
     expect(everyRowMatchesHeaderCount(table)).toBe(true);
 
@@ -60,7 +60,7 @@ describe("tableDataFromTaxData", () => {
       "Single",
       "Married",
       "Married Separately",
-      "Head Of Household",
+      "Head of Household",
     ]);
     const [, single, married] = table.rows[1];
     expect(single).toBe(married);

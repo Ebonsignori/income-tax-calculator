@@ -24,6 +24,7 @@ import { CITIES } from "@/constants";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
 import {
+  cityTaxKey,
   dashToSnakeCase,
   snakeToDashCase,
   snakeToTitleCase,
@@ -36,7 +37,7 @@ import {
   standardDeductionMapToTable,
   tableDataFromTaxData,
 } from "@/utils/tax-table-data";
-import { STATE_INCOME } from "@/constants/tax_types";
+import { FEDERAL_INCOME, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxDataSelectOption } from "./input/TaxDataSelect";
 import { TaxDataSelect } from "./input/TaxDataSelect";
 import { getQueryParams, updateURL } from "@/utils/base-path";
@@ -276,7 +277,7 @@ export default function TaxTables({
       if (stateTaxes?.[CITIES]?.[USACity]?.[tax]) {
         tables.push(
           tableDataFromTaxData(
-            `${USACity}_${tax}`,
+            cityTaxKey(USACity, tax),
             stateTaxes[CITIES][USACity][tax],
           ),
         );
@@ -324,9 +325,24 @@ export default function TaxTables({
     USAState,
   ]);
 
-  const tables = useMemo(() => {
-    return taxTables.concat(taxDataTables);
-  }, [taxTables, taxDataTables]);
+  const { tables, isShowingDefault } = useMemo(() => {
+    const selected = taxTables.concat(taxDataTables);
+    if (selected.length > 0) {
+      return { tables: selected, isShowingDefault: false };
+    }
+    // With nothing selected this page rendered four empty inputs and a
+    // footer. Federal income brackets exist for every year, so show those
+    // rather than nothing -- it is what most visitors came for, and an empty
+    // page is a poor landing for a route whose purpose is reference content.
+    const federalIncome = federalTaxes?.[FEDERAL_INCOME];
+    if (federalIncome) {
+      return {
+        tables: [tableDataFromTaxData(FEDERAL_INCOME, federalIncome)],
+        isShowingDefault: true,
+      };
+    }
+    return { tables: selected, isShowingDefault: false };
+  }, [taxTables, taxDataTables, federalTaxes]);
 
   return (
     <>
@@ -368,7 +384,8 @@ export default function TaxTables({
         <Grid item xs={13} sm={6.5}>
           <TaxOptionsSelect
             data-testid="tax-options-select"
-            label="Tax Tables to Display"
+            id="tax-options-select"
+            label="Tax rates & brackets"
             taxOptions={taxOptions}
             selectedTaxOptions={selectedTaxes}
             setSelectedTaxOptions={setSelectedTaxes}
@@ -377,13 +394,22 @@ export default function TaxTables({
         <Grid item xs={13} sm={6.5}>
           <TaxDataSelect
             data-testid="tax-data-select"
-            label="Tax Data to Display"
+            id="tax-data-select"
+            label="Deductions & limits"
             taxData={taxDataOptions}
             selectedTaxData={selectedTaxData}
             setSelectedTaxData={setSelectedTaxData}
           />
         </Grid>
         <Grid container spacing={2} columns={12} sx={{ mt: 3 }}>
+          {isShowingDefault ? (
+            <Grid item xs={12}>
+              <Typography variant="body2" color="text.secondary">
+                Showing federal income tax brackets. Pick a state, or choose
+                from the menus above, to see more.
+              </Typography>
+            </Grid>
+          ) : null}
           {tables.map((table, index) => (
             <Grid item xs={12} key={index}>
               {RenderTable(table)}
