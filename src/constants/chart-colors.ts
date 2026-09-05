@@ -15,18 +15,22 @@
 // Segments are drawn in descending size order, so the earliest entries are the
 // ones most often on screen. Green sits at the end: take-home is green, and a
 // green tax segment next to it reads as part of the same quantity.
+//
+// Every entry clears 3:1 against white, WCAG's non-text minimum. Only index 7
+// cannot also clear it against the dark surface, which is what the override
+// below is for.
 export const CHART_COLORS = [
   "#3d7ea6", // blue
-  "#e07a5f", // terracotta (theme secondary)
+  "#df765b", // terracotta
   "#7a63a8", // violet
-  "#c9a227", // ochre
+  "#b28f22", // ochre
   "#b5546f", // rose
   "#2f9c95", // teal
   "#a8623a", // burnt orange
   "#20486b", // navy -- darker and far less cyan than the blue above
   "#b5449b", // magenta
   "#6b8f3a", // olive
-  "#d4877a", // salmon
+  "#d17e70", // salmon
   "#5c9e6e", // green
 ] as const;
 

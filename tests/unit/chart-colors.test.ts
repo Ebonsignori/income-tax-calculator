@@ -53,15 +53,12 @@ describe("chart colors", () => {
     expect(getSegmentColor(CHART_COLORS.length + 3)).toBe(CHART_COLORS[3]);
   });
 
-  it("keeps most of the palette usable on the light surface", () => {
-    // Not all twelve can clear 3:1 on both surfaces at once, so this guards
-    // the light surface loosely -- every segment is labelled with its name and
-    // amount, so color is reinforcement rather than the only channel.
+  it("stays legible on the light surface, which the OG images use", () => {
     for (const color of CHART_COLORS) {
       expect(
         contrast(color, LIGHT_SURFACE),
         `${color} on the light surface`,
-      ).toBeGreaterThanOrEqual(2.3);
+      ).toBeGreaterThanOrEqual(3);
     }
   });
 });
