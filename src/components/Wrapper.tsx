@@ -13,6 +13,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Button from "@mui/material/Button";
 import { Container, SwipeableDrawer, Tooltip, useTheme } from "@mui/material";
 import {
   SUPPORT,
@@ -98,7 +99,8 @@ export default function Wrapper({
 
   return (
     <>
-      <Box sx={{ display: "flex" }} component="nav">
+      <SkipLink />
+      <Box sx={{ display: "flex" }}>
         <AppBar
           position="fixed"
           color="primary"
@@ -112,13 +114,40 @@ export default function Wrapper({
               aria-label="open nav drawer"
               edge="start"
               onClick={open ? toggleDrawer(false) : toggleDrawer(true)}
-              sx={{ mr: 2 }}
+              sx={{ mr: 2, display: { xs: "inline-flex", md: "none" } }}
             >
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap sx={{ flexGrow: 1 }} component="h1">
               {title}
             </Typography>
+            {/*
+              Five links fit comfortably on a desktop toolbar; hiding them
+              behind a hamburger there costs a click for no space saved.
+            */}
+            <Box
+              component="nav"
+              aria-label="Main"
+              sx={{ display: { xs: "none", md: "flex" }, gap: 0.5, mr: 1 }}
+            >
+              {pages.map(({ name, route, selected }) => (
+                <Button
+                  key={route}
+                  component={Link}
+                  href={route}
+                  color="inherit"
+                  aria-current={selected ? "page" : undefined}
+                  sx={{
+                    fontWeight: selected ? "bold" : "normal",
+                    textDecoration: selected ? "underline" : "none",
+                    textUnderlineOffset: 4,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {name}
+                </Button>
+              ))}
+            </Box>
             <Tooltip
               placement="left"
               title={`Switch to ${
@@ -157,7 +186,7 @@ export default function Wrapper({
           onClose={toggleDrawer(false)}
         >
           <Toolbar />
-          <List>
+          <List component="nav" aria-label="Main">
             {pages.map(({ name, icon, route, selected }) => {
               return (
                 <ListItem
@@ -186,10 +215,12 @@ export default function Wrapper({
         </SwipeableDrawer>
       </Box>
       <Container
-        maxWidth="md"
+        id="main-content"
+        component="main"
+        maxWidth="lg"
         sx={{
           flexGrow: 1,
-          p: 4,
+          p: { xs: 2, sm: 4 },
         }}
       >
         <Toolbar />
@@ -197,5 +228,38 @@ export default function Wrapper({
       </Container>
       <Footer pages={pages} />
     </>
+  );
+}
+
+/**
+ * First focusable element on the page, visible only while focused. Without it
+ * a keyboard user tabs through the whole app bar and nav on every page before
+ * reaching the calculator.
+ */
+function SkipLink() {
+  return (
+    <Box
+      component="a"
+      href="#main-content"
+      sx={{
+        position: "fixed",
+        // Off-screen until focused. Centred rather than pinned to a corner:
+        // while focused it sits above the app bar, and at the left edge it
+        // covered the menu button, making it unclickable.
+        left: -9999,
+        top: 8,
+        zIndex: (theme) => theme.zIndex.tooltip + 1,
+        px: 2,
+        py: 1,
+        borderRadius: 1,
+        bgcolor: "background.paper",
+        color: "text.primary",
+        border: 1,
+        borderColor: "divider",
+        "&:focus": { left: "50%", transform: "translateX(-50%)" },
+      }}
+    >
+      Skip to main content
+    </Box>
   );
 }

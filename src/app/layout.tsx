@@ -54,7 +54,16 @@ export default function RootLayout(props: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#ffffff" />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: light)"
+          content="#ffffff"
+        />
+        <meta
+          name="theme-color"
+          media="(prefers-color-scheme: dark)"
+          content="#121212"
+        />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body suppressHydrationWarning>
@@ -72,9 +81,14 @@ export default function RootLayout(props: { children: ReactNode }) {
 }
 
 export const viewport: Viewport = {
-  colorScheme: "light",
+  // The app supports both; declaring only "light" here told the UA to render
+  // form controls and scrollbars light even in dark mode.
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
   // TODO: We set this in the head, because it's not setting here per possible Next.js bug
-  themeColor: "#ffffff",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#121212" },
+  ],
 };
