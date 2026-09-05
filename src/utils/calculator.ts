@@ -1,4 +1,18 @@
-import Dinero from "dinero.js";
+import type { Money } from "./money";
+import {
+  ZERO,
+  add,
+  asCurrency,
+  divideMoney,
+  greaterThanOrEqual,
+  lessThanOrEqual,
+  minimum,
+  multiplyMoney,
+  percentage,
+  subtract,
+  toCents,
+  toUnit,
+} from "./money";
 import type {
   FilingStatus,
   StandardDeductionMap,
@@ -136,16 +150,16 @@ export function calculate(
 
 export function calculateTaxesPerBracket(
   taxData: TaxData,
-  totalIncome: Dinero.Dinero,
+  totalIncome: Money,
   filingStatus: FilingStatus,
   totalIRA: number,
   totalDeductions: number | undefined,
   exemptions: string[],
   selectedState?: string,
   selectedCity?: string,
-): { taxesPerBracket: TaxResultsWithCities; taxableIncome: Dinero.Dinero } {
+): { taxesPerBracket: TaxResultsWithCities; taxableIncome: Money } {
   if (!taxData) {
-    const taxableIncome = totalIncome.subtract(asCurrency(totalIRA));
+    const taxableIncome = subtract(totalIncome, asCurrency(totalIRA));
     return { taxesPerBracket: {}, taxableIncome };
   }
 
@@ -161,10 +175,10 @@ export function calculateTaxesPerBracket(
   }
 
   // Gross income after IRA (used for FICA and payroll taxes)
-  const grossIncome = totalIncome.subtract(asCurrency(totalIRA));
+  const grossIncome = subtract(totalIncome, asCurrency(totalIRA));
 
   // Taxable income after deductions (used for income taxes)
-  const taxableIncome = grossIncome.subtract(asCurrency(deductions || 0));
+  const taxableIncome = subtract(grossIncome, asCurrency(deductions || 0));
 
   const taxesPerBracket = {} as TaxResultsWithCities;
   Object.entries(taxData).forEach(([taxType, taxTypeData]) => {
@@ -217,7 +231,7 @@ export function calculateTaxesPerBracket(
     // -- `city_income` covers both Yonkers, which starts from state taxable
     // income, and the Missouri earnings taxes, which are levied on wages.
     const declaredBasis = brackets[0].basis;
-    let incomeBase: Dinero.Dinero;
+    let incomeBase: Money;
     if (declaredBasis === TAXABLE_INCOME_BASIS) {
       incomeBase = taxableIncome;
     } else if (declaredBasis === GROSS_INCOME_BASIS) {
@@ -281,20 +295,21 @@ export function isFlatFeeSchedule(
  */
 function calculateFlatFee(
   brackets: FlatFeeBracket[],
-  grossIncome: Dinero.Dinero,
-  taxableIncome: Dinero.Dinero,
-): Dinero.Dinero {
+  grossIncome: Money,
+  taxableIncome: Money,
+): Money {
   let owed = asCurrency(0);
 
   for (const bracket of brackets) {
     const incomeBase =
       bracket.basis === TAXABLE_INCOME_BASIS ? taxableIncome : grossIncome;
-    if (incomeBase.toUnit() < (bracket.min || 0)) {
+    if (toUnit(incomeBase) < (bracket.min || 0)) {
       continue;
     }
     let amount = asCurrency(bracket.amount);
     if (bracket.frequency) {
-      amount = amount.multiply(
+      amount = multiplyMoney(
+        amount,
         TAX_FREQUENCY_PERIODS_PER_YEAR[bracket.frequency as TaxFrequency],
       );
     }
@@ -319,11 +334,8 @@ export function isRateLookupSchedule(
   return (brackets[0] as RateBracket | undefined)?.rate_on_total === true;
 }
 
-function calculateRateLookup(
-  income: Dinero.Dinero,
-  brackets: RateBracket[],
-): Dinero.Dinero {
-  const amount = income.toUnit();
+function calculateRateLookup(income: Money, brackets: RateBracket[]): Money {
+  const amount = toUnit(income);
   // Bands are half-open, matching the contiguous `max === next min` convention
   // the rest of the data uses and the charts' own "at least X but less than Y".
   const bracket = brackets.find(
@@ -334,13 +346,10 @@ function calculateRateLookup(
   if (!bracket) {
     return asCurrency(0);
   }
-  return income.percentage(bracket.rate);
+  return percentage(income, bracket.rate);
 }
 
-function calculateTaxBracket(
-  income: Dinero.Dinero,
-  brackets: RateBracket[],
-): Dinero.Dinero {
+function calculateTaxBracket(income: Money, brackets: RateBracket[]): Money {
   let totalTax = asCurrency(0);
   let incomeTaxed = asCurrency(0);
 
@@ -349,25 +358,26 @@ function calculateTaxBracket(
     let minBracket = asCurrency(bracket.min);
 
     const maxBracket = asCurrency(
-      bracket.max === INFINITY ? income.toUnit() : (bracket.max as number),
+      bracket.max === INFINITY ? toUnit(income) : (bracket.max as number),
     );
 
-    const max = asCurrency(Dinero.minimum([income, maxBracket]).toUnit());
-    let bracketRange = max.subtract(minBracket);
-    if (bracketRange.lessThanOrEqual(asCurrency(0))) {
+    const max = minimum([income, maxBracket]);
+    let bracketRange = subtract(max, minBracket);
+    if (lessThanOrEqual(bracketRange, asCurrency(0))) {
       break;
     }
 
-    let totalBracketAmount = bracketRange.percentage(bracket.rate);
+    let totalBracketAmount = percentage(bracketRange, bracket.rate);
     if (bracket.percent_of_total) {
-      totalBracketAmount = totalBracketAmount.percentage(
+      totalBracketAmount = percentage(
+        totalBracketAmount,
         bracket.percent_of_total,
       );
     }
-    totalTax = totalTax.add(totalBracketAmount);
-    incomeTaxed = incomeTaxed.add(bracketRange);
+    totalTax = add(totalTax, totalBracketAmount);
+    incomeTaxed = add(incomeTaxed, bracketRange);
 
-    if (incomeTaxed.greaterThanOrEqual(income)) {
+    if (greaterThanOrEqual(incomeTaxed, income)) {
       break;
     }
   }
@@ -376,7 +386,7 @@ function calculateTaxBracket(
 }
 
 export function sumTotals(
-  totalIncome: Dinero.Dinero,
+  totalIncome: Money,
   federalResults: TaxResultsWithCities,
   stateResults: TaxResultsWithCities,
   totalIRA: number,
@@ -401,23 +411,23 @@ export function sumTotals(
     );
   }
 
-  if (totalCity.lessThanOrEqual(asCurrency(0))) {
+  if (lessThanOrEqual(totalCity, asCurrency(0))) {
     totalCity = asCurrency(0);
   }
-  if (totalState.lessThanOrEqual(asCurrency(0))) {
+  if (lessThanOrEqual(totalState, asCurrency(0))) {
     totalState = asCurrency(0);
   }
-  if (totalFederal.lessThanOrEqual(asCurrency(0))) {
+  if (lessThanOrEqual(totalFederal, asCurrency(0))) {
     totalFederal = asCurrency(0);
   }
 
-  totalState = totalState.add(totalCity);
+  totalState = add(totalState, totalCity);
 
-  let totalTaxes = totalFederal.add(totalState);
+  let totalTaxes = add(totalFederal, totalState);
 
-  const taxableIncome = totalIncome.subtract(asCurrency(totalIRA));
+  const taxableIncome = subtract(totalIncome, asCurrency(totalIRA));
 
-  const takeHome = taxableIncome.subtract(totalFederal).subtract(totalState);
+  const takeHome = subtract(subtract(taxableIncome, totalFederal), totalState);
 
   // Percentages are of gross income, not of income after retirement
   // contributions. Against the smaller base these read as a higher effective
@@ -456,50 +466,37 @@ export function sumTotals(
 export function sumBracketsByTaxType(
   results: TaxResultsWithCities,
   taxTypes: string[],
-): Dinero.Dinero {
-  let total = Dinero({ amount: 0 });
+): Money {
+  let total = ZERO;
   for (const taxType of taxTypes) {
     if (results[taxType] === EXEMPT || taxType === CITIES) {
       continue;
     }
     if (results[taxType]) {
-      total = total.add(results[taxType] as Dinero.Dinero);
+      total = add(total, results[taxType] as Money);
     }
   }
   return total;
 }
 
-// Amount always passed as full dollar amount without cents
-// So we need to multiply by 100 to get cents
-export function asCurrency(amount: number) {
-  // Dinero rejects non-integer amounts, and `amount * 100` can land off a whole
-  // cent through either sub-cent data or float error (1000.1 * 100).
-  return Dinero({ amount: Math.round(amount * 100), currency: "USD" });
-}
-
-// Determine the percentage of two Dinero objects
-export function getPercent(
-  amount: Dinero.Dinero,
-  total: Dinero.Dinero,
-): number {
-  const totalAmount = total.getAmount();
+// Determine the percentage of two money values
+export function getPercent(amount: Money, total: Money): number {
+  const totalAmount = toCents(total);
   // Guard the divide. Reachable from the UI: contributing the 401k maximum
   // against an income equal to it leaves a zero base, which otherwise renders
   // as "NaN%" in every row of the breakdown table.
   if (totalAmount === 0) {
     return 0;
   }
-  return Math.round((amount.getAmount() / totalAmount) * 10000) / 100;
+  return Math.round((toCents(amount) / totalAmount) * 10000) / 100;
 }
 
-export const formatNoZeros = "$0,0";
-
 export function getPaycheckByFrequency(
-  totalIncome: Dinero.Dinero,
+  totalIncome: Money,
   paycheckFrequency: PaycheckFrequency,
 ) {
-  const paycheck = totalIncome.divide(
+  return divideMoney(
+    totalIncome,
     FREQUENCY_TO_PAYCHECKS_PER_YEAR[paycheckFrequency],
   );
-  return paycheck;
 }

@@ -8,7 +8,7 @@ import type {
   STATE_INCOME,
 } from "../constants/tax_types";
 import type { CITIES, EXEMPT, INFINITY } from "../constants";
-import type { Dinero } from "dinero.js";
+import type { Money } from "@/utils/money";
 import type { ReactElement } from "react";
 
 export type TaxFrequency =
@@ -83,11 +83,11 @@ export interface TaxData {
 }
 
 export type TaxResults = {
-  [Key: string]: Dinero | typeof EXEMPT;
+  [Key: string]: Money | typeof EXEMPT;
 };
 
 export type TaxResultsWithCities = {
-  [Key: string]: TaxResults | Dinero | typeof EXEMPT;
+  [Key: string]: TaxResults | Money | typeof EXEMPT;
 };
 
 export type AutocompleteOption = {

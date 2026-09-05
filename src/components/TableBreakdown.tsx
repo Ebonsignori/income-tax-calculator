@@ -1,4 +1,4 @@
-import type { Dinero } from "dinero.js";
+import type { Money } from "@/utils/money";
 import type { TaxResults, TaxResultsWithCities } from "@/types";
 import { getPercent } from "@/utils/calculator";
 import { snakeToTitleCase } from "@/utils/string-utils";
@@ -20,10 +20,11 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import type { SxProps, Theme } from "@mui/material";
 import { CITIES, EXEMPT } from "@/constants";
+import { formatMoney, toUnit } from "@/utils/money";
 
 type TotalTax = {
   percent: number;
-  amount: Dinero;
+  amount: Money;
 };
 
 /** A row inside an expanded Federal / State section. */
@@ -57,8 +58,8 @@ type TableBreakdownProps = {
   takeHome: TotalTax;
   federalResults: TaxResultsWithCities;
   stateResults: TaxResultsWithCities;
-  federalTaxableIncome: Dinero;
-  stateTaxableIncome: Dinero;
+  federalTaxableIncome: Money;
+  stateTaxableIncome: Money;
 };
 
 export function TableBreakdown({
@@ -78,33 +79,33 @@ export function TableBreakdown({
         id: "take_home",
         name: "Take Home",
         percent: takeHome?.percent,
-        amount: takeHome?.amount?.toFormat(),
+        amount: formatMoney(takeHome?.amount),
       },
     ];
-    if (totalFederal?.amount?.toUnit() > 0) {
+    if (toUnit(totalFederal?.amount) > 0) {
       const federalRow: SummaryRow = {
         id: "total_federal",
         name: "Federal Taxes",
         percent: totalFederal?.percent,
-        amount: totalFederal?.amount?.toFormat(),
+        amount: formatMoney(totalFederal?.amount),
         breakdown: [] as BreakdownRow[],
-        breakdownTaxableIncome: federalTaxableIncome?.toFormat(),
+        breakdownTaxableIncome: formatMoney(federalTaxableIncome),
       };
       for (const [taxType, taxTotal] of Object.entries(federalResults)) {
         if (taxTotal === EXEMPT) continue;
         federalRow.breakdown!.push({
           id: taxType,
           name: snakeToTitleCase(taxType),
-          percent: `${getPercent(taxTotal as Dinero, totalFederal?.amount)}%`,
-          amount: (taxTotal as Dinero)?.toFormat(),
+          percent: `${getPercent(taxTotal as Money, totalFederal?.amount)}%`,
+          amount: formatMoney(taxTotal as Money),
         });
       }
-      if (totalFica?.amount?.toUnit() > 0) {
+      if (toUnit(totalFica?.amount) > 0) {
         federalRow.breakdown!.push({
           id: "fica",
           name: "Total FICA",
           percent: `${getPercent(totalFica?.amount, totalFederal?.amount)}%`,
-          amount: totalFica?.amount?.toFormat(),
+          amount: formatMoney(totalFica?.amount),
           styles: {
             name: { fontWeight: "bold" },
             percent: { fontStyle: "italic" },
@@ -114,14 +115,14 @@ export function TableBreakdown({
 
       tableRows.push(federalRow);
     }
-    if (totalState?.amount?.toUnit() > 0) {
+    if (toUnit(totalState?.amount) > 0) {
       const stateRow: SummaryRow = {
         id: "total_state",
         name: "State Taxes",
         percent: totalState?.percent,
-        amount: totalState?.amount?.toFormat(),
+        amount: formatMoney(totalState?.amount),
         breakdown: [] as BreakdownRow[],
-        breakdownTaxableIncome: stateTaxableIncome?.toFormat(),
+        breakdownTaxableIncome: formatMoney(stateTaxableIncome),
       };
       for (const [taxType, taxTotal] of Object.entries(stateResults)) {
         if (taxType === CITIES) {
@@ -132,15 +133,15 @@ export function TableBreakdown({
             stateRow.breakdown!.push({
               id: city,
               name: `${snakeToTitleCase(city)} (City)`,
-              percent: `${getPercent(cityValue as Dinero, totalState?.amount)}%`,
-              amount: (cityValue as Dinero)?.toFormat(),
+              percent: `${getPercent(cityValue as Money, totalState?.amount)}%`,
+              amount: formatMoney(cityValue as Money),
             });
           }
           stateRow.breakdown!.push({
             id: "total_city",
             name: "Total City",
             percent: `${getPercent(totalCity?.amount, totalState?.amount)}%`,
-            amount: totalCity?.amount?.toFormat(),
+            amount: formatMoney(totalCity?.amount),
             styles: {
               name: { fontWeight: "bold" },
               percent: { fontStyle: "italic" },
@@ -150,12 +151,12 @@ export function TableBreakdown({
           stateRow.breakdown!.push({
             id: taxType,
             name: snakeToTitleCase(taxType),
-            percent: `${getPercent(taxTotal as Dinero, totalState?.amount)}%`,
-            amount: (taxTotal as Dinero)?.toFormat(),
+            percent: `${getPercent(taxTotal as Money, totalState?.amount)}%`,
+            amount: formatMoney(taxTotal as Money),
           });
         }
       }
-      if (totalCity?.amount?.toUnit() > 0) {
+      if (toUnit(totalCity?.amount) > 0) {
         stateRow.name = "State + City Taxes";
       }
       tableRows.push(stateRow);

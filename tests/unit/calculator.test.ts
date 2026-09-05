@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
-import type Dinero from "dinero.js";
+import type { Money } from "@/utils/money";
 import { calculate, getPercent } from "@/utils/calculator";
-import { asCurrency } from "@/utils/calculator";
 import federal2025 from "@/data/2025/federal";
 import oregon2025 from "@/data/2025/state/oregon";
 import federal2026 from "@/data/2026/federal";
@@ -29,15 +28,22 @@ import {
   OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
 } from "@/constants/tax_types";
 import { INFINITY } from "@/constants";
+import {
+  add,
+  asCurrency,
+  equal,
+  lessThanOrEqual,
+  percentage,
+  subtract,
+  toCents,
+  toUnit,
+} from "@/utils/money";
 
 /**
- * Manually calculate tax for a progressive bracket system using Dinero
+ * Manually calculate tax for a progressive bracket system using Money
  * This is our independent verification logic
  */
-function calculateProgressiveTax(
-  taxableIncome: Dinero.Dinero,
-  brackets: any[],
-): Dinero.Dinero {
+function calculateProgressiveTax(taxableIncome: Money, brackets: any[]): Money {
   let totalTax = asCurrency(0);
 
   for (const bracket of brackets) {
@@ -45,25 +51,25 @@ function calculateProgressiveTax(
     const max =
       bracket.max === INFINITY
         ? taxableIncome
-        : asCurrency(Math.min(bracket.max, taxableIncome.toUnit()));
+        : asCurrency(Math.min(bracket.max, toUnit(taxableIncome)));
 
-    if (taxableIncome.lessThanOrEqual(min)) {
+    if (lessThanOrEqual(taxableIncome, min)) {
       break;
     }
 
-    const bracketRange = max.subtract(min);
-    if (bracketRange.lessThanOrEqual(asCurrency(0))) {
+    const bracketRange = subtract(max, min);
+    if (lessThanOrEqual(bracketRange, asCurrency(0))) {
       continue;
     }
 
-    let bracketTax = bracketRange.percentage(bracket.rate);
+    let bracketTax = percentage(bracketRange, bracket.rate);
 
     // Handle percent_of_total for things like employer/employee split
     if (bracket.percent_of_total) {
-      bracketTax = bracketTax.percentage(bracket.percent_of_total);
+      bracketTax = percentage(bracketTax, bracket.percent_of_total);
     }
 
-    totalTax = totalTax.add(bracketTax);
+    totalTax = add(totalTax, bracketTax);
   }
 
   return totalTax;
@@ -80,7 +86,7 @@ function calculateExpectedTaxes(
   stateDeductions?: number,
 ) {
   const grossIncome = asCurrency(income);
-  const incomeAfterIRA = grossIncome.subtract(asCurrency(ira));
+  const incomeAfterIRA = subtract(grossIncome, asCurrency(ira));
 
   // Get standard deductions
   const federalStandardDeduction =
@@ -93,10 +99,11 @@ function calculateExpectedTaxes(
   const stateDeduct = stateDeductions ?? stateStandardDeduction;
 
   // Calculate taxable income
-  const federalTaxableIncome = incomeAfterIRA.subtract(
+  const federalTaxableIncome = subtract(
+    incomeAfterIRA,
     asCurrency(fedDeductions),
   );
-  const stateTaxableIncome = incomeAfterIRA.subtract(asCurrency(stateDeduct));
+  const stateTaxableIncome = subtract(incomeAfterIRA, asCurrency(stateDeduct));
 
   // Federal Income Tax
   const federalIncomeBrackets = (federal2025[FEDERAL_INCOME] as any)?.[
@@ -147,10 +154,13 @@ function calculateExpectedTaxes(
     paidLeaveBrackets,
   );
 
-  const totalFederal = federalIncomeTax.add(socialSecurityTax).add(medicareTax);
-  const totalState = stateIncomeTax.add(transitTax).add(paidLeaveTax);
-  const totalTaxes = totalFederal.add(totalState);
-  const takeHome = incomeAfterIRA.subtract(totalTaxes);
+  const totalFederal = add(
+    add(federalIncomeTax, socialSecurityTax),
+    medicareTax,
+  );
+  const totalState = add(add(stateIncomeTax, transitTax), paidLeaveTax);
+  const totalTaxes = add(totalFederal, totalState);
+  const takeHome = subtract(incomeAfterIRA, totalTaxes);
 
   return {
     federalTaxableIncome,
@@ -192,16 +202,16 @@ describe("Calculator Audit Tests", () => {
 
       // Verify taxable income includes standard deduction
       expect(
-        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+        equal(results.federalTaxableIncome, expected.federalTaxableIncome),
       ).toBe(true);
       expect(
-        results.stateTaxableIncome.equalsTo(expected.stateTaxableIncome),
+        equal(results.stateTaxableIncome, expected.stateTaxableIncome),
       ).toBe(true);
 
       // Standard deduction for single filer in 2025
       const expectedFederalTaxableIncome = asCurrency(100000 - 15000);
       expect(
-        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+        equal(results.federalTaxableIncome, expectedFederalTaxableIncome),
       ).toBe(true);
     });
 
@@ -228,10 +238,10 @@ describe("Calculator Audit Tests", () => {
       // Standard deduction for married filer in 2025
       const expectedFederalTaxableIncome = asCurrency(200000 - 30000);
       expect(
-        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+        equal(results.federalTaxableIncome, expectedFederalTaxableIncome),
       ).toBe(true);
       expect(
-        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+        equal(results.federalTaxableIncome, expected.federalTaxableIncome),
       ).toBe(true);
     });
 
@@ -258,10 +268,10 @@ describe("Calculator Audit Tests", () => {
       // Standard deduction for head of household in 2025
       const expectedFederalTaxableIncome = asCurrency(80000 - 22500);
       expect(
-        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+        equal(results.federalTaxableIncome, expectedFederalTaxableIncome),
       ).toBe(true);
       expect(
-        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+        equal(results.federalTaxableIncome, expected.federalTaxableIncome),
       ).toBe(true);
     });
 
@@ -298,16 +308,16 @@ describe("Calculator Audit Tests", () => {
       const expectedStateTaxableIncome = asCurrency(50000 - 5000 - 1000);
 
       expect(
-        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+        equal(results.federalTaxableIncome, expectedFederalTaxableIncome),
       ).toBe(true);
       expect(
-        results.stateTaxableIncome.equalsTo(expectedStateTaxableIncome),
+        equal(results.stateTaxableIncome, expectedStateTaxableIncome),
       ).toBe(true);
       expect(
-        results.federalTaxableIncome.equalsTo(expected.federalTaxableIncome),
+        equal(results.federalTaxableIncome, expected.federalTaxableIncome),
       ).toBe(true);
       expect(
-        results.stateTaxableIncome.equalsTo(expected.stateTaxableIncome),
+        equal(results.stateTaxableIncome, expected.stateTaxableIncome),
       ).toBe(true);
     });
   });
@@ -343,27 +353,29 @@ describe("Calculator Audit Tests", () => {
       const grossIncomeAfterIRA = asCurrency(45000);
 
       // Social Security: 6.2% of $45,000
-      const expectedSocialSecurity = grossIncomeAfterIRA.percentage(6.2);
+      const expectedSocialSecurity = percentage(grossIncomeAfterIRA, 6.2);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expectedSocialSecurity,
         ),
       ).toBe(true);
 
       // Medicare: 1.45% of $45,000 (below threshold)
-      const expectedMedicare = grossIncomeAfterIRA.percentage(1.45);
+      const expectedMedicare = percentage(grossIncomeAfterIRA, 1.45);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expectedMedicare),
+        equal(results.federalResults.medicare as any, expectedMedicare),
       ).toBe(true);
 
       // Verify against independent calculation
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
     });
 
@@ -396,9 +408,10 @@ describe("Calculator Audit Tests", () => {
 
       // Oregon Paid Leave should be on gross income after IRA, not taxable income
       expect(
-        (
-          results.stateResults.oregon_paid_family_and_medical_leave as any
-        ).equalsTo(expected.paidLeaveTax),
+        equal(
+          results.stateResults.oregon_paid_family_and_medical_leave as any,
+          expected.paidLeaveTax,
+        ),
       ).toBe(true);
     });
   });
@@ -426,43 +439,46 @@ describe("Calculator Audit Tests", () => {
 
       // Verify all tax components match
       expect(
-        (results.federalResults.federal_income as any).equalsTo(
+        equal(
+          results.federalResults.federal_income as any,
           expected.federalIncomeTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+      expect(equal(results.totalFederal.amount, expected.totalFederal)).toBe(
         true,
       );
 
       expect(
-        (results.stateResults.state_income as any).equalsTo(
+        equal(
+          results.stateResults.state_income as any,
           expected.stateIncomeTax,
         ),
       ).toBe(true);
       expect(
-        (results.stateResults.oregon_transit_tax as any).equalsTo(
+        equal(
+          results.stateResults.oregon_transit_tax as any,
           expected.transitTax,
         ),
       ).toBe(true);
       expect(
-        (
-          results.stateResults.oregon_paid_family_and_medical_leave as any
-        ).equalsTo(expected.paidLeaveTax),
+        equal(
+          results.stateResults.oregon_paid_family_and_medical_leave as any,
+          expected.paidLeaveTax,
+        ),
       ).toBe(true);
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
-        true,
-      );
+      expect(equal(results.totalState.amount, expected.totalState)).toBe(true);
 
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
 
     it("should correctly calculate all taxes - Single filer, $100k, $10k IRA", () => {
@@ -486,26 +502,26 @@ describe("Calculator Audit Tests", () => {
       const expected = calculateExpectedTaxes(income, filingStatus, ira);
 
       expect(
-        (results.federalResults.federal_income as any).equalsTo(
+        equal(
+          results.federalResults.federal_income as any,
           expected.federalIncomeTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+      expect(equal(results.totalFederal.amount, expected.totalFederal)).toBe(
         true,
       );
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
-        true,
-      );
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalState.amount, expected.totalState)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
 
     it("should correctly calculate all taxes - Married filer, $200k", () => {
@@ -529,26 +545,26 @@ describe("Calculator Audit Tests", () => {
       const expected = calculateExpectedTaxes(income, filingStatus, ira);
 
       expect(
-        (results.federalResults.federal_income as any).equalsTo(
+        equal(
+          results.federalResults.federal_income as any,
           expected.federalIncomeTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+      expect(equal(results.totalFederal.amount, expected.totalFederal)).toBe(
         true,
       );
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
-        true,
-      );
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalState.amount, expected.totalState)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
 
     it("should correctly calculate all taxes - Head of Household, $80k", () => {
@@ -572,26 +588,26 @@ describe("Calculator Audit Tests", () => {
       const expected = calculateExpectedTaxes(income, filingStatus, ira);
 
       expect(
-        (results.federalResults.federal_income as any).equalsTo(
+        equal(
+          results.federalResults.federal_income as any,
           expected.federalIncomeTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+      expect(equal(results.totalFederal.amount, expected.totalFederal)).toBe(
         true,
       );
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
-        true,
-      );
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalState.amount, expected.totalState)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
 
     it("should correctly calculate all taxes - High earner, $250k (tests additional Medicare tax)", () => {
@@ -616,16 +632,14 @@ describe("Calculator Audit Tests", () => {
 
       // This should trigger the additional 0.9% Medicare tax above $200k
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+      expect(equal(results.totalFederal.amount, expected.totalFederal)).toBe(
         true,
       );
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
-        true,
-      );
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalState.amount, expected.totalState)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
 
     it("should correctly calculate with custom deductions", () => {
@@ -657,26 +671,26 @@ describe("Calculator Audit Tests", () => {
       );
 
       expect(
-        (results.federalResults.federal_income as any).equalsTo(
+        equal(
+          results.federalResults.federal_income as any,
           expected.federalIncomeTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expected.medicareTax),
+        equal(results.federalResults.medicare as any, expected.medicareTax),
       ).toBe(true);
-      expect(results.totalFederal.amount.equalsTo(expected.totalFederal)).toBe(
+      expect(equal(results.totalFederal.amount, expected.totalFederal)).toBe(
         true,
       );
-      expect(results.totalState.amount.equalsTo(expected.totalState)).toBe(
-        true,
-      );
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalState.amount, expected.totalState)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
   });
 
@@ -701,8 +715,8 @@ describe("Calculator Audit Tests", () => {
 
       const expected = calculateExpectedTaxes(income, filingStatus, ira);
 
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
-      expect(results.takeHome.amount.equalsTo(expected.takeHome)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
+      expect(equal(results.takeHome.amount, expected.takeHome)).toBe(true);
     });
 
     it("should handle Social Security wage base limit correctly", () => {
@@ -727,14 +741,13 @@ describe("Calculator Audit Tests", () => {
       const expected = calculateExpectedTaxes(income, filingStatus, ira);
 
       // Social Security should cap at $176,100 * 6.2%
-      const maxSocialSecurity = asCurrency(176100).percentage(6.2);
+      const maxSocialSecurity = percentage(asCurrency(176100), 6.2);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
-          maxSocialSecurity,
-        ),
+        equal(results.federalResults.social_security as any, maxSocialSecurity),
       ).toBe(true);
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expected.socialSecurityTax,
         ),
       ).toBe(true);
@@ -763,24 +776,25 @@ describe("Calculator Audit Tests", () => {
       // Federal income tax should be on reduced amount
       const expectedFederalTaxableIncome = asCurrency(100000 - 23500 - 15000);
       expect(
-        results.federalTaxableIncome.equalsTo(expectedFederalTaxableIncome),
+        equal(results.federalTaxableIncome, expectedFederalTaxableIncome),
       ).toBe(true);
 
       // But FICA should be on income after IRA only (not after standard deduction)
       const incomeAfterIRA = asCurrency(100000 - 23500);
-      const expectedSocialSecurity = incomeAfterIRA.percentage(6.2);
-      const expectedMedicare = incomeAfterIRA.percentage(1.45);
+      const expectedSocialSecurity = percentage(incomeAfterIRA, 6.2);
+      const expectedMedicare = percentage(incomeAfterIRA, 1.45);
 
       expect(
-        (results.federalResults.social_security as any).equalsTo(
+        equal(
+          results.federalResults.social_security as any,
           expectedSocialSecurity,
         ),
       ).toBe(true);
       expect(
-        (results.federalResults.medicare as any).equalsTo(expectedMedicare),
+        equal(results.federalResults.medicare as any, expectedMedicare),
       ).toBe(true);
 
-      expect(results.totalTaxes.equalsTo(expected.totalTaxes)).toBe(true);
+      expect(equal(results.totalTaxes, expected.totalTaxes)).toBe(true);
     });
   });
 
@@ -842,8 +856,8 @@ describe("Calculator Audit Tests", () => {
         "portland",
       );
 
-      expect(below.totalCity.amount.equalsTo(asCurrency(0))).toBe(true);
-      expect(atThreshold.totalCity.amount.equalsTo(asCurrency(35))).toBe(true);
+      expect(equal(below.totalCity.amount, asCurrency(0))).toBe(true);
+      expect(equal(atThreshold.totalCity.amount, asCurrency(35))).toBe(true);
     });
 
     it("does not let the state standard deduction suppress the Arts Tax", () => {
@@ -861,7 +875,7 @@ describe("Calculator Audit Tests", () => {
         "oregon",
         "portland",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(35))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(35))).toBe(true);
     });
 
     it("applies Denver's occupational privilege tax at exactly $6,000", () => {
@@ -890,9 +904,9 @@ describe("Calculator Audit Tests", () => {
         "denver",
       );
 
-      expect(below.totalCity.amount.equalsTo(asCurrency(0))).toBe(true);
+      expect(equal(below.totalCity.amount, asCurrency(0))).toBe(true);
       // $5.75 a month, annualized
-      expect(atThreshold.totalCity.amount.equalsTo(asCurrency(69))).toBe(true);
+      expect(equal(atThreshold.totalCity.amount, asCurrency(69))).toBe(true);
     });
 
     it("annualizes a weekly flat fee", () => {
@@ -909,7 +923,7 @@ describe("Calculator Audit Tests", () => {
         "west_virginia",
         "charleston",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(3 * 52))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(3 * 52))).toBe(true);
     });
   });
 
@@ -929,7 +943,7 @@ describe("Calculator Audit Tests", () => {
         "oregon",
         "portland",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(50))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(50))).toBe(true);
     });
 
     it("charges $100 to joint filers above their higher threshold", () => {
@@ -945,7 +959,7 @@ describe("Calculator Audit Tests", () => {
         "oregon",
         "portland",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(100))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(100))).toBe(true);
     });
 
     it("charges nothing below the threshold", () => {
@@ -961,15 +975,15 @@ describe("Calculator Audit Tests", () => {
         "oregon",
         "portland",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(0))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(0))).toBe(true);
     });
   });
 
   describe("asCurrency", () => {
     it("rounds to whole cents instead of throwing", () => {
       expect(() => asCurrency(1000.005)).not.toThrow();
-      expect(asCurrency(2.5).getAmount()).toBe(250);
-      expect(asCurrency(5.75).getAmount()).toBe(575);
+      expect(toCents(asCurrency(2.5))).toBe(250);
+      expect(toCents(asCurrency(5.75))).toBe(575);
     });
   });
 
@@ -992,7 +1006,7 @@ describe("Calculator Audit Tests", () => {
       );
 
       // 1% of the full $100,000, not of income after the state deduction
-      expect(results.totalCity.amount.equalsTo(asCurrency(1000))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(1000))).toBe(true);
     });
 
     it("still nets out 401k contributions before charging it", () => {
@@ -1010,7 +1024,7 @@ describe("Calculator Audit Tests", () => {
         "alabama",
         "birmingham",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(900))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(900))).toBe(true);
     });
 
     it("charges Oregon's transit tax on gross wages", () => {
@@ -1028,9 +1042,7 @@ describe("Calculator Audit Tests", () => {
         "",
       );
       expect(
-        (results.stateResults.oregon_transit_tax as any).equalsTo(
-          asCurrency(100),
-        ),
+        equal(results.stateResults.oregon_transit_tax as any, asCurrency(100)),
       ).toBe(true);
     });
   });
@@ -1058,46 +1070,47 @@ describe("Calculator Audit Tests", () => {
 
     it("charges 0.44% of all wages once the threshold is cleared", () => {
       // $440, not the $302.26 a marginal reading of { min: 32344 } produces
-      expect(eugene(oregon2026, 100000).equalsTo(asCurrency(440))).toBe(true);
+      expect(equal(eugene(oregon2026, 100000), asCurrency(440))).toBe(true);
     });
 
     it("charges nothing below the exempt threshold", () => {
-      expect(eugene(oregon2026, 32343).equalsTo(asCurrency(0))).toBe(true);
+      expect(equal(eugene(oregon2026, 32343), asCurrency(0))).toBe(true);
     });
 
     it("charges the full rate at exactly the threshold", () => {
       // The chart reads "equal to or more than $32,344", so the band is
       // inclusive at its floor.
-      expect(
-        eugene(oregon2026, 32344).equalsTo(asCurrency(32344 * 0.0044)),
-      ).toBe(true);
+      expect(equal(eugene(oregon2026, 32344), asCurrency(32344 * 0.0044))).toBe(
+        true,
+      );
     });
 
     it("uses the reduced 0.30% band in years that still had one", () => {
       // 2023 chart: at least $29,557 but less than $31,221 pays 0.30% on all
       // wages. $30,000 x 0.003 = $90.
       expect(
-        calculate(
-          federal2025,
-          oregon2023,
-          30000,
-          SINGLE,
-          0,
-          undefined,
-          undefined,
-          [],
-          "oregon",
-          "eugene",
-        ).totalCity.amount.equalsTo(asCurrency(90)),
+        equal(
+          calculate(
+            federal2025,
+            oregon2023,
+            30000,
+            SINGLE,
+            0,
+            undefined,
+            undefined,
+            [],
+            "oregon",
+            "eugene",
+          ).totalCity.amount,
+          asCurrency(90),
+        ),
       ).toBe(true);
     });
 
     it("looks the rate up after 401k contributions, not before", () => {
       // Subject wages are gross wages after pre-tax deductions, so a big
       // deferral can drop the employee below the exempt threshold entirely.
-      expect(eugene(oregon2026, 40000, 8000).equalsTo(asCurrency(0))).toBe(
-        true,
-      );
+      expect(equal(eugene(oregon2026, 40000, 8000), asCurrency(0))).toBe(true);
     });
   });
 
@@ -1118,7 +1131,7 @@ describe("Calculator Audit Tests", () => {
         "missouri",
         "kansas_city",
       );
-      expect(results.totalCity.amount.equalsTo(asCurrency(1000))).toBe(true);
+      expect(equal(results.totalCity.amount, asCurrency(1000))).toBe(true);
     });
 
     it("leaves Yonkers on state taxable income", () => {
@@ -1139,7 +1152,8 @@ describe("Calculator Audit Tests", () => {
         "yonkers",
       );
       expect(
-        (results.stateResults.cities as any).city_income.equalsTo(
+        equal(
+          (results.stateResults.cities as any).city_income,
           asCurrency((income - deduction) * 0.005),
         ),
       ).toBe(true);

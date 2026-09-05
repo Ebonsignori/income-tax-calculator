@@ -44,6 +44,3 @@ logs/
 # local agent/tooling scratch
 .claude/
 .playwright-mcp/
-
-# TEMP: dinero v1->v2 migration baseline (delete with the harness)
-/money-baseline.json

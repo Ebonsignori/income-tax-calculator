@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Grid,
   Paper,
@@ -30,7 +29,6 @@ import {
   snakeToTitleCase,
 } from "@/utils/string-utils";
 import { useGetTaxData } from "@/utils/use-get-tax-data";
-import { asCurrency, formatNoZeros } from "@/utils/calculator";
 // Aliased: MUI exports a `Table` in the type space too.
 import type { Table as TaxTableModel } from "@/utils/tax-table-data";
 import {
@@ -42,6 +40,7 @@ import type { TaxDataSelectOption } from "./input/TaxDataSelect";
 import { TaxDataSelect } from "./input/TaxDataSelect";
 import { getQueryParams, updateURL } from "@/utils/base-path";
 import { useUrlSelectionOnPopState } from "@/utils/url-selection";
+import { asCurrency, formatMoneyNoCents } from "@/utils/money";
 
 type TaxTableProps = {
   availableYears: string[];
@@ -311,7 +310,7 @@ export default function TaxTables({
         tables.push({
           name: selectedData.title,
           headers: ["Federal Amount"],
-          rows: [[asCurrency(max401KContribution).toFormat(formatNoZeros)]],
+          rows: [[formatMoneyNoCents(asCurrency(max401KContribution))]],
         });
       }
     }

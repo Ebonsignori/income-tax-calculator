@@ -28,6 +28,8 @@ import type { FilingStatus } from "@/constants/filing-status";
 import { CITIES } from "@/constants";
 import { NONE, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
+import type { Money } from "@/utils/money";
+import { toUnit } from "@/utils/money";
 
 // Spanning the standard deduction, the low brackets, the FICA wage base and
 // the top bracket of every state that has one.
@@ -49,8 +51,8 @@ const {
 }: { taxDataByYear: TaxDataByYear; years: string[] } =
   await readTaxDataFromDisk(process.cwd() + "/src/data");
 
-function dollars(amount: { getAmount: () => number }): number {
-  return amount.getAmount() / 100;
+function dollars(amount: Money): number {
+  return toUnit(amount);
 }
 
 function run(
@@ -203,7 +205,7 @@ describe("tax data sweep", () => {
           stateName,
         );
         const charged = stateResults[STATE_INCOME];
-        if (!charged || dollars(charged as { getAmount: () => number }) <= 0) {
+        if (!charged || dollars(charged as Money) <= 0) {
           problems.push(
             `${stateName}: declares ${STATE_INCOME} brackets but charges $0 at $150k`,
           );

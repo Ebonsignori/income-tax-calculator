@@ -10,6 +10,7 @@ import type { TaxOption } from "@/utils/get-tax-options";
 import { TaxBreakdownBar } from "./TaxBreakdownBar";
 import { formatPercent } from "@/utils/format-percent";
 import { TableBreakdown } from "./TableBreakdown";
+import { formatMoney, toUnit } from "@/utils/money";
 
 /** Kept in sync with the sticky bar's own height so the two cannot drift. */
 const STICKY_SUMMARY_HEIGHT = 56;
@@ -86,7 +87,7 @@ const Results = memo(function Results({
   // effective rate means.
   const effectiveRate = useMemo(() => {
     if (!totalIncome) return 0;
-    return (totalTaxes.toUnit() / totalIncome) * 100;
+    return (toUnit(totalTaxes) / totalIncome) * 100;
   }, [totalTaxes, totalIncome]);
 
   const frequencyLabel = FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency];
@@ -136,13 +137,12 @@ const Results = memo(function Results({
             sx={{ fontWeight: 500, lineHeight: 1.1 }}
             data-testid="total-take-home-amount"
           >
-            {takeHome?.amount?.toFormat()}
+            {formatMoney(takeHome?.amount)}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {getPaycheckByFrequency(
-              takeHome?.amount,
-              paycheckFrequency,
-            ).toFormat()}{" "}
+            {formatMoney(
+              getPaycheckByFrequency(takeHome?.amount, paycheckFrequency),
+            )}{" "}
             {frequencyLabel}
           </Typography>
         </Box>
@@ -162,10 +162,10 @@ const Results = memo(function Results({
             color={theme.custom.red}
             sx={{ fontWeight: 500, lineHeight: 1.1, mt: 0.5 }}
           >
-            {totalTaxes.toFormat()}
+            {formatMoney(totalTaxes)}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {getPaycheckByFrequency(totalTaxes, paycheckFrequency).toFormat()}{" "}
+            {formatMoney(getPaycheckByFrequency(totalTaxes, paycheckFrequency))}{" "}
             {frequencyLabel}
           </Typography>
         </Box>
@@ -193,7 +193,7 @@ const Results = memo(function Results({
         </Box>
       </Box>
 
-      {totalTaxes?.toUnit() > 0 ? (
+      {toUnit(totalTaxes) > 0 ? (
         <>
           <Divider sx={{ mt: 4, mb: 3 }} />
           <Grid container spacing={4}>
@@ -284,7 +284,7 @@ const Results = memo(function Results({
               color={theme.custom.green}
               sx={{ fontWeight: 600, lineHeight: 1.2 }}
             >
-              {takeHome?.amount?.toFormat()}
+              {formatMoney(takeHome?.amount)}
             </Typography>
           </Box>
           <Box sx={{ textAlign: "center" }}>

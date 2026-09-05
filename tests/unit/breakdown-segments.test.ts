@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { toBreakdownSegments } from "@/utils/breakdown-segments";
-import { asCurrency } from "@/utils/calculator";
 import { CITIES, EXEMPT } from "@/constants";
 import type { TaxResultsWithCities } from "@/types";
+import { asCurrency, toUnit } from "@/utils/money";
 
 const federal: TaxResultsWithCities = {
   federal_income: asCurrency(18047),
@@ -33,7 +33,7 @@ describe("toBreakdownSegments", () => {
 
   it("sorts by amount, largest first", () => {
     const amounts = toBreakdownSegments(federal, state).map((s) =>
-      s.amount.toUnit(),
+      toUnit(s.amount),
     );
     expect(amounts).toEqual([...amounts].sort((a, b) => b - a));
   });

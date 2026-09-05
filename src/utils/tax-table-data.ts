@@ -9,13 +9,14 @@ import type {
   TaxData,
   TaxFrequency,
 } from "@/types";
+import { isFlatFeeSchedule, isRateLookupSchedule } from "./calculator";
+import { snakeToTitleCase, toSnakeCase } from "./string-utils";
 import {
   asCurrency,
-  formatNoZeros,
-  isFlatFeeSchedule,
-  isRateLookupSchedule,
-} from "./calculator";
-import { snakeToTitleCase, toSnakeCase } from "./string-utils";
+  formatMoney,
+  formatMoneyNoCents,
+  multiplyMoney,
+} from "@/utils/money";
 
 export type Table = {
   name: string;
@@ -147,13 +148,13 @@ export function tableDataFromTaxData(
  * the data ({ max: 20000 } then { min: 20000 }) but must not appear to overlap.
  */
 function formatBracketRange(bracket: RateBracket, index: number): string {
-  const min = asCurrency(bracket.min + (index === 0 ? 0 : 1)).toFormat(
-    formatNoZeros,
+  const min = formatMoneyNoCents(
+    asCurrency(bracket.min + (index === 0 ? 0 : 1)),
   );
   if (bracket.max === INFINITY) {
     return `${min}+`;
   }
-  return `${min} - ${asCurrency(bracket.max as number).toFormat(formatNoZeros)}`;
+  return `${min} - ${formatMoneyNoCents(asCurrency(bracket.max as number))}`;
 }
 
 /**
@@ -171,17 +172,17 @@ function formatFlatFee(bracket: FlatFeeBracket): string {
   if (bracket.frequency) {
     const periodsPerYear =
       TAX_FREQUENCY_PERIODS_PER_YEAR[bracket.frequency as TaxFrequency];
-    label = `${amount
-      .multiply(periodsPerYear)
-      .toFormat(formatNoZeros)}/yr (${amount.toFormat()} ${snakeToTitleCase(
+    label = `${formatMoneyNoCents(
+      multiplyMoney(amount, periodsPerYear),
+    )}/yr (${formatMoney(amount)} ${snakeToTitleCase(
       bracket.frequency,
     ).toLowerCase()})`;
   } else {
-    label = amount.toFormat(formatNoZeros);
+    label = formatMoneyNoCents(amount);
   }
 
   if (bracket.min) {
-    label += ` at ${asCurrency(bracket.min).toFormat(formatNoZeros)}+`;
+    label += ` at ${formatMoneyNoCents(asCurrency(bracket.min))}+`;
   }
 
   return label;
@@ -196,7 +197,7 @@ export function standardDeductionMapToTable(
   for (const [filingStatus, amount] of Object.entries(standardDeductionMap)) {
     rows.push([
       snakeToTitleCase(filingStatus),
-      asCurrency(amount).toFormat(formatNoZeros),
+      formatMoneyNoCents(asCurrency(amount)),
     ]);
   }
 

@@ -1,12 +1,11 @@
 "use client";
-
-import type { Dinero } from "dinero.js";
+import type { Money } from "@/utils/money";
 import { Box, Tooltip, Typography, useTheme } from "@mui/material";
 import { useMemo } from "react";
 import type { TaxResultsWithCities } from "@/types";
-import { asCurrency } from "@/utils/calculator";
 import { toBreakdownSegments } from "@/utils/breakdown-segments";
 import { formatPercent } from "@/utils/format-percent";
+import { asCurrency, formatMoney, toUnit } from "@/utils/money";
 import {
   RETIREMENT_COLOR_DARK,
   RETIREMENT_COLOR_LIGHT,
@@ -20,14 +19,14 @@ type TaxBreakdownBarProps = {
   stateResults: TaxResultsWithCities;
   /** Gross income, before retirement contributions and deductions. */
   totalIncome: number;
-  takeHome: Dinero;
+  takeHome: Money;
   totalIRA: number;
 };
 
 type BreakdownRow = {
   id: string;
   label: string;
-  amount: Dinero;
+  amount: Money;
   color: string;
   /** Share of gross income, 0-100. */
   share: number;
@@ -44,9 +43,9 @@ export function TaxBreakdownBar({
   const isDark = theme.palette.mode === "dark";
 
   const { takeHomeRow, retirementRow, taxRows } = useMemo(() => {
-    const grossUnits = asCurrency(totalIncome).toUnit();
-    const share = (amount: Dinero) =>
-      grossUnits > 0 ? (amount.toUnit() / grossUnits) * 100 : 0;
+    const grossUnits = toUnit(asCurrency(totalIncome));
+    const share = (amount: Money) =>
+      grossUnits > 0 ? (toUnit(amount) / grossUnits) * 100 : 0;
 
     const takeHomeRow: BreakdownRow = {
       id: "take_home",
@@ -99,7 +98,7 @@ export function TaxBreakdownBar({
     [retirementRow, taxRows],
   );
 
-  const barLabel = `Where each dollar of ${asCurrency(totalIncome).toFormat()} goes: ${barRows
+  const barLabel = `Where each dollar of ${formatMoney(asCurrency(totalIncome))} goes: ${barRows
     .map((row) => `${row.label} ${row.share.toFixed(1)} percent`)
     .join(", ")}`;
 
@@ -119,7 +118,7 @@ export function TaxBreakdownBar({
         {barRows.map((row) => (
           <Tooltip
             key={row.id}
-            title={`${row.label}: ${row.amount.toFormat()} (${formatPercent(row.share)})`}
+            title={`${row.label}: ${formatMoney(row.amount)} (${formatPercent(row.share)})`}
           >
             <Box
               sx={{
@@ -191,7 +190,7 @@ function LegendRow({
         fontWeight={emphasized ? "bold" : undefined}
         sx={{ m: 0, fontVariantNumeric: "tabular-nums" }}
       >
-        {row.amount.toFormat()}
+        {formatMoney(row.amount)}
       </Typography>
       <Typography
         component="dd"

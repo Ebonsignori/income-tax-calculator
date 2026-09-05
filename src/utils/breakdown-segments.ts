@@ -1,14 +1,15 @@
-import type { Dinero } from "dinero.js";
+import type { Money } from "@/utils/money";
 import { CITIES, EXEMPT } from "@/constants";
 import type { TaxResults, TaxResultsWithCities } from "@/types";
 import { snakeToTitleCase } from "./string-utils";
+import { toUnit } from "@/utils/money";
 
 /** One tax, flattened out of the nested federal/state/city results. */
 export type BreakdownSegment = {
   id: string;
   /** Display label, e.g. "Art Tax (City)". */
   label: string;
-  amount: Dinero;
+  amount: Money;
   isCity: boolean;
 };
 
@@ -28,8 +29,8 @@ export function toBreakdownSegments(
 
   const push = (id: string, value: unknown, isCity: boolean) => {
     if (value === EXEMPT) return;
-    const amount = value as Dinero;
-    if (!amount?.toUnit || amount.toUnit() <= 0) return;
+    const amount = value as Money;
+    if (!amount || toUnit(amount) <= 0) return;
     segments.push({
       id,
       label: isCity ? `${snakeToTitleCase(id)} (City)` : snakeToTitleCase(id),
@@ -54,5 +55,5 @@ export function toBreakdownSegments(
     }
   }
 
-  return segments.sort((a, b) => b.amount.toUnit() - a.amount.toUnit());
+  return segments.sort((a, b) => toUnit(b.amount) - toUnit(a.amount));
 }

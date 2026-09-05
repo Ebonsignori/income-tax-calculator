@@ -1,11 +1,11 @@
 "use client";
-
 import type { TaxResultsWithCities } from "@/types";
 import { Typography, useTheme } from "@mui/material";
 import { PieChart } from "@mui/x-charts";
 import { useMemo } from "react";
 import { toBreakdownSegments } from "@/utils/breakdown-segments";
 import { getSegmentColor } from "@/constants/chart-colors";
+import { formatMoney, toUnit } from "@/utils/money";
 
 type PieChartBreakdownProps = {
   federalResults: TaxResultsWithCities;
@@ -38,10 +38,10 @@ export function PieChartBreakdown({
     return {
       pieChartData: segments.map((segment, index) => ({
         id: segment.id,
-        value: segment.amount.toUnit(),
+        value: toUnit(segment.amount),
         label: segment.label,
         color: getSegmentColor(index),
-        tooltipValue: segment.amount.toFormat(),
+        tooltipValue: formatMoney(segment.amount),
       })),
       totalTaxTypes: segments.length,
     };
