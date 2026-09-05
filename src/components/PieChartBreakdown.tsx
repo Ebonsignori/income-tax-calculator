@@ -1,12 +1,11 @@
 "use client";
 
-import type { Dinero } from "dinero.js";
-import { CITIES, EXEMPT } from "@/constants";
 import type { TaxResultsWithCities } from "@/types";
-import { snakeToTitleCase } from "@/utils/string-utils";
 import { Typography, useTheme } from "@mui/material";
 import { PieChart } from "@mui/x-charts";
 import { useMemo } from "react";
+import { toBreakdownSegments } from "@/utils/breakdown-segments";
+import { getSegmentColor } from "@/constants/chart-colors";
 
 type PieChartBreakdownProps = {
   federalResults: TaxResultsWithCities;
@@ -18,6 +17,11 @@ type PieChartBreakdownProps = {
   mbNumberOfKeysPerRow?: number;
 };
 
+/**
+ * Retained for the Open Graph image pipeline only -- OpenGraphContainer renders
+ * it and scripts/generate-og-images.ts screenshots the result. The in-app
+ * breakdown uses TaxBreakdownBar, which reads without hover and is responsive.
+ */
 export function PieChartBreakdown({
   federalResults,
   stateResults,
@@ -30,41 +34,17 @@ export function PieChartBreakdown({
   const theme = useTheme();
 
   const { pieChartData, totalTaxTypes } = useMemo(() => {
-    let pieChartData = [];
-    let totalTaxTypes = 0;
-    for (const [taxType, value] of Object.entries(federalResults)) {
-      if (value === EXEMPT || (value as Dinero)?.toUnit() === 0) continue;
-      totalTaxTypes++;
-      pieChartData.push({
-        id: taxType,
-        value: (value as Dinero)?.toUnit(),
-        label: snakeToTitleCase(taxType),
-        tooltipValue: (value as Dinero)?.toFormat(),
-      });
-    }
-    for (const [taxType, taxTotal] of Object.entries(stateResults)) {
-      if (taxType === CITIES) {
-        for (const [city, cityValue] of Object.entries(taxTotal)) {
-          if (cityValue === EXEMPT || cityValue?.toUnit() === 0) continue;
-          totalTaxTypes++;
-          pieChartData.push({
-            id: city,
-            value: cityValue?.toUnit(),
-            label: snakeToTitleCase(city),
-            tooltipValue: (cityValue as Dinero)?.toFormat(),
-          });
-        }
-      } else if (taxTotal !== EXEMPT && (taxTotal as Dinero)?.toUnit() > 0) {
-        totalTaxTypes++;
-        pieChartData.push({
-          id: taxType,
-          value: (taxTotal as Dinero)?.toUnit(),
-          label: snakeToTitleCase(taxType),
-          tooltipValue: (taxTotal as Dinero)?.toFormat(),
-        });
-      }
-    }
-    return { pieChartData, totalTaxTypes };
+    const segments = toBreakdownSegments(federalResults, stateResults);
+    return {
+      pieChartData: segments.map((segment, index) => ({
+        id: segment.id,
+        value: segment.amount.toUnit(),
+        label: segment.label,
+        color: getSegmentColor(index),
+        tooltipValue: segment.amount.toFormat(),
+      })),
+      totalTaxTypes: segments.length,
+    };
   }, [federalResults, stateResults]);
 
   return (

@@ -419,26 +419,32 @@ export function sumTotals(
 
   const takeHome = taxableIncome.subtract(totalFederal).subtract(totalState);
 
+  // Percentages are of gross income, not of income after retirement
+  // contributions. Against the smaller base these read as a higher effective
+  // rate than the user actually pays, and they disagree with the breakdown
+  // bar, which apportions gross. With no 401k contribution the two bases are
+  // identical, so this only moves when a contribution is entered -- and there
+  // the shortfall from 100% is exactly the contribution.
   return {
     takeHome: {
-      percent: getPercent(takeHome, taxableIncome),
+      percent: getPercent(takeHome, totalIncome),
       amount: takeHome,
     },
     totalTaxes,
     totalFederal: {
-      percent: getPercent(totalFederal, taxableIncome),
+      percent: getPercent(totalFederal, totalIncome),
       amount: totalFederal,
     },
     totalState: {
-      percent: getPercent(totalState, taxableIncome),
+      percent: getPercent(totalState, totalIncome),
       amount: totalState,
     },
     totalCity: {
-      percent: getPercent(totalCity, taxableIncome),
+      percent: getPercent(totalCity, totalIncome),
       amount: totalCity,
     },
     totalFica: {
-      percent: getPercent(totalFica, taxableIncome),
+      percent: getPercent(totalFica, totalIncome),
       amount: totalFica,
     },
     federalResults,

@@ -186,7 +186,7 @@ export function TableBreakdown({
               }}
             />
             <TableCell>Tax</TableCell>
-            <TableCell align="right">Percent</TableCell>
+            <TableCell align="right">Percent of income</TableCell>
             <TableCell align="right">Amount</TableCell>
           </TableRow>
         </TableHead>

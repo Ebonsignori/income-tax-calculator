@@ -1,14 +1,18 @@
 import { calculate, getPaycheckByFrequency } from "@/utils/calculator";
-import { Box, Grid, Typography } from "@mui/material";
-import React, { memo, useMemo } from "react";
+import { Box, Divider, Grid, Typography, useMediaQuery } from "@mui/material";
+import React, { memo, useEffect, useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { FREQUENCY_TO_FREQUENCY_LABEL } from "@/constants/paycheck-frequency";
 import type { TaxData } from "@/types";
 import type { FilingStatus } from "@/constants/filing-status";
 import type { TaxOption } from "@/utils/get-tax-options";
-import { PieChartBreakdown } from "./PieChartBreakdown";
+import { TaxBreakdownBar } from "./TaxBreakdownBar";
+import { formatPercent } from "@/utils/format-percent";
 import { TableBreakdown } from "./TableBreakdown";
+
+/** Kept in sync with the sticky bar's own height so the two cannot drift. */
+const STICKY_SUMMARY_HEIGHT = 56;
 
 type ResultsProps = {
   federalTaxes: TaxData;
@@ -77,89 +81,152 @@ const Results = memo(function Results({
     ],
   );
 
+  // Against gross income, deliberately. `calculate` reports every `percent`
+  // field against income minus retirement contributions, which is not what an
+  // effective rate means.
+  const effectiveRate = useMemo(() => {
+    if (!totalIncome) return 0;
+    return (totalTaxes.toUnit() / totalIncome) * 100;
+  }, [totalTaxes, totalIncome]);
+
+  const frequencyLabel = FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency];
+
+  // noSsr: the static export would otherwise render the desktop branch and
+  // then flip after hydration.
+  const showStickySummary = useMediaQuery(theme.breakpoints.down("md"), {
+    noSsr: true,
+  });
+
+  useEffect(() => {
+    if (!showStickySummary) return;
+    const previous = document.body.style.paddingBottom;
+    document.body.style.paddingBottom = `${STICKY_SUMMARY_HEIGHT}px`;
+    return () => {
+      document.body.style.paddingBottom = previous;
+    };
+  }, [showStickySummary]);
+
   return (
     <Box>
-      <Grid container>
-        <Grid item xs={12} sm={6}>
+      <Box
+        aria-live="polite"
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-start",
+          justifyContent: "center",
+          columnGap: { xs: 3, sm: 6 },
+          rowGap: 2,
+          textAlign: "center",
+        }}
+      >
+        <Box>
           <Typography
-            variant="h5"
+            variant="overline"
             component="h2"
-            textAlign="center"
-            color={theme.custom.green}
+            color="text.secondary"
+            sx={{ display: "block", lineHeight: 1.6 }}
           >
-            Total Take Home
+            Take home
           </Typography>
           <Typography
-            variant="body1"
-            fontSize="large"
-            sx={{ mb: 0, mt: 1 }}
-            textAlign="center"
+            variant="h3"
+            component="p"
+            color={theme.custom.green}
+            sx={{ fontWeight: 500, lineHeight: 1.1 }}
             data-testid="total-take-home-amount"
           >
             {takeHome?.amount?.toFormat()}
           </Typography>
-          <Typography variant="body2" textAlign="center">
-            or
-          </Typography>
-          <Typography variant="body1" fontSize="large" textAlign="center">
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             {getPaycheckByFrequency(
               takeHome?.amount,
               paycheckFrequency,
-            ).toFormat()}
+            ).toFormat()}{" "}
+            {frequencyLabel}
           </Typography>
-          <Typography variant="body2" textAlign="center">
-            {FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency]}
+        </Box>
+
+        <Box>
+          <Typography
+            variant="overline"
+            component="h2"
+            color="text.secondary"
+            sx={{ display: "block", lineHeight: 1.6 }}
+          >
+            Total taxes
           </Typography>
-        </Grid>
-        <Grid
-          item
-          xs={12}
-          sm={6}
-          marginTop={{
-            xs: 2,
-            sm: 0,
-          }}
-        >
           <Typography
             variant="h5"
-            component="h2"
-            textAlign="center"
+            component="p"
             color={theme.custom.red}
-          >
-            Total Taxes
-          </Typography>
-          <Typography
-            variant="body1"
-            fontSize="large"
-            sx={{ mb: 0, mt: 1 }}
-            textAlign="center"
+            sx={{ fontWeight: 500, lineHeight: 1.1, mt: 0.5 }}
           >
             {totalTaxes.toFormat()}
           </Typography>
-          <Typography variant="body2" textAlign="center">
-            or
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {getPaycheckByFrequency(totalTaxes, paycheckFrequency).toFormat()}{" "}
+            {frequencyLabel}
           </Typography>
-          <Typography variant="body1" fontSize="large" textAlign="center">
-            {getPaycheckByFrequency(totalTaxes, paycheckFrequency).toFormat()}
+        </Box>
+
+        <Box>
+          <Typography
+            variant="overline"
+            component="h2"
+            color="text.secondary"
+            sx={{ display: "block", lineHeight: 1.6 }}
+          >
+            Effective rate
           </Typography>
-          <Typography variant="body2" textAlign="center">
-            {FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency]}
+          <Typography
+            variant="h5"
+            component="p"
+            sx={{ fontWeight: 500, lineHeight: 1.1, mt: 0.5 }}
+            data-testid="effective-tax-rate"
+          >
+            {formatPercent(effectiveRate)}
           </Typography>
-        </Grid>
-      </Grid>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            of gross income
+          </Typography>
+        </Box>
+      </Box>
 
       {totalTaxes?.toUnit() > 0 ? (
         <>
-          <Typography
-            variant="h4"
-            component="h3"
-            textAlign="center"
-            sx={{ mt: 4, mb: 1 }}
-          >
-            Breakdown
-          </Typography>
-          <Grid container>
-            <Grid item xs={12} sm={12} md={7}>
+          <Divider sx={{ mt: 4, mb: 3 }} />
+          <Grid container spacing={4}>
+            <Grid item xs={12} lg={7}>
+              <Typography
+                variant="h6"
+                component="h2"
+                sx={{ mb: 2 }}
+                color="text.secondary"
+              >
+                Where each dollar goes
+              </Typography>
+              <TaxBreakdownBar
+                federalResults={federalResults}
+                stateResults={stateResults}
+                totalIncome={totalIncome}
+                takeHome={takeHome?.amount}
+                totalIRA={totalIRA}
+              />
+            </Grid>
+            {/*
+              Side by side only where there is room for both; below lg they
+              stack, which reads better than two cramped columns.
+            */}
+            <Grid item xs={12} lg={5} sx={{ mt: { xs: 4, lg: 0 } }}>
+              <Typography
+                variant="h6"
+                component="h2"
+                sx={{ mb: 2 }}
+                color="text.secondary"
+              >
+                Breakdown by jurisdiction
+              </Typography>
               <TableBreakdown
                 totalFederal={totalFederal}
                 totalState={totalState}
@@ -172,24 +239,70 @@ const Results = memo(function Results({
                 stateTaxableIncome={stateTaxableIncome}
               />
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={12}
-              md={5}
-              display="flex"
-              alignContent="center"
-              flexDirection="column"
-              alignItems="center"
-              marginTop={{ xs: 2, md: 0 }}
-            >
-              <PieChartBreakdown
-                federalResults={federalResults}
-                stateResults={stateResults}
-              />
-            </Grid>
           </Grid>
         </>
+      ) : null}
+
+      {/*
+        On a phone the eight stacked inputs fill the viewport, so every result
+        is below the fold and typing an income looks like it did nothing. This
+        keeps the answer on screen while the inputs are being adjusted, which
+        is also what makes the income slider worth dragging.
+      */}
+      {showStickySummary ? (
+        <Box
+          aria-hidden
+          sx={{
+            display: "flex",
+            height: STICKY_SUMMARY_HEIGHT,
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: (theme) => theme.zIndex.appBar,
+            justifyContent: "space-around",
+            alignItems: "center",
+            gap: 2,
+            px: 2,
+            py: 1,
+            bgcolor: "background.paper",
+            borderTop: 1,
+            borderColor: "divider",
+            boxShadow: 3,
+          }}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", lineHeight: 1.2 }}
+            >
+              Take home
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              color={theme.custom.green}
+              sx={{ fontWeight: 600, lineHeight: 1.2 }}
+            >
+              {takeHome?.amount?.toFormat()}
+            </Typography>
+          </Box>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", lineHeight: 1.2 }}
+            >
+              Effective rate
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, lineHeight: 1.2 }}
+            >
+              {formatPercent(effectiveRate)}
+            </Typography>
+          </Box>
+        </Box>
       ) : null}
     </Box>
   );

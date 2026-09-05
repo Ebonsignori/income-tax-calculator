@@ -41,8 +41,10 @@ export function getTheme(mode: "light" | "dark") {
       fontFamily: roboto.style.fontFamily,
     },
     custom: {
-      red: isDark ? "#FF0000" : "#BC4749",
-      green: isDark ? "#00FF00" : "#386641",
+      // Pure #F00/#0F0 on a near-black surface vibrate and read as an error
+      // state. These are the dark-surface counterparts of the light pair.
+      red: isDark ? "#e57373" : "#BC4749",
+      green: isDark ? "#81c784" : "#386641",
     },
   });
 }
