@@ -130,13 +130,19 @@ async function screenshotPieChart(
 ) {
   console.log("Capturing screen for", url, "and saving to", savePath);
   const page = await context.newPage();
-  await page.setViewportSize({
-    width: OG_SCREEN_WIDTH,
-    height: OG_SCREEN_HEIGHT,
-  });
-  await page.goto(url);
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: savePath });
+  try {
+    await page.setViewportSize({
+      width: OG_SCREEN_WIDTH,
+      height: OG_SCREEN_HEIGHT,
+    });
+    await page.goto(url);
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: savePath });
+  } finally {
+    // This runs a few hundred times; without closing, every page stays
+    // resident in the one context for the whole run.
+    await page.close();
+  }
 }
 
 async function screenshotTaxTable(
@@ -147,19 +153,32 @@ async function screenshotTaxTable(
   selectionText: string,
 ) {
   const page = await context.newPage();
-  await page.setViewportSize({
-    width: OG_SCREEN_WIDTH,
-    height: OG_SCREEN_HEIGHT,
-  });
-  await page.goto(url);
-  await page.getByTestId("tax-year-select").locator("input").fill(year);
+  try {
+    await page.setViewportSize({
+      width: OG_SCREEN_WIDTH,
+      height: OG_SCREEN_HEIGHT,
+    });
+    await page.goto(url);
+    await page.getByTestId("tax-year-select").locator("input").fill(year);
 
-  await page.locator("input#tax-options-select").click({ force: true });
-  await page
-    .getByRole("option")
-    .filter({ hasText: snakeToTitleCase(selectionText) })
-    ?.nth(0)
-    .click();
+    // The select's own id is derived from its label, so it changed when the
+    // label did and this stopped matching. The test id is what the e2e suite
+    // targets and does not move with copy.
+    await page.getByTestId("tax-options-select").click({ force: true });
+    await page
+      .getByRole("option")
+      .filter({ hasText: snakeToTitleCase(selectionText) })
+      ?.nth(0)
+      .click();
 
-  await page.screenshot({ path: savePath });
+    // The select sets disableCloseOnSelect so multiple tables can be picked in
+    // one go. Left open, the option list covers the table this image exists to
+    // show.
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
+    await page.screenshot({ path: savePath });
+  } finally {
+    await page.close();
+  }
 }

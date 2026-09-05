@@ -3,8 +3,11 @@ module.exports = {
   siteUrl: "https://income-tax.org",
   generateRobotsTxt: true,
   output: "export",
-  generateRobotsTxt: true,
   priority: 0.5,
+  // /og-image/* exists only so generate-og-images.ts has something to
+  // screenshot; it renders null outside development. Left in, it was a third
+  // of the submitted sitemap pointing at blank pages.
+  exclude: ["/og-image", "/og-image/*"],
   transform: async (config, path) => {
     let priority = config.priority;
 
@@ -44,7 +47,7 @@ module.exports = {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/_next/"],
+        disallow: ["/_next/", "/og-image"],
       },
     ],
     additionalSitemaps: ["https://income-tax.org/sitemap.xml"],
