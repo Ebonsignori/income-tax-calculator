@@ -29,6 +29,7 @@ export function NotFoundPage() {
         variant="contained"
         component={Link}
         href={href}
+        prefetch={false}
       >
         Return Home
       </Button>

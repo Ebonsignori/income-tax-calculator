@@ -61,7 +61,12 @@ export default function Footer({ pages }: FooterProps) {
       >
         {visiblePages.map(({ name, route }) => (
           <Box key={route} component="span" sx={{ whiteSpace: "nowrap" }}>
-            <MuiLink color="inherit" component={Link} href={route}>
+            <MuiLink
+              color="inherit"
+              component={Link}
+              href={route}
+              prefetch={false}
+            >
               {name}
             </MuiLink>
             <Box component="span" sx={{ mx: 1.5 }}>

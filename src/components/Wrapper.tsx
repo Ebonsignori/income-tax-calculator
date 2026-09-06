@@ -124,6 +124,12 @@ export default function Wrapper({
             {/*
               Five links fit comfortably on a desktop toolbar; hiding them
               behind a hamburger there costs a click for no space saved.
+
+              prefetch is off on every internal link in this app: under
+              `output: export` with `trailingSlash`, the router asks for
+              `<path>.txt` while the export writes `<path>/index.txt`, so every
+              prefetch 404s. They buy nothing today, and at ~22KB a payload the
+              city list would pull megabytes for nothing.
             */}
             <Box
               component="nav"
@@ -135,6 +141,7 @@ export default function Wrapper({
                   key={route}
                   component={Link}
                   href={route}
+                  prefetch={false}
                   color="inherit"
                   aria-current={selected ? "page" : undefined}
                   sx={{
@@ -194,6 +201,7 @@ export default function Wrapper({
                   disablePadding
                   component={Link}
                   href={selected ? "" : route}
+                  prefetch={false}
                   sx={{
                     textDecoration: "none",
                     color: theme.palette.text.primary,

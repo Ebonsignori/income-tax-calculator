@@ -284,6 +284,7 @@ export default function CityTaxes({
                         <MuiLink
                           component={Link}
                           href={href}
+                          prefetch={false}
                           sx={{
                             textDecoration: "none",
                             p: 2,
