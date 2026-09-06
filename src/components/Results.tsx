@@ -8,6 +8,8 @@ import type { TaxData } from "@/types";
 import type { FilingStatus } from "@/constants/filing-status";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { TaxBreakdownBar } from "./TaxBreakdownBar";
+import { BracketLadder } from "./BracketLadder";
+import { getMarginalRate } from "@/utils/marginal-rate";
 import { formatPercent } from "@/utils/format-percent";
 import { TableBreakdown } from "./TableBreakdown";
 import { formatMoney, toUnit } from "@/utils/money";
@@ -89,6 +91,37 @@ const Results = memo(function Results({
     if (!totalIncome) return 0;
     return (toUnit(totalTaxes) / totalIncome) * 100;
   }, [totalTaxes, totalIncome]);
+
+  const marginalRate = useMemo(() => {
+    if (!totalIncome) return null;
+    const taxAt = (income: number) =>
+      toUnit(
+        calculate(
+          federalTaxes,
+          stateTaxes,
+          income,
+          filingStatus,
+          totalIRA,
+          totalFederalDeductions,
+          totalStateDeductions,
+          exemptTaxes,
+          USAState,
+          USACity,
+        ).totalTaxes,
+      );
+    return getMarginalRate(taxAt, totalIncome);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    totalIncome,
+    filingStatus,
+    totalIRA,
+    totalFederalDeductions,
+    totalStateDeductions,
+    exemptTaxes,
+    federalTaxes,
+    stateTaxes,
+    USACity,
+  ]);
 
   const frequencyLabel = FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency];
 
@@ -191,6 +224,32 @@ const Results = memo(function Results({
             of gross income
           </Typography>
         </Box>
+
+        {marginalRate ? (
+          <Box>
+            <Typography
+              variant="overline"
+              component="h2"
+              color="text.secondary"
+              sx={{ display: "block", lineHeight: 1.6 }}
+            >
+              Next dollar
+            </Typography>
+            <Typography
+              variant="h5"
+              component="p"
+              sx={{ fontWeight: 500, lineHeight: 1.1, mt: 0.5 }}
+              data-testid="marginal-tax-rate"
+            >
+              {formatPercent(marginalRate.percent)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {marginalRate.spansRateChange
+                ? "averaged over a rate change"
+                : "on your next $1 earned"}
+            </Typography>
+          </Box>
+        ) : null}
       </Box>
 
       {toUnit(totalTaxes) > 0 ? (
@@ -240,6 +299,21 @@ const Results = memo(function Results({
               />
             </Grid>
           </Grid>
+
+          <Divider sx={{ mt: 4, mb: 3 }} />
+          <Typography
+            variant="h6"
+            component="h2"
+            sx={{ mb: 2 }}
+            color="text.secondary"
+          >
+            Federal brackets
+          </Typography>
+          <BracketLadder
+            federalTaxes={federalTaxes}
+            filingStatus={filingStatus}
+            federalTaxableIncome={toUnit(federalTaxableIncome)}
+          />
         </>
       ) : null}
 

@@ -257,7 +257,7 @@ export function calculateTaxesPerBracket(
  * filing status) or by the individual filing status. Values that are not
  * bracket maps at all -- a bare number, the NONE sentinel -- yield undefined.
  */
-function scheduleForFilingStatus(
+export function scheduleForFilingStatus(
   taxTypeData: TaxData[string],
   filingStatus: FilingStatus,
 ): BracketSchedule | undefined {
