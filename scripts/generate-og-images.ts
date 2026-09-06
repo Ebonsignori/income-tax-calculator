@@ -50,6 +50,14 @@ import { webkit } from "playwright";
     "Federal Income",
   );
 
+  // One image for every comparison page. A representative pair shows the
+  // feature; six hundred near-identical screenshots would not add anything.
+  await screenshotPieChart(
+    context,
+    `http://localhost:${port}/compare/${years[0]}/california/vs/texas`,
+    `${basePath}/compare.png`,
+  );
+
   // Collect all unique states and cities across all years
   // Track the most recent year for each state and city combination
   const allStatesAndCities = new Map<string, Set<string>>();
