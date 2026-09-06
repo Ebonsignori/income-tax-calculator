@@ -23,6 +23,8 @@ import {
   TAX_TABLES_SHORT_TITLE,
   CITY_TAXES,
   CITY_TAXES_SHORT_TITLE,
+  COMPARE,
+  COMPARE_SHORT_TITLE,
   DISCLAIMER,
 } from "@/constants/pages";
 import {
@@ -31,6 +33,7 @@ import {
   TableChartOutlined,
   LocationCity,
   GavelOutlined,
+  CompareArrows,
 } from "@mui/icons-material";
 import Link from "next/link";
 import Footer from "./Footer";
@@ -44,9 +47,16 @@ const drawerWidth = 240;
 export default function Wrapper({
   children,
   title,
+  activePage,
 }: {
   children: ReactNode;
   title: string;
+  /**
+   * Which nav entry to mark current, when the page title is not the nav
+   * entry's own name -- a comparison page is titled "Texas vs California",
+   * which no amount of matching against "Compare Places" will find.
+   */
+  activePage?: string;
 }) {
   const [open, setOpen] = useState(false);
   const colorMode = useContext(ColorModeContext);
@@ -67,35 +77,45 @@ export default function Wrapper({
     [setOpen],
   );
 
-  const pages: NavPage[] = useMemo(
-    () => [
+  const pages: NavPage[] = useMemo(() => {
+    const current = activePage ?? title;
+    return [
       {
         name: INCOME_TAX_CALCULATOR_SHORT_TITLE,
         route: "/",
         icon: <AttachMoney />,
-        selected: title === INCOME_TAX_CALCULATOR.name,
+        selected: current === INCOME_TAX_CALCULATOR.name,
       },
       {
         name: TAX_TABLES_SHORT_TITLE,
         route: TAX_TABLES.route,
         icon: <TableChartOutlined />,
-        selected: title === TAX_TABLES.name,
+        selected: current === TAX_TABLES.name,
       },
       {
         name: CITY_TAXES_SHORT_TITLE,
         route: CITY_TAXES.route,
         icon: <LocationCity />,
-        selected: title === CITY_TAXES.name,
+        selected: current === CITY_TAXES.name,
       },
-      { ...SUPPORT, icon: <InfoOutlined />, selected: title === SUPPORT.name },
+      {
+        name: COMPARE_SHORT_TITLE,
+        route: COMPARE.route,
+        icon: <CompareArrows />,
+        selected: current === COMPARE.name,
+      },
+      {
+        ...SUPPORT,
+        icon: <InfoOutlined />,
+        selected: current === SUPPORT.name,
+      },
       {
         ...DISCLAIMER,
         icon: <GavelOutlined />,
-        selected: title === DISCLAIMER.name,
+        selected: current === DISCLAIMER.name,
       },
-    ],
-    [title],
-  );
+    ];
+  }, [title, activePage]);
 
   return (
     <>

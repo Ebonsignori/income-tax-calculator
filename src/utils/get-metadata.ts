@@ -1,5 +1,6 @@
 import {
   CITY_TAXES,
+  COMPARE,
   DISCLAIMER,
   INCOME_TAX_CALCULATOR,
   SUPPORT,
@@ -68,6 +69,7 @@ const PAGE_ROUTES: Record<string, string> = {
   [TAX_TABLES.name]: TAX_TABLES.route,
   [SUPPORT.name]: SUPPORT.route,
   [CITY_TAXES.name]: CITY_TAXES.route,
+  [COMPARE.name]: COMPARE.route,
   [DISCLAIMER.name]: DISCLAIMER.route,
 };
 
@@ -119,6 +121,13 @@ export function getPageSpecificMetadata(
   }
 
   // Params are already in dash-case, which matches our OG image filenames
+
+  if (pageName === COMPARE.name) {
+    description =
+      "Compare take home pay across states and cities, including local taxes.";
+    openGraph.title = COMPARE.name;
+    openGraph.images = `/og-images/compare.png`;
+  }
 
   if (pageName === INCOME_TAX_CALCULATOR.name) {
     if (!city) {

@@ -10,6 +10,10 @@ export const CITY_TAXES = {
   name: "Cities With Income Taxes",
   route: "/city-taxes",
 };
+export const COMPARE = {
+  name: "Compare Places",
+  route: "/compare",
+};
 export const SUPPORT = {
   name: "Support",
   route: "/support",
@@ -24,3 +28,5 @@ export const INCOME_TAX_CALCULATOR_SHORT_TITLE = "Calculator";
 export const TAX_TABLES_SHORT_TITLE = "Tax Tables";
 
 export const CITY_TAXES_SHORT_TITLE = "City Taxes";
+
+export const COMPARE_SHORT_TITLE = "Compare";

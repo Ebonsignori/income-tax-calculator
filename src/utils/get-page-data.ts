@@ -134,3 +134,18 @@ export async function getCityTaxListData(year?: string) {
     cityTaxList,
   };
 }
+
+export async function getComparePageData(year?: string) {
+  const dataDirectory = path.join(process.cwd(), "src", "data");
+  const { years, currentYear, taxDataByYear, statesAndCitiesForYear } =
+    await readTaxDataFromDisk(dataDirectory);
+
+  const selectedYear = year && years.includes(year) ? year : currentYear;
+
+  return {
+    availableYears: years,
+    defaultYear: selectedYear,
+    statesAndCitiesForYear,
+    defaultFederalTaxes: taxDataByYear[selectedYear]?.federal || {},
+  };
+}
