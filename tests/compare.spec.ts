@@ -112,3 +112,57 @@ test("removing a location updates the ranking and the URL", async ({
   await expect(page.getByText("California", { exact: true })).toHaveCount(0);
   expect(page.url()).not.toContain("california");
 });
+
+test("a state with no city taxes can still be added", async ({ page }) => {
+  // The city step used to tell people to "press add" with nothing to press,
+  // leaving states like Arizona unaddable.
+  await page.goto("/compare?locations=texas&income=150000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+  await expect(rows(page)).toHaveCount(1);
+
+  await page.fill("input#compare-state-select", "Arizona");
+  await page.getByRole("option", { name: "Arizona" }).click();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.waitForTimeout(800);
+
+  await expect(rows(page)).toHaveCount(2);
+  await expect(rows(page).filter({ hasText: "Arizona" })).toHaveCount(1);
+  // And the picker resets, ready for the next one.
+  await expect(page.locator("input#compare-state-select")).toHaveValue("");
+});
+
+test("deductions change every location's take home", async ({ page }) => {
+  await page.goto("/compare?locations=texas,washington&income=150000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+
+  const takeHomes = async () =>
+    page.getByTestId("compare-take-home").allTextContents();
+  const before = await takeHomes();
+
+  await page.locator("#compare-deductions-header").click();
+  await page.fill("input#compare-ira-401k-contributions", "23500");
+  await page.waitForTimeout(800);
+
+  const after = await takeHomes();
+  expect(after).not.toEqual(before);
+  // Contributions are the user's money but they leave take home, so every
+  // location's figure must drop.
+  const asNumber = (text: string) => Number(text.replace(/[^0-9.]/g, ""));
+  for (let i = 0; i < before.length; i++) {
+    expect(asNumber(after[i])).toBeLessThan(asNumber(before[i]));
+  }
+  expect(page.url()).toContain("ira=23500");
+});
+
+test("does not repeat the ranking as a sentence", async ({ page }) => {
+  await page.goto("/compare?locations=texas,oregon&income=150000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+
+  await expect(page.getByText(/better off per year than/)).toHaveCount(0);
+});

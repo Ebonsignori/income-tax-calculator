@@ -1,8 +1,12 @@
 "use client";
 
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Autocomplete,
   Box,
+  Button,
   Chip,
   Collapse,
   Divider,
@@ -17,6 +21,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import KeyboardArrowDown from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUp from "@mui/icons-material/KeyboardArrowUp";
@@ -104,6 +109,13 @@ export default function Compare({
   const [year, setYear] = useState(defaultYear);
   const [income, setIncome] = useState(150_000);
   const [filingStatus, setFilingStatus] = useState<FilingStatus>("single");
+  const [totalIRA, setTotalIRA] = useState(0);
+  // Undefined means "use the federal standard deduction". State deductions are
+  // never held here: each location resolves its own, or Oregon's would end up
+  // applied to Texas.
+  const [federalDeductions, setFederalDeductions] = useState<
+    number | undefined
+  >(undefined);
   const [locations, setLocations] =
     useState<ComparedLocation[]>(defaultLocations);
   const [stateTaxesByState, setStateTaxesByState] = useState<
@@ -140,6 +152,12 @@ export default function Compare({
     if (fromUrl.length) setLocations(fromUrl);
     const urlIncome = parseInt(params.get("income") ?? "", 10);
     if (!isNaN(urlIncome) && urlIncome > 0) setIncome(urlIncome);
+    const urlIra = parseInt(params.get("ira") ?? "", 10);
+    if (!isNaN(urlIra) && urlIra > 0) setTotalIRA(urlIra);
+    const urlDeductions = parseInt(params.get("deductions") ?? "", 10);
+    if (!isNaN(urlDeductions) && urlDeductions >= 0) {
+      setFederalDeductions(urlDeductions);
+    }
     const status = params.get("status");
     if (status && (FILING_STATUSES as string[]).includes(status)) {
       setFilingStatus(status as FilingStatus);
@@ -157,8 +175,20 @@ export default function Compare({
     if (locations.length) params.locations = serialiseLocations(locations);
     if (income > 0) params.income = income;
     if (filingStatus !== "single") params.status = filingStatus;
+    if (totalIRA > 0) params.ira = totalIRA;
+    if (typeof federalDeductions !== "undefined") {
+      params.deductions = federalDeductions;
+    }
     updateURL(path, params, false, true);
-  }, [locations, income, filingStatus, year, canonicalPath]);
+  }, [
+    locations,
+    income,
+    filingStatus,
+    year,
+    canonicalPath,
+    totalIRA,
+    federalDeductions,
+  ]);
 
   // Each location needs its own state's schedules. The files are a few KB and
   // code-split per state, so this is a handful of small parallel fetches.
@@ -203,10 +233,18 @@ export default function Compare({
         federalTaxes,
         income,
         filingStatus,
-        totalIRA: 0,
-        federalDeductions: undefined,
+        totalIRA,
+        federalDeductions,
       }),
-    [locations, stateTaxesByState, federalTaxes, income, filingStatus],
+    [
+      locations,
+      stateTaxesByState,
+      federalTaxes,
+      income,
+      filingStatus,
+      totalIRA,
+      federalDeductions,
+    ],
   );
 
   const addLocation = useCallback(
@@ -303,6 +341,84 @@ export default function Compare({
         </TextField>
       </Box>
 
+      <Accordion variant="outlined" disableGutters sx={{ mt: 3, mb: 1 }}>
+        <AccordionSummary
+          expandIcon={<ArrowDownwardIcon />}
+          id="compare-deductions-header"
+          aria-controls="compare-deductions-content"
+        >
+          <Typography>Deductions</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 2,
+              maxWidth: 600,
+              pt: 1,
+            }}
+          >
+            <TextField
+              id="compare-ira-401k-contributions"
+              label="401(k) / IRA Contributions"
+              type="text"
+              variant="outlined"
+              inputProps={{ inputMode: "numeric", autoComplete: "off" }}
+              value={totalIRA ? totalIRA.toLocaleString("en-US") : ""}
+              onChange={(event) => {
+                markEdited();
+                const digits = event.target.value.replace(/[^0-9]/g, "");
+                setTotalIRA(digits ? Math.max(0, parseInt(digits, 10)) : 0);
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">$</InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              id="compare-federal-deductions"
+              label="Total Federal Deductions"
+              type="text"
+              variant="outlined"
+              placeholder="Standard deduction"
+              inputProps={{ inputMode: "numeric", autoComplete: "off" }}
+              helperText={
+                typeof federalDeductions === "undefined"
+                  ? "Using the standard deduction"
+                  : " "
+              }
+              value={
+                typeof federalDeductions === "undefined"
+                  ? ""
+                  : federalDeductions.toLocaleString("en-US")
+              }
+              onChange={(event) => {
+                markEdited();
+                const digits = event.target.value.replace(/[^0-9]/g, "");
+                setFederalDeductions(digits ? parseInt(digits, 10) : undefined);
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">$</InputAdornment>
+                ),
+              }}
+            />
+          </Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mt: 2, maxWidth: 600 }}
+          >
+            State deductions are not listed here: each place applies its own
+            standard deduction, since they differ and carrying one across would
+            favour whichever state you started from.
+          </Typography>
+        </AccordionDetails>
+      </Accordion>
+
       <LocationPicker
         stateOptions={stateOptions}
         stateTaxesByState={stateTaxesByState}
@@ -348,136 +464,13 @@ export default function Compare({
                 isLeader={index === 0}
                 label={labelFor(row.location)}
                 income={income}
+                totalIRA={totalIRA}
                 onRemove={() => removeLocation(row.id)}
               />
             ))}
           </Box>
-
-          {rows.length > 1 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
-              {labelFor(rows[0].location)} leaves you{" "}
-              {formatMoneyNoCents(
-                asCurrency(rows[rows.length - 1].behindLeaderBy),
-              )}{" "}
-              better off per year than{" "}
-              {labelFor(rows[rows.length - 1].location)}.
-            </Typography>
-          ) : null}
         </Box>
       )}
-    </Box>
-  );
-}
-
-function LocationPicker({
-  stateOptions,
-  stateTaxesByState,
-  year,
-  onAdd,
-}: {
-  stateOptions: { state: string; title: string }[];
-  stateTaxesByState: Record<string, TaxData>;
-  year: string;
-  onAdd: (location: ComparedLocation) => void;
-}) {
-  const [pendingState, setPendingState] = useState<string>("");
-  const [cityOptions, setCityOptions] = useState<string[]>([]);
-
-  // Cities only become known once the state's data is in hand.
-  useEffect(() => {
-    let cancelled = false;
-    if (!pendingState) {
-      setCityOptions([]);
-      return;
-    }
-    const known = stateTaxesByState[pendingState];
-    if (known) {
-      setCityOptions(citiesForState(known));
-      return;
-    }
-    (async () => {
-      try {
-        const mod = (await import(
-          `@/data/${year}/state/${pendingState}.ts`
-        )) as {
-          default: TaxData;
-        };
-        if (!cancelled) setCityOptions(citiesForState(mod.default));
-      } catch {
-        if (!cancelled) setCityOptions([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [pendingState, stateTaxesByState, year]);
-
-  return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-        gap: 2,
-        maxWidth: 600,
-      }}
-    >
-      <Autocomplete
-        id="compare-state-select"
-        options={stateOptions}
-        getOptionLabel={(option) => option.title}
-        isOptionEqualToValue={(option, value) => option.state === value.state}
-        value={stateOptions.find((o) => o.state === pendingState) ?? null}
-        onChange={(event, value) => setPendingState(value?.state ?? "")}
-        renderInput={(params) => {
-          const { key, ...props } = params as any;
-          return (
-            <TextField
-              key={props.id || key}
-              {...props}
-              label="Add a state"
-              variant="standard"
-            />
-          );
-        }}
-      />
-
-      <Autocomplete
-        id="compare-city-select"
-        options={cityOptions}
-        getOptionLabel={(option) => snakeToTitleCase(option)}
-        disabled={!pendingState}
-        onChange={(event, city) => {
-          if (!pendingState) return;
-          onAdd({ state: pendingState, city: city ?? "" });
-          setPendingState("");
-        }}
-        renderInput={(params) => {
-          const { key, ...props } = params as any;
-          return (
-            <TextField
-              key={props.id || key}
-              {...props}
-              label={
-                !pendingState
-                  ? "Pick a state first"
-                  : cityOptions.length
-                    ? "City (optional)"
-                    : "No city taxes — press add"
-              }
-              variant="standard"
-              helperText={
-                pendingState ? "Leave blank to compare the state alone" : " "
-              }
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && pendingState) {
-                  onAdd({ state: pendingState, city: "" });
-                  setPendingState("");
-                }
-              }}
-            />
-          );
-        }}
-      />
     </Box>
   );
 }
@@ -488,6 +481,7 @@ function CompareRow({
   isLeader,
   label,
   income,
+  totalIRA,
   onRemove,
 }: {
   row: ComparisonRow;
@@ -495,6 +489,7 @@ function CompareRow({
   isLeader: boolean;
   label: string;
   income: number;
+  totalIRA: number;
   onRemove: () => void;
 }) {
   const theme = useTheme();
@@ -615,10 +610,143 @@ function CompareRow({
             stateResults={row.stateResults}
             totalIncome={income}
             takeHome={row.takeHome}
-            totalIRA={0}
+            totalIRA={totalIRA}
           />
         </Box>
       </Collapse>
+    </Box>
+  );
+}
+
+function LocationPicker({
+  stateOptions,
+  stateTaxesByState,
+  year,
+  onAdd,
+}: {
+  stateOptions: { state: string; title: string }[];
+  stateTaxesByState: Record<string, TaxData>;
+  year: string;
+  onAdd: (location: ComparedLocation) => void;
+}) {
+  const [pendingState, setPendingState] = useState<string>("");
+  const [pendingCity, setPendingCity] = useState<string>("");
+  const [cityOptions, setCityOptions] = useState<string[]>([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+
+  // Cities only become known once the state's data is in hand.
+  useEffect(() => {
+    let cancelled = false;
+    setPendingCity("");
+    if (!pendingState) {
+      setCityOptions([]);
+      return;
+    }
+    const known = stateTaxesByState[pendingState];
+    if (known) {
+      setCityOptions(citiesForState(known));
+      return;
+    }
+    setLoadingCities(true);
+    (async () => {
+      try {
+        const mod = (await import(
+          `@/data/${year}/state/${pendingState}.ts`
+        )) as {
+          default: TaxData;
+        };
+        if (!cancelled) setCityOptions(citiesForState(mod.default));
+      } catch {
+        if (!cancelled) setCityOptions([]);
+      } finally {
+        if (!cancelled) setLoadingCities(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pendingState, stateTaxesByState, year]);
+
+  const add = () => {
+    if (!pendingState) return;
+    onAdd({ state: pendingState, city: pendingCity });
+    setPendingState("");
+    setPendingCity("");
+  };
+
+  const hasCities = cityOptions.length > 0;
+
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr auto" },
+        gap: 2,
+        alignItems: "start",
+        maxWidth: 700,
+      }}
+    >
+      <Autocomplete
+        id="compare-state-select"
+        options={stateOptions}
+        getOptionLabel={(option) => option.title}
+        isOptionEqualToValue={(option, value) => option.state === value.state}
+        value={stateOptions.find((o) => o.state === pendingState) ?? null}
+        onChange={(event, value) => setPendingState(value?.state ?? "")}
+        renderInput={(params) => {
+          const { key, ...props } = params as any;
+          return (
+            <TextField
+              key={props.id || key}
+              {...props}
+              label="Add a state"
+              variant="standard"
+            />
+          );
+        }}
+      />
+
+      <Autocomplete
+        id="compare-city-select"
+        options={cityOptions}
+        getOptionLabel={(option) => snakeToTitleCase(option)}
+        disabled={!pendingState || !hasCities}
+        value={pendingCity || null}
+        onChange={(event, city) => setPendingCity(city ?? "")}
+        renderInput={(params) => {
+          const { key, ...props } = params as any;
+          return (
+            <TextField
+              key={props.id || key}
+              {...props}
+              label={
+                !pendingState
+                  ? "City"
+                  : loadingCities
+                    ? "Checking for city taxes…"
+                    : hasCities
+                      ? "City (optional)"
+                      : "No city taxes here"
+              }
+              variant="standard"
+              helperText={
+                pendingState && hasCities
+                  ? "Leave blank for the state alone"
+                  : " "
+              }
+            />
+          );
+        }}
+      />
+
+      <Button
+        variant="outlined"
+        onClick={add}
+        disabled={!pendingState}
+        sx={{ mt: { xs: 0, sm: 2 }, whiteSpace: "nowrap" }}
+      >
+        Add
+      </Button>
     </Box>
   );
 }
