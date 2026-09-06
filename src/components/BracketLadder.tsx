@@ -1,24 +1,45 @@
 "use client";
 
-import { Box, Typography, useTheme } from "@mui/material";
-import { useMemo } from "react";
+import {
+  Box,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import { useMemo, useState } from "react";
 import type { FilingStatus } from "@/constants/filing-status";
-import { FEDERAL_INCOME } from "@/constants/tax_types";
-import type { RateBracket, TaxData } from "@/types";
-import { scheduleForFilingStatus } from "@/utils/calculator";
+import { FEDERAL_INCOME, STATE_INCOME } from "@/constants/tax_types";
+import type { BracketSchedule, RateBracket, TaxData } from "@/types";
+import {
+  isFlatFeeSchedule,
+  isRateLookupSchedule,
+  scheduleForFilingStatus,
+} from "@/utils/calculator";
 import { buildBracketLadder } from "@/utils/marginal-rate";
 import { asCurrency, formatMoney, formatMoneyNoCents } from "@/utils/money";
 import { getSegmentColor } from "@/constants/chart-colors";
+import { snakeToTitleCase } from "@/utils/string-utils";
+
+type Jurisdiction = {
+  key: string;
+  label: string;
+  schedule: BracketSchedule | undefined;
+  /** The income these bands actually apply to, after that jurisdiction's own deductions. */
+  taxableIncome: number;
+};
 
 type BracketLadderProps = {
   federalTaxes: TaxData;
+  stateTaxes: TaxData;
+  USAState: string;
   filingStatus: FilingStatus;
-  /** Income the federal brackets actually apply to, after deductions. */
   federalTaxableIncome: number;
+  stateTaxableIncome: number;
 };
 
 /**
- * Shows how taxable income is split across the federal brackets.
+ * Shows how taxable income is split across a jurisdiction's bands.
  *
  * The point is the one most people get wrong: landing in the 22% bracket does
  * not mean paying 22% on everything, only on the part above that threshold.
@@ -26,35 +47,115 @@ type BracketLadderProps = {
  */
 export function BracketLadder({
   federalTaxes,
+  stateTaxes,
+  USAState,
   filingStatus,
   federalTaxableIncome,
+  stateTaxableIncome,
 }: BracketLadderProps) {
   const theme = useTheme();
+  const [selected, setSelected] = useState("federal");
+
+  const jurisdictions = useMemo(() => {
+    const list: Jurisdiction[] = [
+      {
+        key: "federal",
+        label: "Federal",
+        schedule: scheduleForFilingStatus(
+          federalTaxes[FEDERAL_INCOME],
+          filingStatus,
+        ),
+        taxableIncome: federalTaxableIncome,
+      },
+    ];
+    if (USAState) {
+      list.push({
+        key: "state",
+        label: snakeToTitleCase(USAState),
+        schedule: scheduleForFilingStatus(
+          stateTaxes[STATE_INCOME],
+          filingStatus,
+        ),
+        taxableIncome: stateTaxableIncome,
+      });
+    }
+    return list;
+  }, [
+    federalTaxes,
+    stateTaxes,
+    USAState,
+    filingStatus,
+    federalTaxableIncome,
+    stateTaxableIncome,
+  ]);
+
+  const active =
+    jurisdictions.find((j) => j.key === selected) ?? jurisdictions[0];
+
+  const accent = getSegmentColor(0);
 
   const steps = useMemo(() => {
-    const schedule = scheduleForFilingStatus(
-      federalTaxes[FEDERAL_INCOME],
-      filingStatus,
-    );
-    if (!schedule?.length) return [];
-    // Federal income tax is a rate schedule, never a flat-fee one.
-    return buildBracketLadder(schedule as RateBracket[], federalTaxableIncome);
-  }, [federalTaxes, filingStatus, federalTaxableIncome]);
+    const schedule = active?.schedule;
+    // A flat fee is a fixed charge, and a rate-lookup schedule taxes the whole
+    // income at one rate. Neither slices across bands, so drawing a ladder for
+    // them would say something untrue.
+    if (
+      !schedule?.length ||
+      isFlatFeeSchedule(schedule) ||
+      isRateLookupSchedule(schedule)
+    ) {
+      return [];
+    }
+    return buildBracketLadder(schedule as RateBracket[], active.taxableIncome);
+  }, [active]);
 
-  if (!steps.length) return null;
+  const toggle = jurisdictions.length > 1 && (
+    <ToggleButtonGroup
+      size="small"
+      exclusive
+      value={active?.key}
+      onChange={(event, value) => {
+        if (value) setSelected(value);
+      }}
+      aria-label="Which brackets to show"
+      sx={{ mb: 2 }}
+    >
+      {jurisdictions.map((jurisdiction) => (
+        <ToggleButton
+          key={jurisdiction.key}
+          value={jurisdiction.key}
+          sx={{ textTransform: "none", px: 2 }}
+        >
+          {jurisdiction.label}
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
+  );
+
+  if (!steps.length) {
+    return (
+      <Box>
+        {toggle}
+        <Typography variant="body2" color="text.secondary">
+          {active?.key === "state"
+            ? `${snakeToTitleCase(USAState)} has no graduated income tax bands. Its taxes are in the breakdown above.`
+            : "No bracket schedule for this year."}
+        </Typography>
+      </Box>
+    );
+  }
 
   const widest = Math.max(...steps.map((step) => step.amountInBracket), 1);
-  // The chart palette's first entry: already checked for contrast against
-  // both the light and dark page surfaces.
-  const accent = getSegmentColor(0);
 
   return (
     <Box>
+      {toggle}
+
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Only the part of your income inside each band is taxed at that
         band&apos;s rate, on{" "}
-        {formatMoneyNoCents(asCurrency(federalTaxableIncome))} of federal
-        taxable income.
+        {formatMoneyNoCents(asCurrency(active.taxableIncome))} of{" "}
+        {active.key === "state" ? "state" : "federal"} taxable income.
       </Typography>
 
       <Box

@@ -307,12 +307,15 @@ const Results = memo(function Results({
             sx={{ mb: 2 }}
             color="text.secondary"
           >
-            Federal brackets
+            Tax brackets
           </Typography>
           <BracketLadder
             federalTaxes={federalTaxes}
+            stateTaxes={stateTaxes}
+            USAState={USAState}
             filingStatus={filingStatus}
             federalTaxableIncome={toUnit(federalTaxableIncome)}
+            stateTaxableIncome={toUnit(stateTaxableIncome)}
           />
         </>
       ) : null}
