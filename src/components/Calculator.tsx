@@ -57,6 +57,23 @@ const INCOME_SLIDER_MARKS = [50_000, 100_000, 250_000, 1_000_000].map(
   (income) => ({ value: incomeToSlider(income) }),
 );
 
+/**
+ * Holds the helper-text row's height when a field has nothing to say.
+ *
+ * MUI omits the helper element entirely for empty text, which made the field
+ * jump as the note appeared and disappeared. A literal " " avoided that but
+ * left `aria-describedby` pointing at a description consisting of one space.
+ */
+const HELPER_TEXT_SPACER = (
+  <Box
+    component="span"
+    aria-hidden
+    // Matches MUI's FormHelperText line-height, so the field does not shift
+    // by a few pixels as the note appears and disappears.
+    sx={{ display: "block", minHeight: "1.66em" }}
+  />
+);
+
 /** `?income=` is user input; anything not a positive integer is ignored. */
 function parseIncomeParam(value: string | null): number | null {
   if (!value) {
@@ -256,14 +273,14 @@ export default function Home({
   const max401KContributionDisplay = useMemo(() => {
     return totalIRA === max401KContribution
       ? `Max 401(k) contribution for ${year}`
-      : " ";
+      : null;
   }, [totalIRA, max401KContribution, year]);
 
   const standardStateDeductionDisplay = useMemo(() => {
     return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions &&
       stateStandardDeductionMap?.[filingStatus] !== 0
       ? `Standard deduction for ${year}`
-      : " ";
+      : null;
   }, [stateStandardDeductionMap, filingStatus, totalStateDeductions, year]);
 
   const standardFederalDeductionDisplay = useMemo(() => {
@@ -271,7 +288,7 @@ export default function Home({
       totalFederalDeductions &&
       federalStandardDeductionMap?.[filingStatus] !== 0
       ? `Standard deduction for ${year}`
-      : " ";
+      : null;
   }, [federalStandardDeductionMap, filingStatus, totalFederalDeductions, year]);
 
   const validateAll = useCallback(() => {
@@ -446,14 +463,18 @@ export default function Home({
                       id="ira-401k-contributions"
                       label="401(k) / IRA Contributions"
                       type="text"
-                      helperText={max401KContributionDisplay}
+                      helperText={
+                        max401KContributionDisplay ?? HELPER_TEXT_SPACER
+                      }
                       FormHelperTextProps={{
                         id: "ira-401k-helper-text",
                       }}
                       inputProps={{
                         inputMode: "numeric",
                         autoComplete: "off",
-                        "aria-describedby": "ira-401k-helper-text",
+                        "aria-describedby": max401KContributionDisplay
+                          ? "ira-401k-helper-text"
+                          : undefined,
                       }}
                       value={totalIRA ? totalIRA.toLocaleString("en-US") : ""}
                       onChange={handleNumberChange(setTotalIRA)}
@@ -463,7 +484,7 @@ export default function Home({
                           <InputAdornment position="start">$</InputAdornment>
                         ),
                         endAdornment:
-                          max401KContributionDisplay === " " ? (
+                          max401KContributionDisplay === null ? (
                             <InputAdornment position="end">
                               <Tooltip title={`Set to max allowed for ${year}`}>
                                 <IconButton
@@ -488,14 +509,18 @@ export default function Home({
                       id="total-federal-deductions"
                       label="Total Federal Deductions"
                       type="text"
-                      helperText={standardFederalDeductionDisplay}
+                      helperText={
+                        standardFederalDeductionDisplay ?? HELPER_TEXT_SPACER
+                      }
                       FormHelperTextProps={{
                         id: "federal-deductions-helper-text",
                       }}
                       inputProps={{
                         inputMode: "numeric",
                         autoComplete: "off",
-                        "aria-describedby": "federal-deductions-helper-text",
+                        "aria-describedby": standardFederalDeductionDisplay
+                          ? "federal-deductions-helper-text"
+                          : undefined,
                       }}
                       value={
                         totalFederalDeductions
@@ -508,7 +533,7 @@ export default function Home({
                           <InputAdornment position="start">$</InputAdornment>
                         ),
                         endAdornment:
-                          standardFederalDeductionDisplay === " " &&
+                          standardFederalDeductionDisplay === null &&
                           federalStandardDeductionMap?.[filingStatus] !== 0 &&
                           totalFederalDeductions ? (
                             <InputAdornment position="end">
@@ -539,14 +564,18 @@ export default function Home({
                       id="total-state-deductions"
                       label="Total State Deductions"
                       type="text"
-                      helperText={standardStateDeductionDisplay}
+                      helperText={
+                        standardStateDeductionDisplay ?? HELPER_TEXT_SPACER
+                      }
                       FormHelperTextProps={{
                         id: "state-deductions-helper-text",
                       }}
                       inputProps={{
                         inputMode: "numeric",
                         autoComplete: "off",
-                        "aria-describedby": "state-deductions-helper-text",
+                        "aria-describedby": standardStateDeductionDisplay
+                          ? "state-deductions-helper-text"
+                          : undefined,
                       }}
                       value={
                         totalStateDeductions
@@ -559,7 +588,7 @@ export default function Home({
                           <InputAdornment position="start">$</InputAdornment>
                         ),
                         endAdornment:
-                          standardStateDeductionDisplay === " " &&
+                          standardStateDeductionDisplay === null &&
                           stateStandardDeductionMap?.[filingStatus] !== 0 ? (
                             <InputAdornment position="end">
                               <Tooltip
