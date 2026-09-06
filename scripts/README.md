@@ -178,7 +178,7 @@ npm run build
 - Runs automatically as part of `postbuild` script
 - No manual invocation needed
 
-**Note:** This is necessary for Netlify static site deployment where the app is served from the root path.
+**Note:** This is necessary for static site deployment where the app is served from the root path.
 
 ---
 

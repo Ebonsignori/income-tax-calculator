@@ -1,7 +1,5 @@
 # [Income Tax Calculator](https://income-tax.org/)
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/e5febf5c-a294-4da3-aad2-97638044909d/deploy-status)](https://app.netlify.com/projects/serene-liger-7f3279/deploys)
-
 This is the open source repository for [income-tax.org](https://income-tax.org/), a comprehensive income tax calculator for the United States.
 
 ## Features

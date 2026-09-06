@@ -11,7 +11,7 @@ This is a **Next.js 14** income tax calculator for the United States with:
 **Tech Stack:**
 - Next.js 14 (App Router), TypeScript, Material-UI
 - Testing: Playwright (e2e) + Vitest (unit)
-- Deployment: Netlify (https://income-tax.org)
+- Deployment: Cloudflare Pages (https://income-tax.org)
 
 ## Development Workflow
 
@@ -145,13 +145,21 @@ Two workflows run on push/PR:
 
 Husky runs `npm run lint` before every commit to ensure code quality.
 
-### Netlify
+### Cloudflare Pages
 
 Deployed to https://income-tax.org
 
 - Build command: `npm run build`
-- Publish directory: `out`
-- Redirects defined in [netlify.toml](./netlify.toml) (www → non-www, trailing slashes)
+- Output directory: `out`
+- Security headers come from [public/\_headers](./public/_headers), which
+  Cloudflare Pages reads from the output directory
+- `404.html` is served automatically for unmatched paths; no rule needed
+- Trailing slashes are produced by `trailingSlash: true` in
+  [next.config.mjs](./next.config.mjs)
+
+The www → non-www redirect is **not** in the repo. Cloudflare Pages'
+`_redirects` matches paths only, not hostnames, so that rule lives in the
+Cloudflare dashboard as a Redirect Rule.
 
 ## Standards
 
