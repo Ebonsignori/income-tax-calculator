@@ -121,7 +121,7 @@ test("the 401(k) field fills to the year's maximum and clamps above it", async (
   await expect(page.locator("input#ira-401k-contributions")).toHaveValue(
     MAX_401K,
   );
-  await expect(page.locator("#ira-401k-helper-text")).toHaveText(
+  await expect(page.locator("#ira-401k-contributions-helper-text")).toHaveText(
     `Max 401(k) contribution for ${YEAR}`,
   );
 

@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import OutlinedInput from "@mui/material/OutlinedInput";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import {
@@ -18,10 +16,10 @@ import type {
 } from "@/constants/filing-status";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
-import { Box, IconButton, Slider, Tooltip } from "@mui/material";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import type { AvailableStatesAndCities, TaxData } from "@/types";
 import Results from "@/components/Results";
-import { KeyboardDoubleArrowUp, RestartAlt } from "@mui/icons-material";
+import { RestartAlt } from "@mui/icons-material";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -34,28 +32,12 @@ import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
 import { useGetTaxData } from "@/utils/use-get-tax-data";
 import { PaycheckFrequencySelect } from "./input/PaycheckFrequencySelect";
+import { IncomeField } from "./input/IncomeField";
+import { Contribution401kField } from "./input/Contribution401kField";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { MONTHLY } from "@/constants/paycheck-frequency";
 import { updateURL, getQueryParams } from "@/utils/base-path";
 import { useUrlSelectionOnPopState } from "@/utils/url-selection";
-
-/**
- * The income slider is cube-root scaled so the low end, where most incomes
- * sit, gets most of the travel. 215 cubed is a little under $10M.
- */
-const SLIDER_MAX = 215;
-
-function sliderToIncome(sliderValue: number): number {
-  return Math.round(Math.pow(sliderValue, 3));
-}
-
-function incomeToSlider(income: number): number {
-  return Math.cbrt(income);
-}
-
-const INCOME_SLIDER_MARKS = [50_000, 100_000, 250_000, 1_000_000].map(
-  (income) => ({ value: incomeToSlider(income) }),
-);
 
 /**
  * Holds the helper-text row's height when a field has nothing to say.
@@ -270,12 +252,6 @@ export default function Home({
     [],
   );
 
-  const max401KContributionDisplay = useMemo(() => {
-    return totalIRA === max401KContribution
-      ? `Max 401(k) contribution for ${year}`
-      : null;
-  }, [totalIRA, max401KContribution, year]);
-
   const standardStateDeductionDisplay = useMemo(() => {
     return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions &&
       stateStandardDeductionMap?.[filingStatus] !== 0
@@ -328,62 +304,11 @@ export default function Home({
       */}
       <Grid container spacing={2} sx={{ mb: 2, maxWidth: 900, mx: "auto" }}>
         <Grid xs={12} sm={6} md={6}>
-          <Box>
-            <FormControl fullWidth>
-              <InputLabel htmlFor="total-income">Total Income</InputLabel>
-              <OutlinedInput
-                id="total-income"
-                // Not type="number": that forbids the thousands separators
-                // that every figure this page outputs uses, and makes a stray
-                // scroll over a focused field silently change the income.
-                type="text"
-                inputProps={{
-                  inputMode: "numeric",
-                  autoComplete: "off",
-                }}
-                placeholder="75,000"
-                value={totalIncome ? totalIncome.toLocaleString("en-US") : ""}
-                onChange={handleNumberChange(setTotalIncome)}
-                startAdornment={
-                  <InputAdornment position="start">$</InputAdornment>
-                }
-                label="Total Income"
-              />
-            </FormControl>
-            <Box display="flex" justifyContent="center">
-              <Slider
-                aria-label="Total Income"
-                value={incomeToSlider(totalIncome)}
-                min={0}
-                step={1}
-                max={SLIDER_MAX}
-                marks={INCOME_SLIDER_MARKS}
-                valueLabelDisplay="auto"
-                // Without this the cube-root scale is what gets announced --
-                // "49" for a $120,000 income.
-                getAriaValueText={(value) =>
-                  sliderToIncome(value).toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    maximumFractionDigits: 0,
-                  })
-                }
-                valueLabelFormat={(value) =>
-                  sliderToIncome(value).toLocaleString("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    maximumFractionDigits: 0,
-                  })
-                }
-                sx={{ padding: "0 !important", width: "80%", mt: 1.5 }}
-                onChange={(event: Event, newValue: number | number[]) => {
-                  if (typeof newValue === "number") {
-                    setTotalIncome(sliderToIncome(newValue));
-                  }
-                }}
-              />
-            </Box>
-          </Box>
+          <IncomeField
+            id="total-income"
+            value={totalIncome}
+            onChange={setTotalIncome}
+          />
         </Grid>
         <Grid xs={12} sm={3} md={3} display="flex" justifyContent="center">
           <YearSelect
@@ -459,47 +384,13 @@ export default function Home({
               <Grid container spacing={2}>
                 <Grid xs={12} sm={12} md={4}>
                   <FormControl fullWidth sx={{ mt: 2 }}>
-                    <TextField
+                    <Contribution401kField
                       id="ira-401k-contributions"
-                      label="401(k) / IRA Contributions"
-                      type="text"
-                      helperText={
-                        max401KContributionDisplay ?? HELPER_TEXT_SPACER
-                      }
-                      FormHelperTextProps={{
-                        id: "ira-401k-helper-text",
-                      }}
-                      inputProps={{
-                        inputMode: "numeric",
-                        autoComplete: "off",
-                        "aria-describedby": max401KContributionDisplay
-                          ? "ira-401k-helper-text"
-                          : undefined,
-                      }}
-                      value={totalIRA ? totalIRA.toLocaleString("en-US") : ""}
-                      onChange={handleNumberChange(setTotalIRA)}
-                      onBlur={validateAll}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">$</InputAdornment>
-                        ),
-                        endAdornment:
-                          max401KContributionDisplay === null ? (
-                            <InputAdornment position="end">
-                              <Tooltip title={`Set to max allowed for ${year}`}>
-                                <IconButton
-                                  aria-label="Set to max allowed for year"
-                                  onClick={() => {
-                                    setTotalIRA(max401KContribution);
-                                  }}
-                                  edge="end"
-                                >
-                                  <KeyboardDoubleArrowUp />
-                                </IconButton>
-                              </Tooltip>
-                            </InputAdornment>
-                          ) : null,
-                      }}
+                      value={totalIRA}
+                      onChange={setTotalIRA}
+                      max={max401KContribution}
+                      year={year}
+                      helperSpacer={HELPER_TEXT_SPACER}
                     />
                   </FormControl>
                 </Grid>
