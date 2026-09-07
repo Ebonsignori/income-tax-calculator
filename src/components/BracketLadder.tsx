@@ -1,41 +1,15 @@
 "use client";
 
-import {
-  Box,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, MenuItem, TextField, Typography, useTheme } from "@mui/material";
 import { useMemo, useState } from "react";
-import type { FilingStatus } from "@/constants/filing-status";
-import { FEDERAL_INCOME, STATE_INCOME } from "@/constants/tax_types";
-import type { BracketSchedule, RateBracket, TaxData } from "@/types";
-import {
-  isFlatFeeSchedule,
-  isRateLookupSchedule,
-  scheduleForFilingStatus,
-} from "@/utils/calculator";
+import type { LadderSchedule } from "@/utils/bracket-schedules";
 import { buildBracketLadder } from "@/utils/marginal-rate";
 import { asCurrency, formatMoney, formatMoneyNoCents } from "@/utils/money";
 import { getSegmentColor } from "@/constants/chart-colors";
-import { snakeToTitleCase } from "@/utils/string-utils";
-
-type Jurisdiction = {
-  key: string;
-  label: string;
-  schedule: BracketSchedule | undefined;
-  /** The income these bands actually apply to, after that jurisdiction's own deductions. */
-  taxableIncome: number;
-};
 
 type BracketLadderProps = {
-  federalTaxes: TaxData;
-  stateTaxes: TaxData;
-  USAState: string;
-  filingStatus: FilingStatus;
-  federalTaxableIncome: number;
-  stateTaxableIncome: number;
+  /** Every banded schedule in this calculation, federal through city. */
+  schedules: LadderSchedule[];
 };
 
 /**
@@ -45,103 +19,50 @@ type BracketLadderProps = {
  * not mean paying 22% on everything, only on the part above that threshold.
  * Saying so is much less convincing than showing the slices.
  */
-export function BracketLadder({
-  federalTaxes,
-  stateTaxes,
-  USAState,
-  filingStatus,
-  federalTaxableIncome,
-  stateTaxableIncome,
-}: BracketLadderProps) {
+export function BracketLadder({ schedules }: BracketLadderProps) {
   const theme = useTheme();
-  const [selected, setSelected] = useState("federal");
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  const jurisdictions = useMemo(() => {
-    const list: Jurisdiction[] = [
-      {
-        key: "federal",
-        label: "Federal",
-        schedule: scheduleForFilingStatus(
-          federalTaxes[FEDERAL_INCOME],
-          filingStatus,
-        ),
-        taxableIncome: federalTaxableIncome,
-      },
-    ];
-    if (USAState) {
-      list.push({
-        key: "state",
-        label: snakeToTitleCase(USAState),
-        schedule: scheduleForFilingStatus(
-          stateTaxes[STATE_INCOME],
-          filingStatus,
-        ),
-        taxableIncome: stateTaxableIncome,
-      });
-    }
-    return list;
-  }, [
-    federalTaxes,
-    stateTaxes,
-    USAState,
-    filingStatus,
-    federalTaxableIncome,
-    stateTaxableIncome,
-  ]);
-
+  // Falls back to the first schedule, so changing state or city cannot leave
+  // the picker pointing at something that is no longer levied.
   const active =
-    jurisdictions.find((j) => j.key === selected) ?? jurisdictions[0];
+    schedules.find((schedule) => schedule.key === selectedKey) ?? schedules[0];
 
   const accent = getSegmentColor(0);
 
-  const steps = useMemo(() => {
-    const schedule = active?.schedule;
-    // A flat fee is a fixed charge, and a rate-lookup schedule taxes the whole
-    // income at one rate. Neither slices across bands, so drawing a ladder for
-    // them would say something untrue.
-    if (
-      !schedule?.length ||
-      isFlatFeeSchedule(schedule) ||
-      isRateLookupSchedule(schedule)
-    ) {
-      return [];
-    }
-    return buildBracketLadder(schedule as RateBracket[], active.taxableIncome);
-  }, [active]);
-
-  const toggle = jurisdictions.length > 1 && (
-    <ToggleButtonGroup
-      size="small"
-      exclusive
-      value={active?.key}
-      onChange={(event, value) => {
-        if (value) setSelected(value);
-      }}
-      aria-label="Which brackets to show"
-      sx={{ mb: 2 }}
-    >
-      {jurisdictions.map((jurisdiction) => (
-        <ToggleButton
-          key={jurisdiction.key}
-          value={jurisdiction.key}
-          sx={{ textTransform: "none", px: 2 }}
-        >
-          {jurisdiction.label}
-        </ToggleButton>
-      ))}
-    </ToggleButtonGroup>
+  const steps = useMemo(
+    () =>
+      active ? buildBracketLadder(active.brackets, active.taxableIncome) : [],
+    [active],
   );
 
-  if (!steps.length) {
+  // A dropdown rather than toggles: Portland alone levies eight banded
+  // schedules once federal, state and city are counted.
+  const picker = schedules.length > 1 && (
+    <TextField
+      select
+      id="bracket-schedule-select"
+      data-testid="bracket-schedule-select"
+      label="Show brackets for"
+      value={active?.key ?? ""}
+      onChange={(event) => setSelectedKey(event.target.value)}
+      variant="standard"
+      sx={{ mb: 3, minWidth: 260 }}
+    >
+      {schedules.map((schedule) => (
+        <MenuItem key={schedule.key} value={schedule.key}>
+          {schedule.label}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+
+  if (!active || !steps.length) {
     return (
-      <Box>
-        {toggle}
-        <Typography variant="body2" color="text.secondary">
-          {active?.key === "state"
-            ? `${snakeToTitleCase(USAState)} has no graduated income tax bands. Its taxes are in the breakdown above.`
-            : "No bracket schedule for this year."}
-        </Typography>
-      </Box>
+      <Typography variant="body2" color="text.secondary">
+        Nothing here is charged in bands. The taxes that do apply are in the
+        breakdown above.
+      </Typography>
     );
   }
 
@@ -149,13 +70,13 @@ export function BracketLadder({
 
   return (
     <Box>
-      {toggle}
+      {picker}
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Only the part of your income inside each band is taxed at that
         band&apos;s rate, on{" "}
-        {formatMoneyNoCents(asCurrency(active.taxableIncome))} of{" "}
-        {active.key === "state" ? "state" : "federal"} taxable income.
+        {formatMoneyNoCents(asCurrency(active.taxableIncome))} of the income
+        this tax is measured against.
       </Typography>
 
       <Box

@@ -10,6 +10,7 @@ import type { TaxOption } from "@/utils/get-tax-options";
 import { TaxBreakdownBar } from "./TaxBreakdownBar";
 import { BracketLadder } from "./BracketLadder";
 import { getMarginalRate } from "@/utils/marginal-rate";
+import { collectBracketSchedules } from "@/utils/bracket-schedules";
 import { formatPercent } from "@/utils/format-percent";
 import { TableBreakdown } from "./TableBreakdown";
 import { formatMoney, toUnit } from "@/utils/money";
@@ -122,6 +123,33 @@ const Results = memo(function Results({
     stateTaxes,
     USACity,
   ]);
+
+  const bracketSchedules = useMemo(
+    () =>
+      collectBracketSchedules({
+        federalTaxes,
+        stateTaxes,
+        USAState,
+        USACity,
+        filingStatus,
+        // What the calculation calls gross: income less retirement
+        // contributions, before any deduction.
+        grossIncome: Math.max(0, totalIncome - totalIRA),
+        federalTaxableIncome: toUnit(federalTaxableIncome),
+        stateTaxableIncome: toUnit(stateTaxableIncome),
+      }),
+    [
+      federalTaxes,
+      stateTaxes,
+      USAState,
+      USACity,
+      filingStatus,
+      totalIncome,
+      totalIRA,
+      federalTaxableIncome,
+      stateTaxableIncome,
+    ],
+  );
 
   const frequencyLabel = FREQUENCY_TO_FREQUENCY_LABEL[paycheckFrequency];
 
@@ -309,14 +337,7 @@ const Results = memo(function Results({
           >
             Tax brackets
           </Typography>
-          <BracketLadder
-            federalTaxes={federalTaxes}
-            stateTaxes={stateTaxes}
-            USAState={USAState}
-            filingStatus={filingStatus}
-            federalTaxableIncome={toUnit(federalTaxableIncome)}
-            stateTaxableIncome={toUnit(stateTaxableIncome)}
-          />
+          <BracketLadder schedules={bracketSchedules} />
         </>
       ) : null}
 

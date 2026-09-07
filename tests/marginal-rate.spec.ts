@@ -53,7 +53,7 @@ test("the marginal rate falls at the Social Security wage base", async ({
   expect(above).toBeLessThan(below);
 });
 
-test("the ladder switches between federal and state bands", async ({
+test("the ladder can show any schedule in the calculation", async ({
   page,
 }) => {
   await page.goto("/2025/oregon/portland/?income=250000", {
@@ -61,19 +61,54 @@ test("the ladder switches between federal and state bands", async ({
   });
   await page.waitForTimeout(1500);
 
-  // Federal by default.
-  await expect(page.getByText("of federal taxable income")).toBeVisible();
+  const picker = page.locator("#bracket-schedule-select");
+  await expect(picker).toContainText("Federal Income");
 
-  await page.getByRole("button", { name: "Oregon", exact: true }).click();
-  await page.waitForTimeout(300);
+  // Portland levies two of its own banded taxes on top of Oregon's.
+  await picker.click();
+  await page.getByRole("option", { name: "Preschool for All (City)" }).click();
+  await page.waitForTimeout(400);
 
-  await expect(page.getByText("of state taxable income")).toBeVisible();
+  // Both of its bands, and the amount matching the breakdown above.
+  await expect(page.getByText("$125,000 – $250,000")).toBeVisible();
+  await expect(page.getByText("$250,000+")).toBeVisible();
+  await expect(page.getByText("$1,832.48")).toHaveCount(2);
+});
+
+test("a state's own bands are available too", async ({ page }) => {
+  await page.goto("/2025/oregon/portland/?income=250000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+
+  await page.locator("#bracket-schedule-select").click();
+  await page.getByRole("option", { name: "Oregon State Income" }).click();
+  await page.waitForTimeout(400);
+
   // Oregon's top band, which a $250,000 income reaches.
   await expect(page.getByText("9.9%")).toBeVisible();
   await expect(page.getByText("your top rate")).toHaveCount(1);
 });
 
-test("a state with no income tax says so instead of drawing bands", async ({
+test("a payroll tax is measured against gross, not taxable income", async ({
+  page,
+}) => {
+  await page.goto("/2025/oregon/portland/?income=250000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+
+  await page.locator("#bracket-schedule-select").click();
+  await page.getByRole("option", { name: "Social Security" }).click();
+  await page.waitForTimeout(400);
+
+  // Gross, not the $235,000 federal taxable figure the income tax uses.
+  await expect(page.getByText(/on \$250,000 of the income/)).toBeVisible();
+  // And the wage base shows up as the band's ceiling.
+  await expect(page.getByText("$0 – $176,100")).toBeVisible();
+});
+
+test("a state with no bands of its own is simply not offered", async ({
   page,
 }) => {
   await page.goto("/2025/texas/?income=250000", {
@@ -81,10 +116,11 @@ test("a state with no income tax says so instead of drawing bands", async ({
   });
   await page.waitForTimeout(1500);
 
-  await page.getByRole("button", { name: "Texas", exact: true }).click();
-  await page.waitForTimeout(300);
-
+  const picker = page.locator("#bracket-schedule-select");
+  await picker.click();
+  await expect(page.getByRole("option", { name: /Texas/ })).toHaveCount(0);
+  // Federal schedules are still there.
   await expect(
-    page.getByText(/Texas has no graduated income tax bands/),
-  ).toBeVisible();
+    page.getByRole("option", { name: "Federal Income" }),
+  ).toHaveCount(1);
 });

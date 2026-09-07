@@ -21,6 +21,7 @@ import { ALL } from "@/constants/filing-status";
 import type {
   BracketSchedule,
   FlatFeeBracket,
+  IncomeBasis,
   RateBracket,
   TaxData,
   TaxResults,
@@ -230,17 +231,10 @@ export function calculateTaxesPerBracket(
     // A schedule may override that where the tax type alone does not settle it
     // -- `city_income` covers both Yonkers, which starts from state taxable
     // income, and the Missouri earnings taxes, which are levied on wages.
-    const declaredBasis = brackets[0].basis;
-    let incomeBase: Money;
-    if (declaredBasis === TAXABLE_INCOME_BASIS) {
-      incomeBase = taxableIncome;
-    } else if (declaredBasis === GROSS_INCOME_BASIS) {
-      incomeBase = grossIncome;
-    } else {
-      incomeBase = grossIncomeTaxes.includes(taxType)
+    const incomeBase =
+      incomeBasisFor(taxType, brackets) === GROSS_INCOME_BASIS
         ? grossIncome
         : taxableIncome;
-    }
 
     taxesPerBracket[taxType] = isRateLookupSchedule(brackets)
       ? calculateRateLookup(incomeBase, brackets)
@@ -248,6 +242,30 @@ export function calculateTaxesPerBracket(
   });
 
   return { taxesPerBracket, taxableIncome };
+}
+
+/**
+ * Which income figure a tax is measured against.
+ *
+ * FICA and payroll taxes are levied on gross wages, income taxes on income
+ * after deductions. A schedule may override that where the tax type alone
+ * does not settle it -- `city_income` covers both Yonkers, which starts from
+ * state taxable income, and the Missouri earnings taxes, levied on wages.
+ *
+ * Exported so anything displaying a schedule measures it against the same
+ * base the calculation used. Drawing a payroll tax against taxable income
+ * would put the taxpayer in the wrong band.
+ */
+export function incomeBasisFor(
+  taxType: string,
+  brackets: BracketSchedule,
+): IncomeBasis {
+  const declaredBasis = (brackets[0] as { basis?: IncomeBasis } | undefined)
+    ?.basis;
+  if (declaredBasis) return declaredBasis;
+  return grossIncomeTaxes.includes(taxType)
+    ? GROSS_INCOME_BASIS
+    : TAXABLE_INCOME_BASIS;
 }
 
 /**
