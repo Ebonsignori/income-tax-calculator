@@ -13,9 +13,6 @@ import {
   IconButton,
   InputAdornment,
   MenuItem,
-  OutlinedInput,
-  FormControl,
-  InputLabel,
   TextField,
   Tooltip,
   Typography,
@@ -30,12 +27,14 @@ import { ALL_STATES } from "@/constants/states";
 import { FILING_STATUSES } from "@/constants/filing-status";
 import type { FilingStatus } from "@/constants/filing-status";
 import { COMPARE } from "@/constants/pages";
+import { MAX_401K_CONTRIBUTION } from "@/constants/tax_types";
 import type { AvailableStatesAndCities, TaxData } from "@/types";
 import { getSegmentColor } from "@/constants/chart-colors";
 import {
   buildComparison,
   citiesForState,
   locationId,
+  standardStateDeduction,
 } from "@/utils/compare-locations";
 import type {
   ComparedLocation,
@@ -50,6 +49,8 @@ import {
   snakeToTitleCase,
 } from "@/utils/string-utils";
 import { YearSelect } from "./input/YearSelect";
+import { IncomeField } from "./input/IncomeField";
+import { Contribution401kField } from "./input/Contribution401kField";
 import { TaxBreakdownBar } from "./TaxBreakdownBar";
 
 type CompareProps = {
@@ -67,6 +68,21 @@ type CompareProps = {
    */
   canonicalPath?: string;
 };
+
+/** Shown when the compared states do not share one standard deduction. */
+const VARIES_BY_STATE = "Varies by state";
+
+/**
+ * Holds the helper-text row's height when a field has nothing to say. MUI
+ * omits the element entirely for empty text, which makes the field jump.
+ */
+const HELPER_TEXT_SPACER = (
+  <Box
+    component="span"
+    aria-hidden
+    sx={{ display: "block", minHeight: "1.66em" }}
+  />
+);
 
 /** Serialised into `?locations=` as `oregon-portland,texas`. */
 function parseLocations(value: string | null): ComparedLocation[] {
@@ -247,6 +263,29 @@ export default function Compare({
     ],
   );
 
+  const max401KContribution = useMemo(
+    () => (federalTaxes?.[MAX_401K_CONTRIBUTION] as number) ?? 0,
+    [federalTaxes],
+  );
+
+  /**
+   * One figure only when every compared state agrees on it. They usually do
+   * not -- Oregon's is $2,835 and Texas has none -- and showing a single
+   * number would imply it applied to all of them.
+   */
+  const stateDeductionDisplay = useMemo(() => {
+    const values = locations.map((location) => {
+      const taxes = stateTaxesByState[location.state];
+      return taxes ? standardStateDeduction(taxes, filingStatus) ?? 0 : null;
+    });
+    const known = values.filter((value): value is number => value !== null);
+    if (!known.length) return "";
+    const first = known[0];
+    return known.every((value) => value === first)
+      ? first.toLocaleString("en-US")
+      : VARIES_BY_STATE;
+  }, [locations, stateTaxesByState, filingStatus]);
+
   const addLocation = useCallback(
     (location: ComparedLocation) => {
       markEdited();
@@ -277,11 +316,6 @@ export default function Compare({
 
   return (
     <Box>
-      <Typography variant="body1" sx={{ mb: 3, color: "text.secondary" }}>
-        See what the same salary leaves you with in different places. City taxes
-        are included, so Portland and Vancouver are not the same answer.
-      </Typography>
-
       <Box
         sx={{
           display: "grid",
@@ -291,23 +325,14 @@ export default function Compare({
           maxWidth: 900,
         }}
       >
-        <FormControl fullWidth>
-          <InputLabel htmlFor="compare-income">Total Income</InputLabel>
-          <OutlinedInput
-            id="compare-income"
-            type="text"
-            inputProps={{ inputMode: "numeric", autoComplete: "off" }}
-            placeholder="150,000"
-            value={income ? income.toLocaleString("en-US") : ""}
-            onChange={(event) => {
-              markEdited();
-              const digits = event.target.value.replace(/[^0-9]/g, "");
-              setIncome(digits ? Math.max(0, parseInt(digits, 10)) : 0);
-            }}
-            startAdornment={<InputAdornment position="start">$</InputAdornment>}
-            label="Total Income"
-          />
-        </FormControl>
+        <IncomeField
+          id="compare-income"
+          value={income}
+          onChange={(next: number) => {
+            markEdited();
+            setIncome(next);
+          }}
+        />
 
         <YearSelect
           availableYears={availableYears}
@@ -353,29 +378,22 @@ export default function Compare({
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr 1fr" },
               gap: 2,
-              maxWidth: 600,
+              maxWidth: 900,
               pt: 1,
             }}
           >
-            <TextField
+            <Contribution401kField
               id="compare-ira-401k-contributions"
-              label="401(k) / IRA Contributions"
-              type="text"
-              variant="outlined"
-              inputProps={{ inputMode: "numeric", autoComplete: "off" }}
-              value={totalIRA ? totalIRA.toLocaleString("en-US") : ""}
-              onChange={(event) => {
+              value={totalIRA}
+              onChange={(next: number) => {
                 markEdited();
-                const digits = event.target.value.replace(/[^0-9]/g, "");
-                setTotalIRA(digits ? Math.max(0, parseInt(digits, 10)) : 0);
+                setTotalIRA(next);
               }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">$</InputAdornment>
-                ),
-              }}
+              max={max401KContribution}
+              year={year}
+              helperSpacer={HELPER_TEXT_SPACER}
             />
 
             <TextField
@@ -406,16 +424,28 @@ export default function Compare({
                 ),
               }}
             />
+            <TextField
+              id="compare-state-deductions"
+              label="Total State Deductions"
+              type="text"
+              variant="outlined"
+              disabled
+              value={stateDeductionDisplay}
+              helperText="Using each state's own deduction"
+              inputProps={{
+                "aria-describedby": "compare-state-deductions-helper-text",
+              }}
+              FormHelperTextProps={{
+                id: "compare-state-deductions-helper-text",
+              }}
+              InputProps={{
+                startAdornment:
+                  stateDeductionDisplay === VARIES_BY_STATE ? null : (
+                    <InputAdornment position="start">$</InputAdornment>
+                  ),
+              }}
+            />
           </Box>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mt: 2, maxWidth: 600 }}
-          >
-            State deductions are not listed here: each place applies its own
-            standard deduction, since they differ and carrying one across would
-            favour whichever state you started from.
-          </Typography>
         </AccordionDetails>
       </Accordion>
 

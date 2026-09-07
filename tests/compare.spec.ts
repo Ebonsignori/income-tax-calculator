@@ -166,3 +166,53 @@ test("does not repeat the ranking as a sentence", async ({ page }) => {
 
   await expect(page.getByText(/better off per year than/)).toHaveCount(0);
 });
+
+test("has the income slider and the 401(k) maximum, like the calculator", async ({
+  page,
+}) => {
+  await page.goto("/compare?locations=texas,oregon&income=150000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+
+  // The slider announces dollars, not its cube-root scale position.
+  const slider = page.locator("input[type=range]");
+  await expect(slider).toHaveAttribute("aria-valuetext", "$150,000");
+
+  await page.locator("#compare-deductions-header").click();
+  await page
+    .getByRole("button", { name: "Set to max allowed for year" })
+    .click();
+  await page.waitForTimeout(600);
+
+  const contributions = page.locator("input#compare-ira-401k-contributions");
+  await expect(contributions).not.toHaveValue("");
+  await expect(
+    page.locator("#compare-ira-401k-contributions-helper-text"),
+  ).toContainText("Max 401(k) contribution");
+  // At the cap there is nothing left to max out.
+  await expect(
+    page.getByRole("button", { name: "Set to max allowed for year" }),
+  ).toHaveCount(0);
+});
+
+test("shows state deductions as a read-only field, not a paragraph", async ({
+  page,
+}) => {
+  await page.goto("/compare?locations=oregon,texas&income=150000", {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(1500);
+  await page.locator("#compare-deductions-header").click();
+
+  const stateDeductions = page.locator("input#compare-state-deductions");
+  await expect(stateDeductions).toBeDisabled();
+  // Oregon has one and Texas does not, so no single figure applies.
+  await expect(stateDeductions).toHaveValue("Varies by state");
+});
+
+test("drops the introductory blurb", async ({ page }) => {
+  await page.goto("/compare", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1000);
+  await expect(page.getByText(/See what the same salary/)).toHaveCount(0);
+});
