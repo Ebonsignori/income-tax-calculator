@@ -1,6 +1,10 @@
 import { CITIES, GROSS_INCOME_BASIS } from "@/constants";
 import type { FilingStatus } from "@/constants/filing-status";
-import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
+import {
+  NON_WAGE_TAX_TYPES,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { BracketSchedule, RateBracket, TaxData } from "@/types";
 import {
   incomeBasisFor,
@@ -33,8 +37,15 @@ type CollectArgs = {
   stateTaxableIncome: number;
 };
 
-/** Keys that are data, not a tax with a schedule. */
-const NOT_A_TAX = new Set<string>([STANDARD_DEDUCTION, CITIES]);
+/**
+ * Keys with no ladder to draw: data rather than a tax, or a tax that is not
+ * levied on wages and so contributes nothing to these figures.
+ */
+const NOT_A_TAX = new Set<string>([
+  STANDARD_DEDUCTION,
+  CITIES,
+  ...NON_WAGE_TAX_TYPES,
+]);
 
 /**
  * A schedule only makes a ladder if it slices income across rate bands.

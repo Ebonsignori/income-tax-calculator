@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { cityTaxKey, snakeToTitleCase } from "./string-utils";
 import {
   MAX_401K_CONTRIBUTION,
+  NON_WAGE_TAX_TYPES,
   STANDARD_DEDUCTION,
   STATE_INCOME,
 } from "@/constants/tax_types";
@@ -23,6 +24,12 @@ type GetTaxOptions = {
   setFederalStandardDeductionMap: (value: StandardDeductionMap) => void;
   setStateStandardDeductionMap: (value: StandardDeductionMap) => void;
   setMax401KContribution: (value: number) => void;
+  /**
+   * Drop taxes that are not levied on wages. The calculator offers these as
+   * exemptions, and there is nothing to exempt from a tax it does not charge;
+   * the tax tables list them as reference and keep them.
+   */
+  excludeNonWageTaxes?: boolean;
 };
 
 export function useGetTaxOptions({
@@ -33,6 +40,7 @@ export function useGetTaxOptions({
   setFederalStandardDeductionMap,
   setStateStandardDeductionMap,
   setMax401KContribution,
+  excludeNonWageTaxes = false,
 }: GetTaxOptions): TaxOption[] {
   return useMemo(() => {
     const cities: TaxOption[] = [];
@@ -78,7 +86,9 @@ export function useGetTaxOptions({
       };
     });
     return [...federal, ...state, ...cities].filter(
-      (option): option is TaxOption => option !== null,
+      (option): option is TaxOption =>
+        option !== null &&
+        !(excludeNonWageTaxes && NON_WAGE_TAX_TYPES.includes(option.value)),
     );
   }, [
     federalTaxes,
@@ -88,5 +98,6 @@ export function useGetTaxOptions({
     setFederalStandardDeductionMap,
     setStateStandardDeductionMap,
     setMax401KContribution,
+    excludeNonWageTaxes,
   ]);
 }

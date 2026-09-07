@@ -219,6 +219,7 @@ export default function Home({
     setFederalStandardDeductionMap,
     setStateStandardDeductionMap,
     setMax401KContribution,
+    excludeNonWageTaxes: true,
   });
 
   const handleNumberChange = useCallback(

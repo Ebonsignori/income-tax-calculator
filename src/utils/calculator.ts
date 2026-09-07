@@ -28,28 +28,29 @@ import type {
   TaxResultsWithCities,
 } from "@/types";
 import {
-  MAX_401K_CONTRIBUTION,
-  NONE,
-  STANDARD_DEDUCTION,
-  SOCIAL_SECURITY,
-  MEDICARE,
   CALIFORNIA_SDI,
-  WASHINGTON_CARES_FUND,
-  OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  COLORADO_FAMLI,
+  CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
   DC_PAID_FAMILY_LEAVE,
+  EMPLOYEE_PAYROLL_TAX,
+  HI_TEMPORARY_DISABILITY_INSURANCE,
+  MAX_401K_CONTRIBUTION,
+  MEDICARE,
   NJ_DISABILITY_INSURANCE,
   NJ_FAMILY_LEAVE_INSURANCE,
   NJ_UNEMPLOYMENT_INSURANCE,
   NJ_WORKFORCE_DEVELOPMENT,
-  NY_PAID_FAMILY_LEAVE,
+  NONE,
+  NON_WAGE_TAX_TYPES,
   NY_DISABILITY_INSURANCE,
-  RI_TEMPORARY_DISABILITY_INSURANCE,
-  HI_TEMPORARY_DISABILITY_INSURANCE,
-  COLORADO_FAMLI,
-  CT_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  NY_PAID_FAMILY_LEAVE,
   OCCUPATIONAL_TAX,
+  OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
   OREGON_TRANSIT_TAX,
-  EMPLOYEE_PAYROLL_TAX,
+  RI_TEMPORARY_DISABILITY_INSURANCE,
+  SOCIAL_SECURITY,
+  STANDARD_DEDUCTION,
+  WASHINGTON_CARES_FUND,
 } from "@/constants/tax_types";
 import {
   CITIES,
@@ -183,6 +184,11 @@ export function calculateTaxesPerBracket(
 
   const taxesPerBracket = {} as TaxResultsWithCities;
   Object.entries(taxData).forEach(([taxType, taxTypeData]) => {
+    // Investment-income taxes are documented in the tax tables but are not
+    // levied on a salary, which is all this calculator has.
+    if (NON_WAGE_TAX_TYPES.includes(taxType)) {
+      return;
+    }
     if (nonTaxKeys.includes(taxType)) {
       return;
     }

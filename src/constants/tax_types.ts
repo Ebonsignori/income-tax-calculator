@@ -45,3 +45,18 @@ export const COUNTY_INCOME = "county_income";
 export const CITY_INCOME = "city_income";
 export const EMPLOYEE_PAYROLL_TAX = "employee_payroll_tax";
 export const LOCAL_EARNED_INCOME = "local_earned_income";
+
+/**
+ * Taxes levied on investment income, not on wages.
+ *
+ * Washington's capital gains tax applies to long-term gains above a large
+ * standard deduction; New Hampshire's interest-and-dividends tax (repealed
+ * after 2023) applied to that income alone. Neither state taxes salary at
+ * all. They are kept in the data because the tax tables document them, but
+ * charging them against a paycheck overstated the bill -- New Hampshire by
+ * 4% of everything over $2,400, Washington by 7% of everything over $278,000.
+ */
+export const NON_WAGE_TAX_TYPES: string[] = [
+  CAPITAL_GAINS,
+  INTEREST_AND_DIVIDENDS,
+];
