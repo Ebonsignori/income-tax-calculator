@@ -138,3 +138,54 @@ test("a skip link is the first thing keyboard focus reaches", async ({
   // And it points at something that exists.
   await expect(page.locator("main#main-content")).toBeVisible();
 });
+
+test("compare sits second in the navigation", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1000);
+  test.skip(!isWide(page), "header links are only shown from md up");
+
+  const names = await page
+    .locator("header")
+    .getByRole("navigation")
+    .getByRole("link")
+    .allTextContents();
+
+  expect(names.map((name) => name.trim())).toEqual([
+    "Calculator",
+    "Compare",
+    "Tax Tables",
+    "City Taxes",
+    "Support",
+    "Disclaimer",
+  ]);
+});
+
+test("header links underline on hover and on keyboard focus", async ({
+  page,
+}) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1000);
+  test.skip(!isWide(page), "header links are only shown from md up");
+
+  const headerNav = page.locator("header").getByRole("navigation");
+  const taxTables = headerNav.getByRole("link", { name: "Tax Tables" });
+
+  // The bar is drawn but collapsed until the link is pointed at.
+  const underlineScale = () =>
+    taxTables.evaluate((el) => getComputedStyle(el, "::after").transform);
+
+  expect(await underlineScale()).toBe("matrix(0, 0, 0, 1, 0, 0)");
+
+  await taxTables.hover();
+  await page.waitForTimeout(300);
+  expect(await underlineScale()).toBe("matrix(1, 0, 0, 1, 0, 0)");
+
+  // The current page carries it without needing to be pointed at.
+  const calculator = headerNav.getByRole("link", { name: "Calculator" });
+  await expect(calculator).toHaveAttribute("aria-current", "page");
+  expect(
+    await calculator.evaluate(
+      (el) => getComputedStyle(el, "::after").transform,
+    ),
+  ).toBe("matrix(1, 0, 0, 1, 0, 0)");
+});

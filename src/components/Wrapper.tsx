@@ -87,6 +87,12 @@ export default function Wrapper({
         selected: current === INCOME_TAX_CALCULATOR.name,
       },
       {
+        name: COMPARE_SHORT_TITLE,
+        route: COMPARE.route,
+        icon: <CompareArrows />,
+        selected: current === COMPARE.name,
+      },
+      {
         name: TAX_TABLES_SHORT_TITLE,
         route: TAX_TABLES.route,
         icon: <TableChartOutlined />,
@@ -97,12 +103,6 @@ export default function Wrapper({
         route: CITY_TAXES.route,
         icon: <LocationCity />,
         selected: current === CITY_TAXES.name,
-      },
-      {
-        name: COMPARE_SHORT_TITLE,
-        route: COMPARE.route,
-        icon: <CompareArrows />,
-        selected: current === COMPARE.name,
       },
       {
         ...SUPPORT,
@@ -165,10 +165,32 @@ export default function Wrapper({
                   color="inherit"
                   aria-current={selected ? "page" : undefined}
                   sx={{
+                    position: "relative",
                     fontWeight: selected ? "bold" : "normal",
-                    textDecoration: selected ? "underline" : "none",
-                    textUnderlineOffset: 4,
                     whiteSpace: "nowrap",
+                    // A drawn bar rather than text-decoration, which cannot be
+                    // transitioned. Hover previews the state the current page
+                    // is already in, so the two read as one thing.
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      left: 8,
+                      right: 8,
+                      bottom: 6,
+                      height: 2,
+                      borderRadius: 1,
+                      backgroundColor: "currentColor",
+                      transform: selected ? "scaleX(1)" : "scaleX(0)",
+                      transformOrigin: "center",
+                      transition: "transform 160ms ease-out",
+                    },
+                    // Keyboard users get the same affordance as the mouse.
+                    "&:hover::after, &:focus-visible::after": {
+                      transform: "scaleX(1)",
+                    },
+                    "@media (prefers-reduced-motion: reduce)": {
+                      "&::after": { transition: "none" },
+                    },
                   }}
                 >
                   {name}
