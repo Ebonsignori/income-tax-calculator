@@ -17,11 +17,13 @@ import type { TaxData } from "@/types";
 
 export default {
   [MAX_401K_CONTRIBUTION]: 23500,
+  // The One Big Beautiful Bill Act (P.L. 119-21, signed 2025-07-04) raised the
+  // tax-year-2025 standard deduction from 15,000 / 30,000 / 22,500.
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 15000,
-    [MARRIED_SEPARATELY]: 15000,
-    [MARRIED]: 30000,
-    [HEAD_OF_HOUSEHOLD]: 22500,
+    [SINGLE]: 15750,
+    [MARRIED_SEPARATELY]: 15750,
+    [MARRIED]: 31500,
+    [HEAD_OF_HOUSEHOLD]: 23625,
   },
   [FEDERAL_INCOME]: {
     [SINGLE]: [

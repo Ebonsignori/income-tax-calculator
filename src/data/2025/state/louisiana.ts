@@ -9,6 +9,13 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Act 11 of the 2024 Third Extraordinary Session replaced the old combined
+  // personal exemption-standard deduction with a real standard deduction of
+  // $12,500 for single and married filing separately, and double that for
+  // married filing jointly, qualifying surviving spouse AND head of
+  // household - so head of household matching the married amount is correct.
+  // Source: Revenue Information Bulletin 25-012 (2025-03-07), section 4.
+  // https://dam.ldr.la.gov/lawspolicies/RIB-25-012-Louisiana-Individual-Income-Tax-Reform-1.pdf
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 12500,
     [MARRIED]: 25000,

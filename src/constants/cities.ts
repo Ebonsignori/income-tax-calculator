@@ -48,6 +48,7 @@ export const RED_BAY = "red_bay";
 export const SHORTER = "shorter";
 export const SOUTHSIDE = "southside";
 export const SULLIGENT = "sulligent";
+export const TARRANT = "tarrant";
 export const TUSKEGEE = "tuskegee";
 
 // Kentucky

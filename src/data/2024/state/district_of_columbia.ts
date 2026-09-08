@@ -9,6 +9,9 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // DC used the federal standard deduction through tax year 2024; it
+  // decoupled only from 2025 on. These are the federal 2024 amounts.
+  // Source: OTR 2024 D-40 booklet.
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 14600,
     [MARRIED]: 29200,

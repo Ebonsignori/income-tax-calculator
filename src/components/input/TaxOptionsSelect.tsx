@@ -27,7 +27,9 @@ export function TaxOptionsSelect({
       multiple
       disableCloseOnSelect
       isOptionEqualToValue={(option, value) => {
-        return option.value === value.value;
+        // Scope as well as key: a city and its state can use the same tax-type
+        // key, and those are two different options.
+        return option.value === value.value && option.scope === value.scope;
       }}
       options={taxOptions}
       getOptionLabel={(option) => capitalizeFirstLetter(option?.title || "")}

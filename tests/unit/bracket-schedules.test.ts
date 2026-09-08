@@ -7,7 +7,14 @@ import federal2025 from "@/data/2025/federal";
 import oregon2025 from "@/data/2025/state/oregon";
 import texas2025 from "@/data/2025/state/texas";
 import illinois2025 from "@/data/2025/state/illinois";
+import ohio2025 from "@/data/2025/state/ohio";
 
+// The three income figures are inputs, not derived: `collectBracketSchedules`
+// is handed the bases the calculation already worked out and never reads a
+// standard deduction itself. They are kept realistic for a 2025 single filer on
+// $250,000 -- gross wages, less the $15,750 federal deduction, less Oregon's
+// $2,835 -- so a reader can check them, but no assertion below depends on the
+// arithmetic.
 const collect = (stateTaxes: TaxData, state: string, city: string) =>
   collectBracketSchedules({
     federalTaxes: federal2025 as TaxData,
@@ -16,7 +23,7 @@ const collect = (stateTaxes: TaxData, state: string, city: string) =>
     USACity: city,
     filingStatus: SINGLE as FilingStatus,
     grossIncome: 250_000,
-    federalTaxableIncome: 235_000,
+    federalTaxableIncome: 234_250,
     stateTaxableIncome: 247_165,
   });
 
@@ -60,7 +67,7 @@ describe("collectBracketSchedules", () => {
     // Federal income tax is levied after federal deductions.
     expect(
       found.find((s) => s.key === "federal:federal_income")?.taxableIncome,
-    ).toBe(235_000);
+    ).toBe(234_250);
     // The state's own income tax uses the state's deductions.
     expect(
       found.find((s) => s.key === "state:state_income")?.taxableIncome,
@@ -104,6 +111,17 @@ describe("collectBracketSchedules", () => {
     const firstCity = prefixes.indexOf("city");
     expect(prefixes[0]).toBe("federal");
     expect(firstState).toBeLessThan(firstCity);
+  });
+
+  // The ladder totals `rate x amount in band`, which for a base-amount
+  // schedule omits the base entirely -- Ohio's $342 -- and would disagree with
+  // the breakdown table above it. Flat fees and rate lookups are left out for
+  // the same reason.
+  it("leaves out a schedule whose bands carry a base amount", () => {
+    const keys = collect(ohio2025 as TaxData, "ohio", "").map((s) => s.key);
+    expect(keys).not.toContain("state:state_income");
+    // Federal is still a ladder, so this is not just an empty result.
+    expect(keys).toContain("federal:federal_income");
   });
 
   it("omits city schedules when no city is selected", () => {

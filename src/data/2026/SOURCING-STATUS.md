@@ -4,7 +4,7 @@ Source-of-truth tracker for the 2026 tax-year data build. Records what has
 been populated, what source each figure came from, and anything **unsourced or
 not yet finalized** by the taxing authority. Update this file as data lands.
 
-Last updated: 2026-08-31 (Eugene rate lookup, WA capital gains, Irondale, MO earnings tax)
+Last updated: 2026-09-07 (full correctness audit — engine, all four years, all 51 states, full city layer)
 
 ## How to read this
 
@@ -42,59 +42,59 @@ All 51 files present and the repo validator (`npm run validate-tax-data`)
 passes. 50 states were drafted by the Sonnet fan-out; Oregon pre-existed.
 **6 files carry at least one provisional figure** — listed in detail below.
 
-| State                | Status          | Notes                                                                                                                            |
-| -------------------- | --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| alabama              | done            | rates + brackets unchanged; SD & city occupational rates confirmed                                                               |
-| alaska               | no-tax          | NONE                                                                                                                             |
-| arizona              | done            | flat 2.5%; SD updated to OBBBA amounts                                                                                           |
-| arkansas             | done            | SD + bracket thresholds inflation-updated; top rate 3.9%                                                                         |
-| california           | done            | brackets/SD not indexed (= 2025); SDI rate 1.2%→1.3%                                                                             |
-| colorado             | done            | flat 4.4%; OPT city rates carried (municipality-set)                                                                             |
-| connecticut          | **provisional** | all values carried from 2025 — CT DOR 2026 circular not yet published                                                            |
-| delaware             | done            | brackets/SD unchanged; Wilmington wage tax corrected 1.5%→1.25% (2025 file was wrong)                                            |
-| district_of_columbia | done            | brackets/SD unchanged; PFL 0.75% confirmed                                                                                       |
-| florida              | no-tax          | NONE                                                                                                                             |
-| georgia              | done            | HB 463: flat rate 5.19%→4.99%, SD raised (retroactive to 2026-01-01)                                                             |
-| hawaii               | done            | Act 46 SD phase-in; brackets confirmed                                                                                           |
-| idaho                | done            |                                                                                                                                  |
-| illinois             | done            | flat rate                                                                                                                        |
-| indiana              | done            | flat rate                                                                                                                        |
-| iowa                 | done            |                                                                                                                                  |
-| kansas               | done            |                                                                                                                                  |
-| kentucky             | done            | flat rate                                                                                                                        |
-| louisiana            | done            |                                                                                                                                  |
-| maine                | done            |                                                                                                                                  |
-| maryland             | done            |                                                                                                                                  |
-| massachusetts        | done            |                                                                                                                                  |
-| michigan             | done            | flat rate                                                                                                                        |
-| minnesota            | done            |                                                                                                                                  |
-| mississippi          | done            |                                                                                                                                  |
-| missouri             | done            |                                                                                                                                  |
-| montana              | done            |                                                                                                                                  |
-| nebraska             | **provisional** | LB754 rate cut to 4.55% confirmed; HOH standard deduction derived (DOR publishes only single/joint)                              |
-| nevada               | no-tax          | NONE                                                                                                                             |
-| new_hampshire        | no-tax          | interest/dividends structure retained                                                                                            |
-| new_jersey           | done            |                                                                                                                                  |
-| new_mexico           | done            |                                                                                                                                  |
-| new_york             | done            |                                                                                                                                  |
-| north_carolina       | done            | flat rate                                                                                                                        |
-| north_dakota         | done            |                                                                                                                                  |
-| ohio                 | done            |                                                                                                                                  |
-| oklahoma             | done            |                                                                                                                                  |
-| oregon               | done            | pre-existing 2026 file (still verify against final 2026 figures)                                                                 |
-| pennsylvania         | **provisional** | flat 3.07% confirmed; Philadelphia wage tax has a mid-2026 change (3.74%→3.735% on 2026-07-01); other city rates carried         |
-| rhode_island         | done            |                                                                                                                                  |
-| south_carolina       | done            |                                                                                                                                  |
-| south_dakota         | no-tax          | NONE                                                                                                                             |
-| tennessee            | no-tax          | NONE                                                                                                                             |
-| texas                | no-tax          | NONE                                                                                                                             |
-| utah                 | done            | flat rate                                                                                                                        |
-| vermont              | **provisional** | corrected 2025 official schedule carried forward (fan-out's derived 2026 numbers were backwards); revisit when VT publishes 2026 |
-| virginia             | done            |                                                                                                                                  |
-| washington           | **provisional** | no wage tax; WA Cares 0.58% confirmed; capital-gains SD threshold carried from 2025 (2026 indexed amount unpublished)            |
-| west_virginia        | done            |                                                                                                                                  |
-| wisconsin            | done            | Single/Married from Tax Foundation 2026; MFS (=Married/2) and HOH (=Single) derived per 2025 pattern — flagged as derived        |
-| wyoming              | no-tax          | NONE                                                                                                                             |
+| State                | Status          | Notes                                                                                                                                                                         |
+| -------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| alabama              | done            | rates + brackets unchanged; SD & city occupational rates confirmed                                                                                                            |
+| alaska               | no-tax          | NONE                                                                                                                                                                          |
+| arizona              | done            | flat 2.5%; SD updated to OBBBA amounts                                                                                                                                        |
+| arkansas             | done            | SD + bracket thresholds inflation-updated; top rate 3.9%                                                                                                                      |
+| california           | done            | brackets/SD not indexed (= 2025); SDI rate 1.2%→1.3%; Mental Health Services surcharge added 2026-09-07 (1% over $1M, all statuses)                                           |
+| colorado             | done            | flat 4.4%; OPT city rates carried (municipality-set)                                                                                                                          |
+| connecticut          | **provisional** | all values carried from 2025 — CT DOR 2026 circular not yet published                                                                                                         |
+| delaware             | done            | brackets/SD unchanged; Wilmington wage tax corrected 1.5%→1.25% (2025 file was wrong)                                                                                         |
+| district_of_columbia | done            | brackets/SD unchanged; PFL 0.75% confirmed                                                                                                                                    |
+| florida              | no-tax          | NONE                                                                                                                                                                          |
+| georgia              | done            | HB 463: flat rate 5.19%→4.99%, SD raised (retroactive to 2026-01-01)                                                                                                          |
+| hawaii               | done            | Act 46 SD phase-in; brackets confirmed                                                                                                                                        |
+| idaho                | done            |                                                                                                                                                                               |
+| illinois             | done            | flat rate                                                                                                                                                                     |
+| indiana              | done            | flat rate                                                                                                                                                                     |
+| iowa                 | done            |                                                                                                                                                                               |
+| kansas               | done            |                                                                                                                                                                               |
+| kentucky             | done            | flat rate                                                                                                                                                                     |
+| louisiana            | done            |                                                                                                                                                                               |
+| maine                | done            |                                                                                                                                                                               |
+| maryland             | done            |                                                                                                                                                                               |
+| massachusetts        | done            |                                                                                                                                                                               |
+| michigan             | done            | flat rate                                                                                                                                                                     |
+| minnesota            | done            |                                                                                                                                                                               |
+| mississippi          | done            |                                                                                                                                                                               |
+| missouri             | done            |                                                                                                                                                                               |
+| montana              | done            |                                                                                                                                                                               |
+| nebraska             | **provisional** | LB754 rate cut to 4.55% confirmed; HOH standard deduction derived (DOR publishes only single/joint)                                                                           |
+| nevada               | no-tax          | NONE                                                                                                                                                                          |
+| new_hampshire        | no-tax          | interest/dividends structure retained                                                                                                                                         |
+| new_jersey           | done            |                                                                                                                                                                               |
+| new_mexico           | done            |                                                                                                                                                                               |
+| new_york             | done            |                                                                                                                                                                               |
+| north_carolina       | done            | flat rate                                                                                                                                                                     |
+| north_dakota         | done            |                                                                                                                                                                               |
+| ohio                 | done            |                                                                                                                                                                               |
+| oklahoma             | done            |                                                                                                                                                                               |
+| oregon               | done            | pre-existing 2026 file (still verify against final 2026 figures)                                                                                                              |
+| pennsylvania         | done            | flat 3.07% confirmed; all 14 municipal rates verified against the DCED register 2026-09-07 (3 corrected); Philadelphia carries the start-of-year rate per the repo convention |
+| rhode_island         | done            |                                                                                                                                                                               |
+| south_carolina       | done            |                                                                                                                                                                               |
+| south_dakota         | no-tax          | NONE                                                                                                                                                                          |
+| tennessee            | no-tax          | NONE                                                                                                                                                                          |
+| texas                | no-tax          | NONE                                                                                                                                                                          |
+| utah                 | done            | flat rate                                                                                                                                                                     |
+| vermont              | **provisional** | corrected 2025 official schedule carried forward (fan-out's derived 2026 numbers were backwards); revisit when VT publishes 2026                                              |
+| virginia             | done            |                                                                                                                                                                               |
+| washington           | **provisional** | no wage tax; WA Cares 0.58% confirmed; capital-gains SD threshold carried from 2025 (2026 indexed amount unpublished)                                                         |
+| west_virginia        | done            |                                                                                                                                                                               |
+| wisconsin            | done            | Single/Married from Tax Foundation 2026; MFS (=Married/2) and HOH (=Single) derived per 2025 pattern — flagged as derived                                                     |
+| wyoming              | no-tax          | NONE                                                                                                                                                                          |
 
 ## Provisional detail (revisit before relying on these)
 
@@ -415,12 +415,14 @@ from $2,100 to $1,540.
 
 ### Still to check
 
-- **Wilmington, DE `city_income`** is very likely the same error as Missouri —
-  a 1.25% _wage_ tax charged here on income after Delaware's $3,250 standard
-  deduction. Left alone: `wilmingtonde.gov` returns 403 to every tool I have for
-  the wage-tax pages specifically, and the Missouri correction only went in
-  because RSMo 92.111 and St. Louis's taxable-items list are both readable.
-  Worth ~$41/yr at any income above the deduction.
+- **Wilmington, DE `city_income`** — **RESOLVED 2026-09-07.** It was the same
+  error as Missouri: a 1.25% wage tax charged on income after Delaware's $3,250
+  standard deduction. 22 Del. C. § 903 defines the base as "the total income
+  from whatever source earned", and the City's own budget schedule reads "WAGE
+  TAX / Base: Individual gross earned income of City residents." Now carries
+  `basis: GROSS_INCOME_BASIS` in all four years. Worth $40.63/yr single,
+  $81.25 married. (wilmingtonde.gov still 403s; delcode.delaware.gov and
+  wilmdebudget.org are the reachable primary sources.)
 - **Michigan, Ohio, New Jersey `city_income`** are levied on wages too, but
   those three states carry no `standard_deduction` in the data, so their base is
   already gross and nothing computes wrong today. If a standard deduction is
@@ -446,3 +448,332 @@ from $2,100 to $1,540.
 - **Portland Arts Tax 2027** — rate and threshold begin indexing.
 - Oregon 2026 was pre-existing and has uncommitted edits; confirm its figures
   are true 2026 values before final commit.
+
+---
+
+## Full correctness audit (2026-09-07)
+
+An audit of the calculation engine and all four years of data. It began as 13
+findings against `src/utils`; verifying them turned up far more in the data.
+Roughly **150 wrong figures** were corrected across the engine, federal data,
+20 states and the entire city/local layer.
+
+Everything below was verified against the taxing authority's own published
+document. Where a figure could not be sourced it was **left unchanged and
+flagged in the file**, never guessed.
+
+### Read this first: the failure mode that dominated
+
+Ten of the day's most serious defects were the same thing — **a plausible
+number taken from a document that answers a different question.**
+
+| Wrong source taken                                                       | Right source                         |
+| ------------------------------------------------------------------------ | ------------------------------------ |
+| Indiana Departmental Notice #1 (withholding)                             | Schedule CT-40 (annual, blended)     |
+| Maryland January payroll memo                                            | Withholding Tax Facts rev 07/25      |
+| Vermont `RateSched-YYYY` (a withholding chart, despite the name)         | `TaxRateSched-YYYY`                  |
+| Nebraska statute's un-indexed base amounts                               | the in-force indexed figures         |
+| Idaho statute's un-indexed base; 2023 bracket tops in the deduction slot | Form 40 worksheet                    |
+| Covington KY net-profits rate                                            | payroll withholding rate (same page) |
+| Owensboro KY county rate                                                 | city rate                            |
+| Oregon Publication OR-ESTIMATE (labelled "Estimated")                    | the final withholding revision       |
+| New Mexico pre-2025 boundaries with post-2025 rates                      | §7-2-7 as enacted by HB 252          |
+
+This is more common than staleness and far more dangerous. A stale figure was
+right once and _looks_ stale. A wrong-source figure was never right and looks
+entirely reasonable — it survives schema validation, every internal-consistency
+heuristic, and a careful reviewer. **Always confirm you are reading the document
+the annual return itself uses.**
+
+Corollary, learned repeatedly: **web-search summaries were wrong on every state
+where they were checked.** They gave a head-of-household figure off by $4,270,
+asserted two contradictory answers in one result set (Kentucky), claimed a state
+needed no check when it had a real bug (Georgia), and dismissed correct statutory
+figures as "confusion with a different tax year" (New Mexico). Pull the PDF and
+extract it.
+
+### Standing per-state sourcing rules
+
+- **Indiana** — use Schedule CT-40 (form 47907) for the tax year, never
+  Departmental Notice #1. DN #1 is withholding-only. Counties may change rate on
+  1 October, and CT-40 then carries a 9-month/3-month blended annual rate that
+  DN #1 never publishes. **Long-decimal rates like `.01618` or `.024875` are
+  official blends, not typos — do not "tidy" them.** Where no CT-40 exists yet
+  (2026 today), DN #1's 1 January table is a provisional stand-in that must be
+  re-checked when CT-40 appears.
+- **Maryland** — the January state payroll memo is not authoritative for an
+  annual rate. The 2025 Budget Reconciliation Act let a county adopt the new
+  3.30% cap _retroactively_ for TY2025; Dorchester was the only one that did, so
+  the January memo says 3.20 and the correct annual rate is 3.30. Use
+  Withholding Tax Facts (rev 07/25 or later). The live Comptroller rate page now
+  redirects to a JS-only ServiceNow article and cannot be scraped; use Wayback.
+- **Vermont** — the file Vermont names `RateSched-YYYY` is the _withholding_
+  wage-bracket chart. The rate schedule is `TaxRateSched-YYYY` or the table
+  inside the IN-111 instructions. GB-1210 is also withholding. This naming trap
+  is how 2025 and 2026 got the wrong numbers.
+- **Nebraska** — the 1040N booklet contains only the tax _table_, not the rate
+  schedule. Bracket boundaries live in a separate history PDF linked from inside
+  the chronology. Neb. Rev. Stat. 77-2715.03(2)(a)'s amounts are a base that
+  subsection (3)(a) requires to be inflation-adjusted — never use them directly.
+- **Pennsylvania** — the DCED official EIT register is the authoritative
+  per-municipality source and is not otherwise scrapeable (ASP.NET ReportViewer;
+  needs a cookie-jar session, then `Reserved.ReportViewerWebControl.axd` with
+  `OpType=Export&Format=CSV`). **Resident total = municipal rate + school
+  district rate.** Three municipalities had the school component silently
+  dropped.
+- **New Mexico** — TRD moved 2023/2024 forms off `realfile.tax.newmexico.gov`
+  (they 404) onto a RealFile-backed store; enumerate via the `SearchFiles`
+  endpoint recorded in the New Mexico file comments.
+- **Alabama** — the League of Municipalities roster is a survey, disclaims its
+  own accuracy, **and is stale**: it still shows Opelika at 1.5% after the
+  April 2025 cut to 1%. It is also a floor, not a complete register — Irondale
+  and Tarrant both levy and neither is listed.
+
+### Cross-check technique worth reusing
+
+Where a state publishes a tax computation worksheet ("multiply by R and subtract
+S") or a cumulative tax figure at each bracket floor, **that column reconciles
+only with correct boundaries**. It is an independent arithmetic test needing no
+second document, and it settled Wisconsin, West Virginia, North Dakota, Nebraska
+and New Mexico. Reproduce it and show the arithmetic in the file comment.
+
+### Engine corrections
+
+- **FICA was charged on wages after the 401(k) deferral.** A pre-tax elective
+  deferral reduces W-2 box 1 only; boxes 3 and 5 are unchanged (IRS Topic
+  No. 424). Understated FICA by up to **$1,797.75** at the 2025 maximum. The
+  calculator now carries three income figures and `GROSS_INCOME_BASIS` means
+  true wages everywhere, in rate schedules and flat-fee thresholds alike. A unit
+  test _and_ its "independent verification" helper had both encoded the wrong
+  rule, which is why it survived.
+- Cities can now declare their own `standard_deduction`; exemptions are scoped
+  per jurisdiction so a city tax and a same-named state tax exempt
+  independently; `calculateFlatFee` is order-independent; `parseIncomeParam`
+  rejects malformed input instead of silently reinterpreting it.
+- The `standard_deduction` slot holds **whatever a state subtracts before
+  applying its rate** — not literally a standard deduction. Connecticut's
+  personal exemption already lived there before this audit.
+
+### Known gaps still open
+
+- **Ohio's base amount is not modelled** — ORC 5747.02(A)(3) charges a flat
+  $360.69 / $342.00 / $332.00 (by year) the moment taxable income clears
+  $26,050, plus 2.75% of the excess. A marginal bracket list is continuous by
+  construction and cannot express a step. **Understates ~5 million filers**; at
+  $30,000 a filer owes $450 and is charged $109. Documented in all four
+  `ohio.ts` files as KNOWN UNDERSTATEMENT.
+- **Yonkers — RESOLVED.** Was modelled as the flat 0.5% _non-resident_ earnings
+  tax; a resident owes a **16.75% surcharge on New York State tax** (IT-201
+  line 55). Residents were understated 41–48%, widening with income. Now uses a
+  third basis, `state_income_tax`, so the surcharge derives from the computed
+  state tax. Deliberately **not** written as the state ladder × 0.1675 — exact
+  today, but it would duplicate New York's brackets in a second place and go
+  stale at the next state rate change.
+- **Personal exemptions — RESOLVED for Illinois, New Jersey and Ohio.** Illinois
+  $2,425/$2,775/$2,850/$2,925 with its cliff (allowance disallowed entirely
+  above $250k federal AGI / $500k joint; **MFS groups with single**, same amount
+  and same threshold). New Jersey $1,000 flat. Ohio tiered on modified AGI
+  ($2,400 / $2,150 / $1,900) **plus a cap** — $0 above $750,000 for 2025,
+  $500,000 from 2026. All model the no-dependants case, stated per file.
+  Ohio's exemption composes with its base amount: a filer on $28,000 of wages
+  now owes nothing, since $28,000 − $2,400 falls under the $26,050 threshold.
+- **Michigan's city personal exemption ($600) remains unmodelled** — it scales
+  with dependants and there is no dependants input, so modelling it would swap a
+  documented understatement for a hidden assumption. Worth $6–$58/yr.
+- **Ohio's city taxes were on the wrong base, found while adding the exemption.**
+  ORC 718.01(R) defines the municipal base as IRC §3121(a) wages — W-2 box 5 —
+  which a 401(k) deferral does not reduce. A Columbus resident at the 2025
+  maximum was **$587.50/yr** light. Fixed with `basis: GROSS_INCOME_BASIS`; this
+  is the FICA defect resurfacing in a different part of the tree.
+- **Alabama, Wisconsin, Connecticut, Maine and Montana** publish a standard
+  deduction that shrinks with income; the stored figure is the maximum. Alabama
+  is the worst — every filer above ~$35,500 AGI is at the floor, so the stored
+  maximum is wrong for essentially every realistic income.
+- Kentucky: **Florence and Boone County** stacking rules unresolved;
+  **Covington's** wage cap unresolved (the SOS register shows an
+  uninterpretable "$80,000"). Lexington is a **2026 watch item** — FCPS voted to
+  raise its levy to 0.75%, AG opinion 25-07 found the vote improperly noticed
+  and it was paused; if properly re-noticed, Lexington goes to 3.00%.
+- Alabama: **Beaverton** unconfirmable (administrator blocks access); twelve
+  small towns rest on the League survey alone.
+- 2026 head-of-household deductions for **Nebraska** and **Oregon** are
+  unsourced — neither state publishes HoH outside a booklet that is not yet out.
+
+### City/local layer — full sweep results
+
+Every city and county rate in the repo was checked against the jurisdiction's
+own document. **80 wrong figures out of roughly 850 rates**, plus seven
+structural fixes that no rate audit would have found.
+
+| State                          | Wrong / checked | Character of the errors                                                   |
+| ------------------------------ | --------------- | ------------------------------------------------------------------------- |
+| Maryland                       | 26 / 96         | 2024 seeded from a ~2010–2015 table; two graduated counties modelled flat |
+| Pennsylvania                   | 20 / 56         | school-district component dropped; Philadelphia half-year confusion       |
+| Kentucky                       | 12 / ~56        | wrong rate column; county rate used for a city; school levies omitted     |
+| Indiana                        | 12 / 368        | 2025/2026 carried 2024's blends; two Jan-2025 rises missed                |
+| Ohio                           | 9 / ~28         | staleness, some since 2020–21                                             |
+| West Virginia                  | 1 / 24          | one ordinance missed                                                      |
+| Alabama                        | 0 / ~108        | roster and rates all confirmed                                            |
+| Michigan                       | 0 / 96          | —                                                                         |
+| Missouri, New Jersey, Delaware | 0 / 16          | —                                                                         |
+| New York, Colorado, Oregon     | 0 / ~50         | —                                                                         |
+
+**The error rate tracks how freely a rate can move, not how many jurisdictions
+there are.** Michigan has 24 cities and zero defects, because MCL 141.611 caps
+them at 1% and the four exceptions are closed statutory classes no other city
+can enter — a constraint that can be proved once, rather than 24 pages that must
+be re-checked. Pennsylvania has 14 municipalities and twenty defects, because
+each sets its own rate _and_ its school district sets another, and the resident
+figure is the sum of two independently moving parts.
+
+**Structural fixes** (all cases where the number was right and the treatment was
+wrong — invisible to any rate check):
+
+- **Wilmington DE** — a gross-wage tax charged on income after Delaware's
+  standard deduction. Now `basis: GROSS_INCOME_BASIS`.
+- **Newark NJ** — an _employer_ payroll tax charged to the employee, ~$1,000/yr
+  at $100k. Reclassified to `employer_payroll_tax` and listed in
+  `NON_WAGE_TAX_TYPES`: still documented in the tax tables, never charged.
+- **Frederick MD** — a rate lookup modelled as marginal brackets in all four
+  years. Second jurisdiction after Eugene to need `rate_on_total`.
+- **Newport and Florence KY** — both cap at the Social Security wage base and
+  both ran to `INFINITY`. Newport at $400k was charging $10,000 against a real
+  $4,612.50.
+- **Florence KY** — Boone County's three levies stack on the city fee and none
+  were modelled. A resident at $50,000 was shown $1,000 against a real $1,675.
+- **Lexington and Bowling Green KY** — school-district levies omitted while
+  Louisville's 2.2% already included its own, so the comparison page was wrong
+  between cities in the same state.
+- **Anne Arundel MD** — modelled flat at what was only its middle band.
+
+**Roster changes:** Tarrant AL added (Ordinance 1132, absent from the League
+roster). Beaverton AL, Union KY and Walton KY deliberately **not** added — each
+unsourceable or indeterminate, and an absent jurisdiction is visibly incomplete
+where a wrong rate is invisibly wrong. Union declared a payroll tax holiday for
+exactly the first half of 2023, so the repo's "carry the rate covering most of
+the year" convention yields no answer; Walton straddles Boone and Kenton
+counties, whose levies differ substantially, so any entry would have to pick one.
+
+**Two neighbouring Kentucky counties have opposite stacking rules**, each stated
+plainly in its own words: Warren says the city and county fees "cannot be charged
+on the same dollar earned"; Boone says "these taxes are independent of each
+other, and both must be withheld as applicable." Both quotes are in the files,
+set against each other, because that is the pair a reader will conflate.
+
+### Income-phased standard deductions — now modelled
+
+Five jurisdictions publish a deduction that varies with income. The schema
+previously stored one number, so the repo used the maximum for everyone.
+`standard_deduction` now accepts a schedule of `DeductionBand`s as well as a
+flat number; roughly forty states still use the flat form and are untouched.
+
+| State                 | Shape                                                | Who it moves                                                                                                   |
+| --------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Alabama               | stepped, $175 per $500, floor $5,000                 | **essentially everyone above $35,500** — flat +$175 joint, +$135 head of family, +$87.50 separate, +$25 single |
+| Connecticut           | dollar-per-dollar taper to zero                      | above $44k single / $71k joint — +$775 to +$1,280                                                              |
+| Maine                 | linear taper to zero over a fixed span               | above the ~$100k threshold — +$415 to +$2,245                                                                  |
+| Wisconsin             | rate taper, two-stage for head of household          | across its phase-out range                                                                                     |
+| Montana **2023 only** | 20% of AGI, floored and capped — _rises_ with income | **below** $27,700 / $55,400 only; a no-op above                                                                |
+
+Montana runs the opposite direction from the rest and only 2023 needs it: SB 399
+moved the state to federal taxable income from tax year 2024, so the federal
+deduction flows through and there is nothing to phase. **Do not band Montana
+2024–2026.**
+
+Three shapes the data forced into the schema, none of which would have been
+designed from first principles:
+
+- **`reduce_from`** — Wisconsin's head-of-household schedule phases down until it
+  meets the _single_ filer's schedule, then continues on that schedule while the
+  DOR keeps measuring from the **first** threshold. Without this field that band
+  is wrong by ~$4,500 of deduction at $57,211. It appears exactly once in the repo.
+- **`percent_of_income`** — Montana's deduction rises to a cap. The validator
+  originally rejected this outright under a rule that a deduction can never rise
+  with income; the rule is now monotonicity in either direction. **If the
+  validator rejects data you have sourced correctly, the validator is the thing
+  to question.**
+- **A cliff is just `amount: 0`** above the threshold — the same representation as
+  a taper, but a different thing. Illinois needs it (its allowance is disallowed
+  entirely above $250k / $500k).
+
+**Transcription traps, both hit more than once:**
+
+1. **"Or part or fraction thereof"** — Alabama and Connecticut round the step
+   count _up_; `reduce_per` counts whole steps _down_. Reconciled by starting
+   each tapering band at the source's **first reduced row**, so Alabama joint
+   reads `amount: 8325` rather than the headline $8,500. Every constant in the
+   file is then a number printed on the state's page. The alternative was a
+   `reduce_from` appearing in no document.
+2. **Half-open on the wrong side** — Connecticut prints Table A as "More Than /
+   Less Than or Equal To", the opposite side from a deduction band, so every
+   boundary sits one dollar above the printed figure. Wisconsin needed the same
+   shift.
+
+**⚠ Alabama's own Form 40 chart contains a typo, in the 2023, 2024 and 2025
+booklets alike:** its joint column's third row reads "$25,500 – $26,999" where
+it must be $26,500. The other three columns and the state's own withholding
+formula both confirm $26,500. **This is why the formula was used rather than the
+21-row chart** — a literal transcription would have copied the typo and looked
+like faithful sourcing. Where a state publishes the same rule twice, the two can
+disagree, and "I used the official document" stops being sufficient.
+
+**Known bounded divergence — Maine, $1.** MRS rounds its worksheet's line 5 to
+four decimals and the calculator does not, so 77 of 736 sampled points differ by
+exactly $1 of _deduction_ (about 7 cents of tax), in both directions, only where
+the exact figure lands on a half dollar. Recorded in each Maine file.
+
+Verification: 2,872 checks against the real resolver and the real data files,
+reproducing every printed Alabama chart row and every Connecticut Table A row at
+first dollar, midpoint and last dollar, with Maine's and Montana's worksheets
+**independently reimplemented** rather than restated. Wisconsin separately
+reproduces all 274 rows of the Form 1 table for all four statuses. Independent
+reimplementation is the point — testing a schedule against itself proves
+nothing, which is precisely how this repo's FICA bug survived behind a passing
+test _and_ a passing "independent verification" helper.
+
+### Tooling added
+
+`npm run detect-suspect-figures` — heuristics for wrong _values_, the class
+`validate-tax-data` cannot see because it checks that a schedule is well formed
+and never that its numbers are right. Six checks, **each one added because a
+specific real bug defeated the previous ones**:
+
+| Check                                            | Added because                                       |
+| ------------------------------------------------ | --------------------------------------------------- |
+| Two filing statuses share a schedule             | Vermont 2025 copied MFS from single, HoH from joint |
+| Indexed schedule repeated in adjacent years      | North Dakota 2025 held 2024's boundaries            |
+| First bracket boundary falls year over year      | Idaho 2025 held the un-indexed statutory base       |
+| Standard deduction falls year over year          | Wisconsin, DC, ND, Vermont, Mississippi             |
+| Status-to-single ratio breaks a state's own norm | the head-of-household slot, four states             |
+| A rate lower than **both** adjacent years        | Maryland 2024, seeded from a ~2010–2015 table       |
+
+They are **warnings, not build failures** — a legislature really can cut a
+deduction, and the first time one does a hard check would block CI over correct
+data. Three cautions written into the script itself:
+
+1. **A flag identifies a suspect _year_, not a suspect cell.** In three of five
+   states the flagged field was not the only wrong one that year — one bad
+   figure sat beside three more, and one bracket flag sat on top of eight wrong
+   boundaries.
+2. **A decrease says which series is anomalous, never which side of the step is
+   wrong.** Mississippi had two series step 3400 → 2300 at the same boundary and
+   the correct repairs went in _opposite_ directions.
+3. **Ratios are descriptive, not normative.** Kentucky's joint return gets one
+   single deduction (1.00×), Alabama's schedule is 2.83×. Never "correct" a
+   state toward the 2.00× that most states happen to use.
+
+**What it cannot catch:** a figure that is simply wrong while remaining
+internally consistent. Wisconsin's brackets and Maryland's decade-stale 2024
+were only found by reading the source. A cross-year equality check was tried
+first and rejected — 61 warnings to catch one bug, and structurally blind to two
+of the three cases it was aimed at.
+
+### A note on "2024 is the worst year"
+
+Five states independently showed 2024 as their worst year and it looked
+systematic. It is not, and the year is the wrong axis: Indiana was **flawless**
+in 2023 and 2024 with all 12 of its errors in 2025/2026. Even among the states
+where 2024 was worst, the mechanism differs — Indiana-style "someone updated and
+stopped halfway" is a different fault from Maryland 2024's "this file was seeded
+from an ancient table", and the second leaves no year-over-year discontinuity to
+detect at all.

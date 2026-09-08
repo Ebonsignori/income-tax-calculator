@@ -96,6 +96,16 @@ export default {
       { min: 1200000, max: INFINITY, rate: 6.5 },
     ],
   },
+  // All 24 local rates (23 counties + Baltimore City) verified 2026-09 against
+  // Withholding Tax Facts 2026 (COM RAD 098 rev 12/25,
+  // marylandcomptroller.gov/content/dam/mdcomp/tax/legal-publications/facts/
+  // withholding-tax-facts-2026.pdf) and the 2026 state payroll memo
+  // (.../md/state-payroll/memos/2026/2026-maryland-state-and-local-withholding
+  // -information.pdf). Both agree.
+  //
+  // Two counties changed for 2026: Allegany .0303 -> .0320 and Kent .0320 ->
+  // .0330. All 22 flat rates in this file were already correct; only Anne
+  // Arundel and Frederick needed fixing (they were flat and are graduated).
   [CITIES]: {
     [ALLEGANY_COUNTY]: {
       [COUNTY_INCOME]: {
@@ -107,10 +117,29 @@ export default {
     },
     [ANNE_ARUNDEL_COUNTY]: {
       [COUNTY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.81 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.81 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.81 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.81 }],
+        // Withholding Tax Facts 2026 (COM RAD 098 rev 12/25) and the 2026 state
+        // payroll memo. The file had a flat 2.81 — both the wrong shape and a
+        // rate Anne Arundel left after 2024. Marginal, same as 2025.
+        [SINGLE]: [
+          { min: 0, max: 50000, rate: 2.7 },
+          { min: 50000, max: 400000, rate: 2.94 },
+          { min: 400000, max: INFINITY, rate: 3.2 },
+        ],
+        [MARRIED]: [
+          { min: 0, max: 75000, rate: 2.7 },
+          { min: 75000, max: 480000, rate: 2.94 },
+          { min: 480000, max: INFINITY, rate: 3.2 },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: 50000, rate: 2.7 },
+          { min: 50000, max: 400000, rate: 2.94 },
+          { min: 400000, max: INFINITY, rate: 3.2 },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: 75000, rate: 2.7 },
+          { min: 75000, max: 480000, rate: 2.94 },
+          { min: 480000, max: INFINITY, rate: 3.2 },
+        ],
       },
     },
     [BALTIMORE_CITY]: {
@@ -179,10 +208,39 @@ export default {
     },
     [FREDERICK_COUNTY]: {
       [COUNTY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.96 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.96 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.96 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.96 }],
+        // Withholding Tax Facts 2026 (COM RAD 098 rev 12/25) and the 2026 state
+        // payroll memo. Same schedule as 2025; the file had a flat 2.96.
+        //
+        // Frederick SELECTS one rate by income and charges it on the whole
+        // taxable net income — the statute reads ".0225 FOR TAXPAYERS WHO HAVE a
+        // taxable net income of at least $1 and not exceeding $25,000", with no
+        // "plus $X" base amount, and Form 502's LOCAL TAX WORKSHEET (19A) says to
+        // "Multiply the taxable net income by your local tax rate". Anne Arundel is
+        // carved out of that worksheet and Frederick is not. Hence rate_on_total.
+        [SINGLE]: [
+          { min: 0, max: 25000, rate: 2.25, rate_on_total: true },
+          { min: 25000, max: 50000, rate: 2.75, rate_on_total: true },
+          { min: 50000, max: 150000, rate: 2.96, rate_on_total: true },
+          { min: 150000, max: INFINITY, rate: 3.2, rate_on_total: true },
+        ],
+        [MARRIED]: [
+          { min: 0, max: 25000, rate: 2.25, rate_on_total: true },
+          { min: 25000, max: 100000, rate: 2.75, rate_on_total: true },
+          { min: 100000, max: 250000, rate: 2.96, rate_on_total: true },
+          { min: 250000, max: INFINITY, rate: 3.2, rate_on_total: true },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: 25000, rate: 2.25, rate_on_total: true },
+          { min: 25000, max: 50000, rate: 2.75, rate_on_total: true },
+          { min: 50000, max: 150000, rate: 2.96, rate_on_total: true },
+          { min: 150000, max: INFINITY, rate: 3.2, rate_on_total: true },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: 25000, rate: 2.25, rate_on_total: true },
+          { min: 25000, max: 100000, rate: 2.75, rate_on_total: true },
+          { min: 100000, max: 250000, rate: 2.96, rate_on_total: true },
+          { min: 250000, max: INFINITY, rate: 3.2, rate_on_total: true },
+        ],
       },
     },
     [GARRETT_COUNTY]: {

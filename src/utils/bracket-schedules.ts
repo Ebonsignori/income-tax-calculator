@@ -1,4 +1,8 @@
-import { CITIES, GROSS_INCOME_BASIS } from "@/constants";
+import {
+  CITIES,
+  GROSS_INCOME_BASIS,
+  STATE_INCOME_TAX_BASIS,
+} from "@/constants";
 import type { FilingStatus } from "@/constants/filing-status";
 import {
   NON_WAGE_TAX_TYPES,
@@ -8,6 +12,7 @@ import {
 import type { BracketSchedule, RateBracket, TaxData } from "@/types";
 import {
   incomeBasisFor,
+  isBaseAmountSchedule,
   isFlatFeeSchedule,
   isRateLookupSchedule,
   scheduleForFilingStatus,
@@ -30,7 +35,7 @@ type CollectArgs = {
   USAState: string;
   USACity: string;
   filingStatus: FilingStatus;
-  /** Income after retirement contributions, before deductions. */
+  /** True wages: before deductions and before retirement contributions. */
   grossIncome: number;
   federalTaxableIncome: number;
   /** Cities are calculated with the state's deductions, so they share this. */
@@ -52,13 +57,17 @@ const NOT_A_TAX = new Set<string>([
  *
  * A flat fee is a fixed charge and a rate-lookup schedule taxes the whole
  * income at a single rate; drawing either as a ladder would say something
- * untrue about how the tax works.
+ * untrue about how the tax works. A base-amount schedule is the third case:
+ * the ladder totals `rate x amount in band`, which for Ohio omits the $342
+ * base entirely and would disagree with the breakdown table sitting above it.
+ * The tax-tables page shows those schedules in full instead.
  */
 function isRateLadder(schedule: BracketSchedule | undefined): boolean {
   return Boolean(
     schedule?.length &&
       !isFlatFeeSchedule(schedule) &&
-      !isRateLookupSchedule(schedule),
+      !isRateLookupSchedule(schedule) &&
+      !isBaseAmountSchedule(schedule),
   );
 }
 
@@ -68,8 +77,9 @@ function isRateLadder(schedule: BracketSchedule | undefined): boolean {
  *
  * Each carries the income base the calculation used for it, since they
  * differ -- payroll taxes are on gross wages, income taxes on income after
- * that jurisdiction's deductions -- and drawing a schedule against the wrong
- * one would put the taxpayer in the wrong band.
+ * the retirement contribution and that jurisdiction's deductions -- and
+ * drawing a schedule against the wrong one would put the taxpayer in the
+ * wrong band.
  */
 export function collectBracketSchedules({
   federalTaxes,
@@ -94,6 +104,9 @@ export function collectBracketSchedules({
     const schedule = scheduleForFilingStatus(taxTypeData, filingStatus);
     if (!isRateLadder(schedule)) return;
     const basis = incomeBasisFor(taxType, schedule as BracketSchedule);
+    // A surcharge on the state's tax has no income bands of its own -- its one
+    // band spans every income -- so there is no ladder to draw.
+    if (basis === STATE_INCOME_TAX_BASIS) return;
     schedules.push({
       key: `${keyPrefix}:${taxType}`,
       label,

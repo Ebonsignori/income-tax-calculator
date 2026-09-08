@@ -1,4 +1,4 @@
-import { INFINITY } from "@/constants";
+import { GROSS_INCOME_BASIS, INFINITY } from "@/constants";
 import { WILMINGTON, CITIES } from "@/constants/cities";
 import {
   HEAD_OF_HOUSEHOLD,
@@ -60,11 +60,30 @@ export default {
   },
   [CITIES]: {
     [WILMINGTON]: {
+      // 22 Del. C. sec. 903 defines the base as "the total income from
+      // whatever source earned by any resident of such city", and the City's
+      // own budget states it outright -- "WAGE TAX / Base: Individual gross
+      // earned income of City residents." Delaware's $3,250 standard deduction
+      // is a Title 30 personal-income-tax figure and does not reach this tax,
+      // so the rate must not be charged on income after it. Same defect, and
+      // same fix, as the Missouri earnings taxes.
+      // Rate 1.25% is the statutory ceiling in 22 Del. C. sec. 902 and the rate
+      // actually levied; unchanged FY2025 through FY2027.
+      // https://delcode.delaware.gov/title22/c009/index.html
+      // https://wilmdebudget.org/wp-content/uploads/2026/03/fy27-tax-rates.pdf
       [CITY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 1.25 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 1.25 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 1.25 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 1.25 }],
+        [SINGLE]: [
+          { min: 0, max: INFINITY, rate: 1.25, basis: GROSS_INCOME_BASIS },
+        ],
+        [MARRIED]: [
+          { min: 0, max: INFINITY, rate: 1.25, basis: GROSS_INCOME_BASIS },
+        ],
+        [MARRIED_SEPARATELY]: [
+          { min: 0, max: INFINITY, rate: 1.25, basis: GROSS_INCOME_BASIS },
+        ],
+        [HEAD_OF_HOUSEHOLD]: [
+          { min: 0, max: INFINITY, rate: 1.25, basis: GROSS_INCOME_BASIS },
+        ],
       },
     },
   },

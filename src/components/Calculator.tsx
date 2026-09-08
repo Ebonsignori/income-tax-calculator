@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
@@ -10,10 +10,12 @@ import {
   EMPTY_STANDARD_DEDUCTION_MAP,
   FILING_STATUSES,
 } from "@/constants/filing-status";
-import type {
-  FilingStatus,
-  StandardDeductionMap,
-} from "@/constants/filing-status";
+import type { FilingStatus } from "@/constants/filing-status";
+import type { StandardDeductionByFilingStatus } from "@/types";
+import {
+  isBandedDeduction,
+  resolveStandardDeduction,
+} from "@/utils/standard-deduction";
 import { snakeToTitleCase } from "@/utils/string-utils";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import { Box, IconButton, Tooltip } from "@mui/material";
@@ -36,7 +38,7 @@ import { IncomeField } from "./input/IncomeField";
 import { Contribution401kField } from "./input/Contribution401kField";
 import type { PaycheckFrequency } from "@/constants/paycheck-frequency";
 import { MONTHLY } from "@/constants/paycheck-frequency";
-import { updateURL, getQueryParams } from "@/utils/base-path";
+import { updateURL, getQueryParams, parseIncomeParam } from "@/utils/base-path";
 import { useUrlSelectionOnPopState } from "@/utils/url-selection";
 
 /**
@@ -55,15 +57,6 @@ const HELPER_TEXT_SPACER = (
     sx={{ display: "block", minHeight: "1.66em" }}
   />
 );
-
-/** `?income=` is user input; anything not a positive integer is ignored. */
-function parseIncomeParam(value: string | null): number | null {
-  if (!value) {
-    return null;
-  }
-  const income = parseInt(value, 10);
-  return !isNaN(income) && income > 0 ? income : null;
-}
 
 type HomeProps = {
   availableYears: string[];
@@ -108,9 +101,9 @@ export default function Home({
     useState<TaxData>(defaultFederalTaxes);
 
   const [federalStandardDeductionMap, setFederalStandardDeductionMap] =
-    useState<StandardDeductionMap>(EMPTY_STANDARD_DEDUCTION_MAP);
+    useState<StandardDeductionByFilingStatus>(EMPTY_STANDARD_DEDUCTION_MAP);
   const [stateStandardDeductionMap, setStateStandardDeductionMap] =
-    useState<StandardDeductionMap>(EMPTY_STANDARD_DEDUCTION_MAP);
+    useState<StandardDeductionByFilingStatus>(EMPTY_STANDARD_DEDUCTION_MAP);
 
   const [max401KContribution, setMax401KContribution] = useState(0);
 
@@ -118,13 +111,61 @@ export default function Home({
     return statesAndCitiesForYear[year];
   }, [statesAndCitiesForYear, year]);
 
+  // What a phased-out standard deduction is measured against: income after
+  // retirement contributions, the same figure that feeds taxable income and
+  // the closest thing here to the AGI these schedules actually key on.
+  const deductionIncome = Math.max(0, totalIncome - totalIRA);
+
+  const federalStandardDeduction = useMemo(
+    () =>
+      resolveStandardDeduction(
+        federalStandardDeductionMap[filingStatus],
+        deductionIncome,
+      ) ?? 0,
+    [federalStandardDeductionMap, filingStatus, deductionIncome],
+  );
+  const stateStandardDeduction = useMemo(
+    () =>
+      resolveStandardDeduction(
+        stateStandardDeductionMap[filingStatus],
+        deductionIncome,
+      ) ?? 0,
+    [stateStandardDeductionMap, filingStatus, deductionIncome],
+  );
+
+  // Whether each jurisdiction's schedule varies with income at all. Only a
+  // banded one needs refreshing as income moves, and only a banded one can
+  // legitimately resolve to zero.
+  const federalIsBanded = isBandedDeduction(
+    federalStandardDeductionMap[filingStatus],
+  );
+  const stateIsBanded = isBandedDeduction(
+    stateStandardDeductionMap[filingStatus],
+  );
+
+  // Read through refs so the two reset callbacks keep a stable identity as
+  // income moves. They are effect dependencies, and refreshing them on every
+  // keystroke in the income field would re-run the prefill effects and
+  // overwrite a deduction the user had typed.
+  const latestStandard = useRef({ federal: 0, state: 0 });
+  latestStandard.current = {
+    federal: federalStandardDeduction,
+    state: stateStandardDeduction,
+  };
+
+  // The last figure each field was prefilled with. A field still holding it
+  // has not been touched, which is what makes it safe to refresh.
+  const autoFilled = useRef<{ federal?: number; state?: number }>({});
+
   const resetTotalStateDeductions = useCallback(() => {
-    setTotalStateDeductions(stateStandardDeductionMap[filingStatus]);
-  }, [stateStandardDeductionMap, filingStatus]);
+    autoFilled.current.state = latestStandard.current.state;
+    setTotalStateDeductions(latestStandard.current.state);
+  }, []);
 
   const resetTotalFederalDeductions = useCallback(() => {
-    setTotalFederalDeductions(federalStandardDeductionMap[filingStatus]);
-  }, [federalStandardDeductionMap, filingStatus]);
+    autoFilled.current.federal = latestStandard.current.federal;
+    setTotalFederalDeductions(latestStandard.current.federal);
+  }, []);
 
   // Initialize income from URL query param on mount
   useEffect(() => {
@@ -163,6 +204,35 @@ export default function Home({
     stateStandardDeductionMap,
     resetTotalFederalDeductions,
     resetTotalStateDeductions,
+  ]);
+
+  // Wisconsin and four other states shrink the standard deduction as income
+  // rises, so the prefilled figure is only right for the income it was
+  // resolved at. Refresh it as income crosses a band -- but only while the
+  // field still holds what we put there. Once the user has typed their own
+  // number it is theirs, and the reset control is how they come back.
+  //
+  // Keyed on whether the schedule is banded rather than on the resolved
+  // figure being non-zero: Wisconsin allows a single filer nothing at all
+  // above $132,549, and a truthiness check there would leave the field
+  // holding the last non-zero figure -- which is the deduction the
+  // calculation would then use.
+  useEffect(() => {
+    if (
+      federalIsBanded &&
+      totalFederalDeductions === autoFilled.current.federal
+    ) {
+      resetTotalFederalDeductions();
+    }
+    if (stateIsBanded && totalStateDeductions === autoFilled.current.state) {
+      resetTotalStateDeductions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    federalStandardDeduction,
+    stateStandardDeduction,
+    federalIsBanded,
+    stateIsBanded,
   ]);
 
   useEffect(() => {
@@ -253,20 +323,41 @@ export default function Home({
     [],
   );
 
+  // A banded deduction is only the standard one *at this income*, and saying
+  // so is the difference between a figure the reader can trust and one that
+  // looks wrong when it moves.
+  const standardDeductionLabel = useCallback(
+    (banded: boolean) =>
+      banded
+        ? `Standard deduction for ${year} at this income`
+        : `Standard deduction for ${year}`,
+    [year],
+  );
+
+  // A zero deduction is only worth labelling when a schedule genuinely
+  // allows nothing at this income. For a flat state it just means no data has
+  // loaded yet.
   const standardStateDeductionDisplay = useMemo(() => {
-    return stateStandardDeductionMap?.[filingStatus] === totalStateDeductions &&
-      stateStandardDeductionMap?.[filingStatus] !== 0
-      ? `Standard deduction for ${year}`
-      : null;
-  }, [stateStandardDeductionMap, filingStatus, totalStateDeductions, year]);
+    if (stateStandardDeduction !== totalStateDeductions) return null;
+    if (stateStandardDeduction === 0 && !stateIsBanded) return null;
+    return standardDeductionLabel(stateIsBanded);
+  }, [
+    stateStandardDeduction,
+    stateIsBanded,
+    totalStateDeductions,
+    standardDeductionLabel,
+  ]);
 
   const standardFederalDeductionDisplay = useMemo(() => {
-    return federalStandardDeductionMap?.[filingStatus] ===
-      totalFederalDeductions &&
-      federalStandardDeductionMap?.[filingStatus] !== 0
-      ? `Standard deduction for ${year}`
-      : null;
-  }, [federalStandardDeductionMap, filingStatus, totalFederalDeductions, year]);
+    if (federalStandardDeduction !== totalFederalDeductions) return null;
+    if (federalStandardDeduction === 0 && !federalIsBanded) return null;
+    return standardDeductionLabel(federalIsBanded);
+  }, [
+    federalStandardDeduction,
+    federalIsBanded,
+    totalFederalDeductions,
+    standardDeductionLabel,
+  ]);
 
   const validateAll = useCallback(() => {
     if (totalIRA > max401KContribution) {
@@ -426,7 +517,7 @@ export default function Home({
                         ),
                         endAdornment:
                           standardFederalDeductionDisplay === null &&
-                          federalStandardDeductionMap?.[filingStatus] !== 0 &&
+                          federalStandardDeduction !== 0 &&
                           totalFederalDeductions ? (
                             <InputAdornment position="end">
                               <Tooltip
@@ -481,7 +572,7 @@ export default function Home({
                         ),
                         endAdornment:
                           standardStateDeductionDisplay === null &&
-                          stateStandardDeductionMap?.[filingStatus] !== 0 ? (
+                          stateStandardDeduction !== 0 ? (
                             <InputAdornment position="end">
                               <Tooltip
                                 title={`Set to standard deduction for ${year}`}

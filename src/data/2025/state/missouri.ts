@@ -63,6 +63,15 @@ export default {
     ],
   },
   [CITIES]: {
+    // Renewals verified 2026-09-07. RSMo 92.111(1) requires voters to
+    // reauthorise the earnings tax every five years or it phases down under
+    // RSMo 92.125. Both cities' April 2021 votes carried the tax through 2026,
+    // and both renewed again on April 7, 2026, so 1% holds for all four years
+    // here. Kansas City Question 1 ("Shall the earnings tax of 1% ... be
+    // continued for a period of five (5) years") passed 21,223-4,820 in the
+    // Kansas City Election Board's official summary; St. Louis Proposition E
+    // passed 22,869-4,131 (84.70%) in the Board of Election Commissioners'
+    // Final Official Summary.
     [KANSAS_CITY]: {
       // RSMo 92.111(2)(1): the earnings tax is levied on "salaries, wages,
       // commissions and other compensation", not on Missouri taxable income, so

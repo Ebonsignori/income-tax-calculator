@@ -9,6 +9,16 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Verified 2026-09-07: all four correct. Carrying 2025 forward is right
+  // here rather than a stale copy - K.S.A. 79-32,119(c)(2) sets 3,605 /
+  // 8,240 / 6,180 for "tax year 2024, and all tax years thereafter", with
+  // no inflation adjustment, and the 2024 and 2025 booklets print the same
+  // figures. The 2026 K-40 booklet is not published yet.
+  // MARRIED_SEPARATELY being exactly half of MARRIED is real, not a
+  // derivation: K.S.A. 79-32,119(d) fixes the separate-return deduction
+  // "on the basis that separate federal returns were filed", and the
+  // booklet prints the exact half.
+  // https://www.ksrevisor.gov/statutes/chapters/ch79/079_032_0119.html
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 3605,
     [MARRIED]: 8240,

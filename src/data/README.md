@@ -56,7 +56,7 @@ export default {
 
 **Special Formats:**
 
-- **Standard deductions**: Single number per filing status, not brackets (e.g., `[SINGLE]: 2835`)
+- **Standard deductions**: Single number per filing status, not brackets (e.g., `[SINGLE]: 2835`) — or, for the states that shrink it as income rises, a schedule of bands. See [Standard deductions that phase out](#standard-deductions-that-phase-out).
 - **INFINITY constant**: Use for the max of the highest bracket (e.g., `{ min: 250000, max: INFINITY, rate: 9.9 }`)
 - **City taxes**: Nested under `[CITIES]: { [CITY_NAME]: { ... } }`
 
@@ -97,6 +97,12 @@ applied to all subject wages paid in a pay period."
 Note the cliff this creates at the threshold, which is real: a dollar more in
 wages turns $0 into $142.31.
 
+Two jurisdictions need this so far, so it is a recurring shape rather than a
+one-off: Eugene's community safety payroll tax, and Frederick County, Maryland,
+whose local tax Form 502 Worksheet 19A computes by "multiply the taxable net
+income by your local tax rate" — with no "plus $X" base amount of the kind
+Anne Arundel's schedule carries.
+
 ## Which income a rate is charged on
 
 By default the income base comes from the tax type — `grossIncomeTaxes` in
@@ -104,11 +110,34 @@ By default the income base comes from the tax type — `grossIncomeTaxes` in
 paid-leave programs, the local occupational and payroll taxes); everything else
 is computed on income after deductions.
 
+**"Gross" means true wages: before deductions _and_ before any pre-tax
+retirement contribution.** A 401(k) elective deferral reduces W-2 box 1 only —
+boxes 3 and 5, the Social Security and Medicare wage figures, are unchanged by
+it, because elective deferrals stay "subject to Social Security (FICA),
+Medicare, and federal unemployment taxes" (IRS Topic No. 424). A deductible
+traditional IRA contribution is a deduction on the 1040, taken out of wages that
+were already taxed for FICA. So the 401(k) / IRA figure the calculator collects
+belongs in the taxable-income line and nowhere else.
+
 Where the tax type alone does not settle it, a schedule says so with `basis`.
-`city_income` is the case that needs it: Yonkers genuinely starts from state
-taxable income, while the Kansas City and St. Louis earnings taxes are levied on
-"salaries, wages, commissions and other compensation" (RSMo 92.111), so those
-declare `basis: GROSS_INCOME_BASIS`.
+`city_income` is the case that needs it, because that one key covers three
+different bases:
+
+- `"gross"` — the Kansas City and St. Louis earnings taxes on "salaries, wages,
+  commissions and other compensation" (RSMo 92.111), Wilmington's on "the total
+  income from whatever source earned" (22 Del. C. 903), and Ohio's municipal
+  taxes on "qualifying wages" as defined by IRC 3121(a) (ORC 718.01(R)).
+- `"taxable"` — the default, correct for a city or county tax that genuinely
+  starts from state taxable income, as Maryland's counties and Indiana's do.
+- `"state_income_tax"` — charged on the state's computed tax rather than on any
+  income figure. Yonkers' resident surcharge is 16.75% of New York State tax
+  (IT-201 line 55), not a rate on income.
+
+That last one exists to stop the state's schedule being copied into a second
+place. Multiplying New York's nine brackets by 0.1675 is exact for a filer with
+no credits, and it would go stale the next time New York changes a rate. Only a
+city rate schedule may declare it, it must be a single bracket spanning 0 to
+`INFINITY`, and `npm run validate-tax-data` enforces both.
 
 `rate_on_total` and `basis` describe the whole schedule but are written per
 bracket, and the calculator reads them off the first one. `npm run
@@ -126,14 +155,119 @@ A fixed-dollar tax uses `amount` instead of `rate`:
 - `frequency` annualizes the amount (`weekly`, `biweekly`, `semi_monthly`,
   `monthly`, `annually`). Omit it for a fee that is already annual.
 - `basis` picks which income figure the threshold is measured against:
-  `"gross"` (the default — gross wages after IRA, before deductions) or
-  `"taxable"` (after deductions). Most thresholds are written against gross
-  wages; Portland's 2026 Arts Tax is the exception and tests Oregon taxable
-  income, so it sets `basis: TAXABLE_INCOME_BASIS`.
+  `"gross"` (the default — true wages, before deductions and before any
+  retirement contribution, the same figure the gross-basis rate schedules use)
+  or `"taxable"` (after both). Most thresholds are written against gross wages;
+  Portland's 2026 Arts Tax is the exception and tests Oregon taxable income, so
+  it sets `basis: TAXABLE_INCOME_BASIS`.
 - `amount` must land on a whole cent.
 
 Where a schedule lists several tiers, the highest one the taxpayer qualifies for
-applies; fees are not cumulative.
+applies; fees are not cumulative. The tier is chosen by its `min`, not by its
+position in the array, so the order tiers are written in does not change the
+fee.
+
+## Standard deductions that phase out
+
+### What the slot actually holds
+
+`standard_deduction` holds **whatever the state subtracts from income before
+applying its rate**, not literally a thing called a standard deduction. Some
+states call it a personal exemption instead — Connecticut's figures in this
+slot are its personal exemption, and Illinois, New Jersey and Ohio have
+exemption allowances of the same kind. They belong here: the calculator's
+question is what gets subtracted, and a filer does not care what the form calls
+it. A state that has both would carry their sum, with a comment saying so.
+
+### Deductions that vary with income
+
+Most states allow the same standard deduction at every income, and those are one
+number per filing status. Five — Alabama, Connecticut, Maine, Montana and
+Wisconsin — shrink it as income rises, and one number cannot say that. Storing
+only the maximum over-deducts for most filers in those states: Alabama's joint
+deduction is $8,500 at the bottom of the range and $5,000 for anyone above about
+$35,500, and it is the $5,000 that ADOR's own withholding example uses.
+
+Those statuses take an array of bands instead:
+
+```typescript
+[STANDARD_DEDUCTION]: {
+  [SINGLE]: [
+    { min: 0,      max: 19550,    amount: 13560 },
+    { min: 19550,  max: 132550,   amount: 13560, reduce_rate: 12 },
+    { min: 132550, max: INFINITY, amount: 0 },
+  ],
+  [MARRIED]: 25110,   // a flat status can sit next to a banded one
+  ...
+}
+```
+
+- `min` / `max` bound the income the band applies to. Bands are **half-open**,
+  `[min, max)`, and contiguous, so one band's `max` is the next one's `min`.
+  Note this differs from the rate-bracket convention above: a schedule printed
+  as "over $19,549 but not over $132,549" becomes `min: 19550, max: 132550`,
+  one dollar up on both ends.
+- `amount` is the deduction before this band's reduction.
+- `reduce_rate` takes a percentage of the income above `reduce_from`. Use it
+  where the state publishes a rate ("$13,560 less 12%").
+- `reduce_per` and `reduce_by` take a fixed amount for each whole step. Use them
+  where the state publishes a chart of increments ("$175 for each $500"). A band
+  uses one form or the other, never both.
+- `reduce_from` is the income the reduction is measured from, defaulting to
+  `min`. Set it only where the published schedule measures from somewhere else.
+- `percent_of_income` makes the deduction a straight percentage of income
+  instead, clamped into `[floor, amount]` — a schedule that *rises* to a cap
+  rather than phasing out. Montana through tax year 2023: "20% of Montana AGI",
+  floored at $2,460 and capped at $5,540. Cannot be combined with the reduce
+  fields.
+- `floor` is the least the band allows. Defaults to 0. Alabama floors at
+  $5,000.
+
+A band needs none of the reduce fields, which is how a **cliff** is written — a
+deduction allowed in full up to a threshold and not at all above it. Illinois
+disallows its exemption allowance entirely above $250,000 of base income ("you
+are not entitled to an exemption allowance on Line 10. Enter 'zero'"):
+
+```typescript
+[SINGLE]: [
+  { min: 0,       max: 250000,   amount: 2850 },
+  { min: 250000,  max: INFINITY, amount: 0 },
+],
+```
+
+A cliff and a taper share a representation but are different things, so it is
+worth knowing the cliff is expressible before going looking for a field to
+express it with.
+
+The first band must start at 0 and the last must end at `INFINITY`, so every
+income lands in exactly one. `npm run validate-tax-data` enforces that, along
+with contiguity and the rule that a schedule moves in one direction only — a
+deduction that both rises and falls means a band is transcribed wrong.
+
+### Which income the band is chosen by
+
+Income after retirement contributions, before the deduction itself — the same
+figure that feeds taxable income. That is a **proxy for AGI**, which is what
+these states actually key on; the two differ by above-the-line items this
+calculator does not model. It is deliberately not the gross wage figure that
+FICA uses, which ignores the retirement contribution.
+
+### Transcribing one
+
+Work from the schedule the state publishes as a formula, not from a lookup table
+if it prints both — Wisconsin's Form 1 table is 274 rows per year. Each band
+should be one printed row, so a reviewer can hold the file next to the source.
+
+Wisconsin's head of household is the awkward case worth knowing about: it falls
+at 22.515% until it meets the single taxpayer's schedule, then continues on that
+schedule — and the DOR keeps measuring that second stage from the *first*
+threshold. That is what `reduce_from` exists for. See
+[2025/state/wisconsin.ts](./2025/state/wisconsin.ts) for the worked example.
+
+A state that publishes both a formula and a stepped table will not agree with
+itself exactly: the table is the formula evaluated at each step's midpoint. The
+calculator evaluates at the filer's own income, so it can sit up to half a step
+from the printed table — a couple of dollars of tax.
 
 For example a `federal.ts` file might contain part of this object,
 

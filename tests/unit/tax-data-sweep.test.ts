@@ -26,7 +26,12 @@ import type { TaxDataByYear } from "@/utils/read-tax-data";
 import { FILING_STATUSES } from "@/constants/filing-status";
 import type { FilingStatus } from "@/constants/filing-status";
 import { CITIES } from "@/constants";
-import { NONE, STATE_INCOME } from "@/constants/tax_types";
+import {
+  CITY_INCOME,
+  NONE,
+  STANDARD_DEDUCTION,
+  STATE_INCOME,
+} from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 import type { Money } from "@/utils/money";
 import { toUnit } from "@/utils/money";
@@ -251,5 +256,97 @@ describe("tax data sweep", () => {
       expect(cityCases).toBeGreaterThan(0);
       expect(problems, problems.slice(0, 20).join("\n")).toEqual([]);
     });
+  });
+});
+
+/**
+ * The landmine: adding a standard deduction to a state silently changes its
+ * cities' tax base.
+ *
+ * A city tax inherits the state's resolved deduction unless it says otherwise,
+ * which is right for the city and county income taxes that genuinely start
+ * from state taxable income (Yonkers, NYC, Maryland's counties, Indiana's) and
+ * wrong for the ones levied on wages (Kansas City, St. Louis, Wilmington).
+ * `city_income` is the key that covers both readings, so it is the one where
+ * the default is a guess rather than a fact.
+ *
+ * Michigan's, Ohio's and New Jersey's city taxes compute on gross today purely
+ * because those states carry no standard deduction for the city to inherit.
+ * They are accidentally correct, not deliberately correct -- and there is a
+ * queued change that adds a personal exemption to Ohio and New Jersey. This
+ * test is what turns that from a silent understatement into a red build.
+ */
+describe("a city_income tax in a state that carries a standard deduction", () => {
+  /**
+   * Jurisdictions that deliberately take the taxable-income default.
+   *
+   * Empty, and worth keeping that way. Yonkers was the sole entry until its
+   * surcharge was modelled properly, at which point it started declaring
+   * `state_income_tax` and no longer needed the exception -- which the
+   * staleness test below caught. Add an entry only for a city tax that
+   * genuinely starts from state taxable income, with the reason written here.
+   */
+  const RELIES_ON_THE_TAXABLE_DEFAULT = new Set<string>([]);
+
+  const cityIncomeSchedules = () => {
+    const found: { where: string; declaresBasis: boolean }[] = [];
+    for (const year of years) {
+      for (const [state, data] of Object.entries(taxDataByYear[year] ?? {})) {
+        if (state === "federal") continue;
+        const stateData = data as TaxData;
+        if (!stateData?.[STANDARD_DEDUCTION]) continue;
+        for (const [city, cityData] of Object.entries(
+          stateData[CITIES] ?? {},
+        )) {
+          const schedule = (cityData as TaxData)?.[CITY_INCOME];
+          if (!schedule || typeof schedule !== "object") continue;
+          for (const bands of Object.values(
+            schedule as Record<string, unknown>,
+          )) {
+            if (!Array.isArray(bands) || !bands.length) continue;
+            found.push({
+              where: `${state}/${city}`,
+              declaresBasis: bands[0]?.basis !== undefined,
+            });
+          }
+        }
+      }
+    }
+    return found;
+  };
+
+  it("declares its income basis explicitly", () => {
+    const silent = [
+      ...new Set(
+        cityIncomeSchedules()
+          .filter(
+            (entry) =>
+              !entry.declaresBasis &&
+              !RELIES_ON_THE_TAXABLE_DEFAULT.has(entry.where),
+          )
+          .map((entry) => entry.where),
+      ),
+    ].sort();
+
+    expect(
+      silent,
+      `These city_income schedules take the taxable-income default in a state that has a standard deduction, so the deduction now shrinks their base. If the tax is levied on wages, declare basis: GROSS_INCOME_BASIS on the schedule. If it genuinely starts from state taxable income, add it to RELIES_ON_THE_TAXABLE_DEFAULT with a reason.`,
+    ).toEqual([]);
+  });
+
+  it("keeps the exception list from going stale", () => {
+    // An entry that no longer needs the exception should be deleted, not left
+    // to accumulate.
+    const silent = new Set(
+      cityIncomeSchedules()
+        .filter((entry) => !entry.declaresBasis)
+        .map((entry) => entry.where),
+    );
+    for (const listed of RELIES_ON_THE_TAXABLE_DEFAULT) {
+      expect(
+        silent.has(listed),
+        `${listed} is listed as relying on the taxable-income default but no longer does. Remove it from RELIES_ON_THE_TAXABLE_DEFAULT.`,
+      ).toBe(true);
+    }
   });
 });

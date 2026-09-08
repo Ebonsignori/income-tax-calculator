@@ -20,6 +20,12 @@ import {
 import type { TaxData } from "@/types";
 
 export default {
+  // Verified 2026-09-07: all four correct.
+  // MARRIED_SEPARATELY equals SINGLE because Table 5 splits the status in
+  // two: the full single amount if your spouse also takes the standard
+  // deduction, $0 if your spouse itemizes. This models the first case.
+  // Source: 2025 Form OR-40 instructions, "Table 5. Standard deduction".
+  // https://www.oregon.gov/dor/forms/FormsPubs/form-or-40-inst_101-040-1_2025.pdf
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 2835,
     [MARRIED]: 5670,
@@ -58,6 +64,20 @@ export default {
   [OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE]: {
     [ALL]: [{ min: 0, max: 176100, rate: 1, percent_of_total: 60 }],
   },
+  // Portland/Eugene local layer verified 2026-09-07.
+  //   Arts Education Tax $35 with a $1,000 income floor - the City's own
+  //     history section: from 2012 through 2025 the tax "was owed by any
+  //     resident whose household annual income was above the annual federal
+  //     poverty level and/or who had more than $1,000 of annual taxable
+  //     income". The poverty-level half of that test is not modelled; the
+  //     $1,000 floor is.
+  //     https://www.portland.gov/revenue/arts-tax
+  //   Metro Supportive Housing Services 1% above 125,000 (single and married
+  //     filing separately) / 200,000 (joint and head of household). The
+  //     thresholds were fixed at those figures for 2021-2025.
+  //     https://www.portland.gov/revenue/personal-tax
+  //   Eugene community safety payroll tax - checked against the City's own
+  //     rate chart PDF for the period noted on the schedule below.
   [CITIES]: {
     [PORTLAND]: {
       [ART_TAX]: {
@@ -69,6 +89,12 @@ export default {
         [MARRIED_SEPARATELY]: [{ min: 125000, max: INFINITY, rate: 1 }],
         [HEAD_OF_HOUSEHOLD]: [{ min: 200000, max: INFINITY, rate: 1 }],
       },
+      // Multnomah County uses the same filing-status grouping for both local
+      // taxes: "single" is Single and Married filing separately; "joint" is
+      // Married filing jointly, Head of household, and Qualifying surviving
+      // spouse. So HEAD_OF_HOUSEHOLD belongs on the joint thresholds here,
+      // exactly as it already does in SUPPORTIVE_HOUSING_SERVICES above -
+      // keep the two schedules' groupings in step.
       [PRESCHOOL_FOR_ALL]: {
         [SINGLE]: [
           { min: 125000, max: 250000, rate: 1.5 },
@@ -79,12 +105,12 @@ export default {
           { min: 250000, max: INFINITY, rate: 3.0 },
         ],
         [MARRIED]: [
-          { min: 250000, max: 400000, rate: 1.5 },
+          { min: 200000, max: 400000, rate: 1.5 },
           { min: 400000, max: INFINITY, rate: 3.0 },
         ],
         [HEAD_OF_HOUSEHOLD]: [
-          { min: 125000, max: 250000, rate: 1.5 },
-          { min: 250000, max: INFINITY, rate: 3.0 },
+          { min: 200000, max: 400000, rate: 1.5 },
+          { min: 400000, max: INFINITY, rate: 3.0 },
         ],
       },
     },
@@ -96,6 +122,7 @@ export default {
         [ALL]: [
           // Chart of 7/1/2025 - 6/30/2026. The minimum wage passed $15.00, so
           // Ordinance 20616's reduced 0.30% band no longer has any range.
+          // https://www.eugene-or.gov/DocumentCenter/View/79205/7125---63026-Employee-tax-rate-charts
           { min: 0, max: 31304, rate: 0, rate_on_total: true },
           { min: 31304, max: INFINITY, rate: 0.44, rate_on_total: true },
         ],

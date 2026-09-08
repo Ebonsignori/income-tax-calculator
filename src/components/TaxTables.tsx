@@ -17,8 +17,8 @@ import type { AvailableStatesAndCities, TaxData } from "@/types";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { TAX_TABLES } from "@/constants/pages";
 import { TaxOptionsSelect } from "./input/TaxOptionsSelect";
-import type { StandardDeductionMap } from "@/constants/filing-status";
 import { EMPTY_STANDARD_DEDUCTION_MAP } from "@/constants/filing-status";
+import type { StandardDeductionByFilingStatus } from "@/types";
 import { CITIES } from "@/constants";
 import type { TaxOption } from "@/utils/get-tax-options";
 import { useGetTaxOptions } from "@/utils/get-tax-options";
@@ -105,9 +105,9 @@ export default function TaxTables({
   );
 
   const [federalStandardDeductionMap, setFederalStandardDeductionMap] =
-    useState<StandardDeductionMap>(EMPTY_STANDARD_DEDUCTION_MAP);
+    useState<StandardDeductionByFilingStatus>(EMPTY_STANDARD_DEDUCTION_MAP);
   const [stateStandardDeductionMap, setStateStandardDeductionMap] =
-    useState<StandardDeductionMap>(EMPTY_STANDARD_DEDUCTION_MAP);
+    useState<StandardDeductionByFilingStatus>(EMPTY_STANDARD_DEDUCTION_MAP);
 
   const [max401KContribution, setMax401KContribution] = useState(0);
 

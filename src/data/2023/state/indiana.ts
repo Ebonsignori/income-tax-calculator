@@ -108,6 +108,33 @@ export default {
       },
     ],
   },
+  // SOURCE CONVENTION — READ BEFORE CHANGING ANY RATE BELOW.
+  //
+  // The authority for these figures is Schedule CT-40 (form 47907), "Indiana
+  // County Income Tax Rates and County Codes" — the ANNUAL chart printed on the
+  // back of the county tax schedule filed with the IT-40.
+  //
+  // It is NOT Departmental Notice #1. DN #1 is the WITHHOLDING table: it gives
+  // the rate an employer withholds during a period, and it is reissued whenever
+  // a rate takes effect mid-year. An Indiana county may change its rate on
+  // Oct. 1 as well as Jan. 1, and when it does the ANNUAL liability is computed
+  // on a blend — nine months of the old rate plus three of the new. CT-40
+  // publishes that blend; DN #1 never does.
+  //
+  // So a rate here that looks like a typo is usually the official blend:
+  // .01618, .01725, .012125, .024875, .026325 are all real CT-40 figures.
+  // DO NOT "tidy" a long decimal to a round number, and do not reconcile these
+  // against DN #1 and conclude they are wrong. Doing either silently breaks a
+  // correct value — validate-tax-data checks structure only, and a uniformly
+  // wrong Indiana is internally consistent, so nothing downstream will catch it.
+  //
+  // 2023: all 92 verified 2026-09 against CT-40 (2023),
+  // https://forms.in.gov/Download.aspx?id=15776 — every figure matched, no
+  // corrections needed. Three counties carry an Oct. 1 blend: Adams .01618,
+  // Henry .01725, Vanderburgh .012125. Cross-checked against DN #1 R40 / 12-22
+  // and R41 / 9-23 (https://www.in.gov/dor/files/dn01.pdf, Wayback
+  // 20221216202506 and 20230910010626), which agree on the Jan. 1 rates. These
+  // are post-SEA 1271 rates.
   [CITIES]: {
     [ADAMS_COUNTY]: {
       [COUNTY_INCOME]: {

@@ -13,7 +13,7 @@ import {
   SOCIAL_SECURITY,
   ART_TAX,
 } from "@/constants/tax_types";
-import { CITIES } from "@/constants";
+import { CITIES, CITY_SCOPE, FEDERAL_SCOPE, STATE_SCOPE } from "@/constants";
 
 const setFederalStandardDeductionMap = vi.fn();
 const setStateStandardDeductionMap = vi.fn();
@@ -57,15 +57,30 @@ describe("useGetTaxOptions", () => {
       {} as TaxData,
     );
     expect(result).toEqual([
-      { title: "Federal Income", value: FEDERAL_INCOME, disabled: false },
-      { title: "Social Security", value: SOCIAL_SECURITY, disabled: false },
+      {
+        title: "Federal Income",
+        value: FEDERAL_INCOME,
+        scope: FEDERAL_SCOPE,
+        disabled: false,
+      },
+      {
+        title: "Social Security",
+        value: SOCIAL_SECURITY,
+        scope: FEDERAL_SCOPE,
+        disabled: false,
+      },
     ]);
   });
 
   it("qualifies the state income tax with the state's name", () => {
     const result = options({} as TaxData, { [STATE_INCOME]: {} } as TaxData);
     expect(result).toEqual([
-      { title: "Oregon State Income", value: STATE_INCOME, disabled: false },
+      {
+        title: "Oregon State Income",
+        value: STATE_INCOME,
+        scope: STATE_SCOPE,
+        disabled: false,
+      },
     ]);
   });
 
@@ -107,8 +122,18 @@ describe("useGetTaxOptions", () => {
         "portland",
       );
       expect(result).toEqual([
-        { title: "Oregon State Income", value: STATE_INCOME, disabled: false },
-        { title: "Portland Art Tax", value: ART_TAX, disabled: false },
+        {
+          title: "Oregon State Income",
+          value: STATE_INCOME,
+          scope: STATE_SCOPE,
+          disabled: false,
+        },
+        {
+          title: "Portland Art Tax",
+          value: ART_TAX,
+          scope: CITY_SCOPE,
+          disabled: false,
+        },
       ]);
     });
 
@@ -121,6 +146,25 @@ describe("useGetTaxOptions", () => {
     it("offers no city taxes for a city the state has no data for", () => {
       const result = options({} as TaxData, stateWithCities, "oregon", "salem");
       expect(result.map((option) => option.value)).toEqual([STATE_INCOME]);
+    });
+
+    // A city and its state can use the same tax-type key. The key alone cannot
+    // say which one an option means, so `scope` carries the jurisdiction and
+    // the calculator matches exemptions against it.
+    it("scopes a city option separately from a state option of the same key", () => {
+      const result = options(
+        {} as TaxData,
+        {
+          occupational_tax: {},
+          [CITIES]: { birmingham: { occupational_tax: {} } },
+        } as unknown as TaxData,
+        "alabama",
+        "birmingham",
+      );
+      expect(result.map((option) => [option.value, option.scope])).toEqual([
+        ["occupational_tax", STATE_SCOPE],
+        ["occupational_tax", CITY_SCOPE],
+      ]);
     });
 
     it("keeps city options last, after federal and state", () => {

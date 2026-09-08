@@ -3,7 +3,10 @@ import {
   standardDeductionMapToTable,
   tableDataFromTaxData,
 } from "@/utils/tax-table-data";
+import { INFINITY } from "@/constants";
 import ohio2026 from "@/data/2026/state/ohio";
+import ohio2025 from "@/data/2025/state/ohio";
+import newYork2025 from "@/data/2025/state/new_york";
 import newJersey2026 from "@/data/2026/state/new_jersey";
 import oregon2026 from "@/data/2026/state/oregon";
 import texas2025 from "@/data/2025/state/texas";
@@ -23,7 +26,10 @@ describe("tableDataFromTaxData", () => {
     // column left of its header.
     const table = tableDataFromTaxData("state_income", ohio2026[STATE_INCOME]);
 
-    expect(table.headers[0]).toBe("Rate");
+    // "Tax" rather than "Rate": Ohio's bands carry a base amount, so the
+    // column states "$332.00 + 2.75%" and a bare rate would understate it.
+    // The 0% row has no base, so it still reads as a plain rate.
+    expect(table.headers[0]).toBe("Tax");
     expect(table.rows[0][0]).toBe("0%");
     expect(table.rows[0][1]).toBe("$0 - $26,050");
     expect(everyRowMatchesHeaderCount(table)).toBe(true);
@@ -56,7 +62,8 @@ describe("tableDataFromTaxData", () => {
   it("shows an ALL schedule under every filing status", () => {
     const table = tableDataFromTaxData("state_income", ohio2026[STATE_INCOME]);
     expect(table.headers).toEqual([
-      "Rate",
+      // See above: Ohio's schedule carries base amounts.
+      "Tax",
       "Single",
       "Married",
       "Married Separately",
@@ -113,6 +120,46 @@ describe("tableDataFromTaxData", () => {
   });
 });
 
+// Showing "2.75%" alone is exactly what understated Ohio: the statute charges
+// "$342.00 plus 2.750% of the amount in excess of $26,050", and the base is
+// most of the bill at the bottom of the range.
+describe("a schedule whose bands carry a base amount", () => {
+  const table = tableDataFromTaxData(
+    "Ohio State Income",
+    (ohio2025 as TaxData)[STATE_INCOME],
+  );
+
+  it("heads the column Tax rather than Rate", () => {
+    expect(table.headers[0]).toBe("Tax");
+  });
+
+  it("states the base alongside the rate, as the statute does", () => {
+    expect(table.rows.map((row) => row[0])).toEqual([
+      "0%",
+      "$342.00 + 2.75%",
+      "$2,394.32 + 3.125%",
+    ]);
+  });
+
+  it("keeps the income ranges", () => {
+    expect(table.rows[1][1]).toBe("$26,051 - $100,000");
+  });
+});
+
+// Yonkers' surcharge is charged on the state's tax, so the usual
+// rate-and-range grid would invite a reader to apply 16.75% to their salary.
+describe("a schedule charged on the state's own tax", () => {
+  const table = tableDataFromTaxData(
+    "yonkers_income",
+    (newYork2025 as TaxData)[CITIES]?.yonkers?.city_income,
+  );
+
+  it("states what the rate is charged on, with no income ranges", () => {
+    expect(table.headers).toEqual(["Tax"]);
+    expect(table.rows).toEqual([["16.75% of state income tax"]]);
+  });
+});
+
 describe("standardDeductionMapToTable", () => {
   it("lists one row per filing status", () => {
     const table = standardDeductionMapToTable("Standard Oregon Deductions", {
@@ -126,5 +173,84 @@ describe("standardDeductionMapToTable", () => {
     expect(table.headers).toEqual(["Filing Status", "Amount"]);
     expect(table.rows).toHaveLength(4);
     expect(table.rows[0]).toEqual(["Single", "$2,910"]);
+  });
+
+  // A state that shrinks the deduction as income rises cannot be described by
+  // one amount per status. Showing only the maximum on the reference page is
+  // the same overstatement the calculator used to make.
+  describe("a schedule that varies with income", () => {
+    const banded = standardDeductionMapToTable(
+      "Standard Wisconsin Deductions",
+      {
+        single: [
+          { min: 0, max: 19550, amount: 13560 },
+          { min: 19550, max: 132550, amount: 13560, reduce_rate: 12 },
+          { min: 132550, max: INFINITY, amount: 0 },
+        ],
+        married: 25110,
+        married_separately: 11930,
+        head_of_household: [
+          { min: 0, max: 19550, amount: 17520 },
+          { min: 19550, max: 57211, amount: 17520, reduce_rate: 22.515 },
+          {
+            min: 57211,
+            max: 132550,
+            amount: 13560,
+            reduce_from: 19550,
+            reduce_rate: 12,
+          },
+          { min: 132550, max: INFINITY, amount: 0 },
+        ],
+      },
+    );
+
+    it("gains an income column", () => {
+      expect(banded.headers).toEqual(["Filing Status", "Income", "Deduction"]);
+    });
+
+    it("puts the published ranges back on the page", () => {
+      // Half-open [19550, 132550) in the data; "$19,550 - $132,549" is how
+      // Wisconsin prints it.
+      expect(banded.rows[0]).toEqual(["Single", "$0 - $19,549", "$13,560"]);
+      expect(banded.rows[1]).toEqual([
+        "",
+        "$19,550 - $132,549",
+        "$13,560 less 12% of income over $19,550",
+      ]);
+      expect(banded.rows[2]).toEqual(["", "$132,550+", "$0"]);
+    });
+
+    it("keeps a flat status alongside a banded one", () => {
+      expect(banded.rows[3]).toEqual(["Married", "Any", "$25,110"]);
+    });
+
+    it("shows where a second-stage band measures its reduction from", () => {
+      const crossover = banded.rows.find(
+        (row) => row[1] === "$57,211 - $132,549",
+      );
+      expect(crossover?.[2]).toBe("$13,560 less 12% of income over $19,550");
+    });
+
+    it("spells out a stepped reduction and its floor", () => {
+      const stepped = standardDeductionMapToTable("Stepped", {
+        single: [
+          { min: 0, max: 26000, amount: 8500 },
+          {
+            min: 26000,
+            max: INFINITY,
+            amount: 8500,
+            reduce_per: 500,
+            reduce_by: 175,
+            floor: 5000,
+          },
+        ],
+        married: 8500,
+        married_separately: 8500,
+        head_of_household: 8500,
+      });
+      expect(stepped.rows[1][2]).toBe(
+        "$8,500 less $175 per $500 over $26,000, and never below $5,000",
+      );
+    });
   });
 });

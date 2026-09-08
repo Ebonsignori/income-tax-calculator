@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { updateURL, getQueryParams } from "@/utils/base-path";
+import { updateURL, getQueryParams, parseIncomeParam } from "@/utils/base-path";
 
 function at() {
   return window.location.pathname + window.location.search;
@@ -80,5 +80,37 @@ describe("updateURL", () => {
       updateURL("/2026/hawaii/");
       expect(at()).toBe("/2026/hawaii/");
     });
+  });
+});
+
+describe("parseIncomeParam", () => {
+  it("reads a plain number", () => {
+    expect(parseIncomeParam("95000")).toBe(95000);
+  });
+
+  // `parseInt` stopped at the first character it could not read, so these two
+  // came through as $1 and $50,000 rather than as what the URL said.
+  it("reads exponent notation instead of truncating it to a digit", () => {
+    expect(parseIncomeParam("1e6")).toBe(1_000_000);
+  });
+
+  it("keeps the fractional part instead of dropping it", () => {
+    expect(parseIncomeParam("50000.5")).toBe(50000.5);
+  });
+
+  it("rejects input it cannot read at all", () => {
+    for (const value of ["", "abc", "50,000", "$95000", "  "]) {
+      expect(parseIncomeParam(value)).toBeNull();
+    }
+  });
+
+  it("rejects a missing param", () => {
+    expect(parseIncomeParam(null)).toBeNull();
+  });
+
+  it("rejects values that are not a finite positive amount", () => {
+    for (const value of ["0", "-1", "-1e6", "Infinity", "-Infinity", "NaN"]) {
+      expect(parseIncomeParam(value)).toBeNull();
+    }
   });
 });

@@ -102,6 +102,35 @@ export default {
   [STATE_INCOME]: {
     [ALL]: [{ min: 0, max: INFINITY, rate: 2.95 }],
   },
+  // SOURCE CONVENTION — READ BEFORE CHANGING ANY RATE BELOW.
+  //
+  // The authority for these figures is Schedule CT-40 (form 47907), "Indiana
+  // County Income Tax Rates and County Codes" — the ANNUAL chart printed on the
+  // back of the county tax schedule filed with the IT-40.
+  //
+  // It is NOT Departmental Notice #1. DN #1 is the WITHHOLDING table: it gives
+  // the rate an employer withholds during a period, and it is reissued whenever
+  // a rate takes effect mid-year. An Indiana county may change its rate on
+  // Oct. 1 as well as Jan. 1, and when it does the ANNUAL liability is computed
+  // on a blend — nine months of the old rate plus three of the new. CT-40
+  // publishes that blend; DN #1 never does.
+  //
+  // So a rate here that looks like a typo is usually the official blend:
+  // .01618, .01725, .012125, .024875, .026325 are all real CT-40 figures.
+  // DO NOT "tidy" a long decimal to a round number, and do not reconcile these
+  // against DN #1 and conclude they are wrong. Doing either silently breaks a
+  // correct value — validate-tax-data checks structure only, and a uniformly
+  // wrong Indiana is internally consistent, so nothing downstream will catch it.
+  //
+  // 2026: PROVISIONAL SOURCE. No Schedule CT-40 for 2026 exists yet, so these
+  // 92 rates come from DOR Departmental Notice #1, R46 / 01-26, effective
+  // Jan. 1, 2026 — https://www.in.gov/dor/files/dn01.pdf. That is the Jan. 1
+  // rate, which equals the annual rate only if no county changes on Oct. 1,
+  // 2026. If any does, CT-40 (2026) will publish a blend for it and that county
+  // must be revisited here. Verified 2026-09: six were stale and are fixed
+  // below; the other 86 matched. Six counties raised their rate for 2026
+  // (Carroll .024733, Grant .0275, Greene .0235, Howard .0235, Shelby .017,
+  // Union .0275) and the file already had those.
   [CITIES]: {
     [ADAMS_COUNTY]: {
       [COUNTY_INCOME]: {
@@ -180,7 +209,9 @@ export default {
     },
     [DECATUR_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.4875 }],
+        // DOR Departmental Notice #1, R46 / 01-26 (effective Jan. 1, 2026). 2024 was a blend of .025 (Jan-Sep) and .0245 (Oct 1, 2024 change);
+        // the full .0245 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.45 }],
       },
     },
     [DEKALB_COUNTY]: {
@@ -205,7 +236,9 @@ export default {
     },
     [FAYETTE_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.6325 }],
+        // DOR Departmental Notice #1, R46 / 01-26 (effective Jan. 1, 2026). 2024 was a blend of .0257 (Jan-Sep) and .0282 (Oct 1, 2024 change);
+        // the full .0282 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.82 }],
       },
     },
     [FLOYD_COUNTY]: {
@@ -225,7 +258,9 @@ export default {
     },
     [FULTON_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.73 }],
+        // DOR Departmental Notice #1, R46 / 01-26 (effective Jan. 1, 2026). 2024 was a blend of .0268 (Jan-Sep) and .0288 (Oct 1, 2024 change);
+        // the full .0288 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.88 }],
       },
     },
     [GIBSON_COUNTY]: {
@@ -265,7 +300,9 @@ export default {
     },
     [HENRY_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 1.855 }],
+        // DOR Departmental Notice #1, R46 / 01-26 (effective Jan. 1, 2026). 2024 was a blend of .018 (Jan-Sep) and .0202 (Oct 1, 2024 change);
+        // the full .0202 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.02 }],
       },
     },
     [HOWARD_COUNTY_IN]: {
@@ -450,7 +487,8 @@ export default {
     },
     [RUSH_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.1 }],
+        // DOR Departmental Notice #1, R46 / 01-26 (effective Jan. 1, 2026). raised from .021 effective Jan 1, 2025.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.15 }],
       },
     },
     [ST_JOSEPH_COUNTY]: {
@@ -490,7 +528,8 @@ export default {
     },
     [SWITZERLAND_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 1.25 }],
+        // DOR Departmental Notice #1, R46 / 01-26 (effective Jan. 1, 2026). raised from .0125 effective Jan 1, 2025.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1.45 }],
       },
     },
     [TIPPECANOE_COUNTY]: {

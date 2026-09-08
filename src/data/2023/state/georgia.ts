@@ -9,6 +9,11 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Georgia groups head of household with single, not with married filing
+  // jointly: the booklet prints one "Single/Head of Household/Qualifying
+  // Surviving Spouse" line at $5,400. Head of household matching single is
+  // correct here, not a duplicated single figure.
+  // Source: 2023 IT-511 booklet, Form 500 instructions, Line 11a.
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 5400,
     [MARRIED]: 7100,

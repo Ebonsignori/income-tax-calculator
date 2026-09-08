@@ -2,6 +2,8 @@ import {
   CITIES,
   INCOME_BASES,
   INFINITY,
+  STATE_INCOME_TAX_BASIS,
+  TAX_BASES,
   TAX_FREQUENCY_PERIODS_PER_YEAR,
 } from "@/constants";
 import {
@@ -23,23 +25,53 @@ import {
 } from "@/constants/tax_types";
 import { ALL_STATES } from "@/constants/states";
 import { readTaxDataFromDisk } from "@/utils/read-tax-data";
+import { resolveStandardDeduction } from "@/utils/standard-deduction";
 import Joi from "joi";
 
 const yearSchema = Joi.string().pattern(/^\d{4}$/);
 
 const isSnakeCaseRegex = /^[a-z0-9_]+$/;
 
-const integerBrackets = Joi.object().keys({
-  [SINGLE]: Joi.number().integer().required(),
-  [MARRIED]: Joi.number().integer().required(),
-  [MARRIED_SEPARATELY]: Joi.number().integer().required(),
-  [HEAD_OF_HOUSEHOLD]: Joi.number().integer().required(),
-});
-
 const max = Joi.alternatives(
   Joi.number().integer(),
   Joi.string().valid(INFINITY),
 );
+
+// One row of a published standard-deduction schedule, for the five states that
+// shrink the deduction as income rises. See DeductionBand in types/.
+const deductionBand = Joi.object()
+  .keys({
+    min: Joi.number().integer().min(0).required(),
+    max: max.required(),
+    amount: Joi.number().min(0).required(),
+    reduce_from: Joi.number().integer().min(0).optional(),
+    reduce_rate: Joi.number().greater(0).max(100).optional(),
+    reduce_per: Joi.number().greater(0).optional(),
+    reduce_by: Joi.number().greater(0).optional(),
+    percent_of_income: Joi.number().greater(0).max(100).optional(),
+    floor: Joi.number().min(0).optional(),
+  })
+  // A band reduces at a rate or in steps, never both, and a step needs both
+  // halves to mean anything. A percentage-of-income band does not reduce at
+  // all -- it rises -- so it cannot carry either.
+  .nand("reduce_rate", "reduce_per")
+  .and("reduce_per", "reduce_by")
+  .nand("percent_of_income", "reduce_rate")
+  .nand("percent_of_income", "reduce_per");
+
+const standardDeduction = Joi.alternatives(
+  Joi.number().integer(),
+  // A single band is a flat amount written the long way round; two is the
+  // fewest that expresses a phase-out.
+  Joi.array().items(deductionBand).min(2),
+);
+
+const standardDeductions = Joi.object().keys({
+  [SINGLE]: standardDeduction.required(),
+  [MARRIED]: standardDeduction.required(),
+  [MARRIED_SEPARATELY]: standardDeduction.required(),
+  [HEAD_OF_HOUSEHOLD]: standardDeduction.required(),
+});
 
 // Amounts are converted with `amount * 100` into Dinero, which rejects
 // non-integers. Anything finer than a cent throws at runtime.
@@ -58,8 +90,13 @@ const rateBracket = Joi.object().keys({
   percent_of_total: Joi.number().min(0).max(100).optional(),
   // Marks a rate-lookup schedule; see isRateLookupSchedule in utils/calculator.
   rate_on_total: Joi.boolean().valid(true).optional(),
+  // Tax already owed at the bracket's floor. See isBaseAmountSchedule.
+  base_amount: wholeCents.min(0).optional(),
+  // Rate schedules may also be charged on the computed state income tax --
+  // Yonkers' resident surcharge. calculateFlatFee has no such base, so the
+  // flat-fee schema below keeps to the two income bases.
   basis: Joi.string()
-    .valid(...INCOME_BASES)
+    .valid(...TAX_BASES)
     .optional(),
 });
 
@@ -98,7 +135,7 @@ const brackets = Joi.alternatives(
 );
 
 const federalTaxData = Joi.object().keys({
-  [STANDARD_DEDUCTION]: integerBrackets,
+  [STANDARD_DEDUCTION]: standardDeductions,
   [MAX_401K_CONTRIBUTION]: Joi.number().required(),
   [FEDERAL_INCOME]: brackets,
   [SOCIAL_SECURITY]: brackets,
@@ -107,7 +144,7 @@ const federalTaxData = Joi.object().keys({
 
 const stateTaxData = Joi.object()
   .keys({
-    [STANDARD_DEDUCTION]: integerBrackets,
+    [STANDARD_DEDUCTION]: standardDeductions,
     [STATE_INCOME]: brackets,
     [CITIES]: Joi.object().optional(),
   })
@@ -155,6 +192,18 @@ function validateBracketOrdering(location: string, taxTypeData: any): string[] {
         continue;
       }
       const previous = rates[i - 1];
+      // A base amount is the tax already owed at the band's floor, so it can
+      // only grow with income. A base below the one beneath it would mean the
+      // bill falls as income rises, which is a transposed row.
+      if (
+        typeof bracket.base_amount === "number" &&
+        typeof previous.base_amount === "number" &&
+        bracket.base_amount < previous.base_amount
+      ) {
+        problems.push(
+          `${where}: base_amount ${bracket.base_amount} is below the previous bracket's ${previous.base_amount}, so tax would fall as income rises`,
+        );
+      }
       if (previous.max === INFINITY) {
         problems.push(
           `${where}: follows an ${INFINITY} bracket, so it can never be reached`,
@@ -164,6 +213,140 @@ function validateBracketOrdering(location: string, taxTypeData: any): string[] {
           `${where}: min ${bracket.min} does not meet the previous bracket's max ${previous.max}`,
         );
       }
+    }
+  }
+  return problems;
+}
+
+/**
+ * A surcharge on the state's own tax is not an income schedule.
+ *
+ * It has no bands: the rate applies to the whole of the state tax, whatever
+ * the income. Writing it with income breakpoints would mean restating the
+ * state's schedule in a second place -- exactly the duplication this basis
+ * exists to avoid -- and would put rates on the tax-tables page that appear in
+ * no published document.
+ */
+function validateStateTaxBasis(location: string, taxTypeData: any): string[] {
+  if (!taxTypeData || typeof taxTypeData !== "object") {
+    return [];
+  }
+  const problems: string[] = [];
+  for (const [statusKey, bracketList] of Object.entries<any>(taxTypeData)) {
+    if (!Array.isArray(bracketList) || !bracketList.length) {
+      continue;
+    }
+    if (bracketList[0]?.basis !== STATE_INCOME_TAX_BASIS) {
+      continue;
+    }
+    const where = `${location}[${statusKey}]`;
+    if (bracketList.length !== 1) {
+      problems.push(
+        `${where}: a ${STATE_INCOME_TAX_BASIS} schedule has no income bands, so it must be a single bracket, not ${bracketList.length}`,
+      );
+    }
+    const only = bracketList[0];
+    if (only.min !== 0 || only.max !== INFINITY) {
+      problems.push(
+        `${where}: a ${STATE_INCOME_TAX_BASIS} bracket must span 0 to ${INFINITY}, not ${only.min} to ${only.max}`,
+      );
+    }
+    if (only.base_amount !== undefined || only.rate_on_total !== undefined) {
+      problems.push(
+        `${where}: a ${STATE_INCOME_TAX_BASIS} bracket cannot also carry base_amount or rate_on_total`,
+      );
+    }
+  }
+  return problems;
+}
+
+/**
+ * A banded standard deduction must cover every income exactly once, and must
+ * never allow more deduction at a higher income than at a lower one.
+ *
+ * The bands are a transcription of a published schedule, so the failure mode
+ * is a mistyped boundary: a gap leaves an income with no band at all, and a
+ * reversed amount means a row was copied into the wrong place. Neither shows
+ * up as a wrong-looking number until someone happens to enter an income in the
+ * affected range.
+ */
+function validateDeductionBands(location: string, taxTypeData: any): string[] {
+  if (!taxTypeData || typeof taxTypeData !== "object") {
+    return [];
+  }
+  const problems: string[] = [];
+  for (const [statusKey, bands] of Object.entries<any>(taxTypeData)) {
+    if (!Array.isArray(bands)) {
+      continue;
+    }
+    const where = `${location}[${statusKey}]`;
+
+    if (bands[0]?.min !== 0) {
+      problems.push(
+        `${where}: first band starts at ${bands[0]?.min}, so income below it has no deduction band`,
+      );
+    }
+    const last = bands[bands.length - 1];
+    if (last?.max !== INFINITY) {
+      problems.push(
+        `${where}: last band ends at ${last?.max} rather than ${INFINITY}, so high incomes have no band`,
+      );
+    }
+
+    for (let i = 0; i < bands.length; i++) {
+      const band = bands[i];
+      if (typeof band.max === "number" && band.max <= band.min) {
+        problems.push(
+          `${where}[${i}]: max ${band.max} must be greater than min ${band.min}`,
+        );
+        continue;
+      }
+      if (band.floor !== undefined && band.floor > band.amount) {
+        problems.push(
+          `${where}[${i}]: floor ${band.floor} is above the band's own amount ${band.amount}`,
+        );
+      }
+      if (i > 0) {
+        const previous = bands[i - 1];
+        if (previous.max === INFINITY) {
+          problems.push(
+            `${where}[${i}]: follows an ${INFINITY} band, so it can never be reached`,
+          );
+        } else if (previous.max !== band.min) {
+          problems.push(
+            `${where}[${i}]: min ${band.min} does not meet the previous band's max ${previous.max}`,
+          );
+        }
+      }
+    }
+
+    // Walk the schedule and confirm it only ever moves one way. Most phase
+    // out, but Montana's pre-2024 rule was a percentage of AGI and rose to a
+    // cap, so the check is monotonicity rather than a fixed direction: a
+    // schedule that both rises and falls is a transcription error. Sampling
+    // each band's own ends is enough, since within a band the amount is
+    // monotonic by construction.
+    let previousAllowed: number | undefined;
+    let rises = false;
+    let falls = false;
+    for (const band of bands) {
+      const samples = [band.min];
+      samples.push(
+        typeof band.max === "number" ? band.max - 1 : band.min + 1_000_000,
+      );
+      for (const income of samples) {
+        const allowed = resolveStandardDeduction(bands, income) ?? 0;
+        if (previousAllowed !== undefined) {
+          if (allowed > previousAllowed) rises = true;
+          if (allowed < previousAllowed) falls = true;
+        }
+        previousAllowed = allowed;
+      }
+    }
+    if (rises && falls) {
+      problems.push(
+        `${where}: the deduction both rises and falls as income rises, so at least one band is transcribed wrong`,
+      );
     }
   }
   return problems;
@@ -191,7 +374,7 @@ function validateScheduleUniformity(
     if (bracketList.some((bracket) => typeof bracket?.rate === "undefined")) {
       continue;
     }
-    for (const field of ["rate_on_total", "basis"]) {
+    for (const field of ["rate_on_total", "basis", "base_amount"]) {
       const set = bracketList.filter(
         (bracket) => typeof bracket?.[field] !== "undefined",
       );
@@ -284,7 +467,17 @@ async function main() {
   // the Joi shape validation.
   const checkOrdering = (location: string, taxData: any) => {
     for (const [taxType, taxTypeData] of Object.entries<any>(taxData || {})) {
-      if (taxType === STANDARD_DEDUCTION || taxType === MAX_401K_CONTRIBUTION) {
+      if (taxType === MAX_401K_CONTRIBUTION) {
+        continue;
+      }
+      if (taxType === STANDARD_DEDUCTION) {
+        for (const problem of validateDeductionBands(
+          `${location}/${taxType}`,
+          taxTypeData,
+        )) {
+          errorCount++;
+          errors.push(`${errorCount}. ${problem}`);
+        }
         continue;
       }
       if (taxType === CITIES) {
@@ -296,6 +489,7 @@ async function main() {
             for (const problem of [
               ...validateBracketOrdering(where, cityTaxData),
               ...validateScheduleUniformity(where, cityTaxData),
+              ...validateStateTaxBasis(where, cityTaxData),
             ]) {
               errorCount++;
               errors.push(`${errorCount}. ${problem}`);
@@ -307,6 +501,17 @@ async function main() {
       const checks = [
         ...validateBracketOrdering(`${location}/${taxType}`, taxTypeData),
         ...validateScheduleUniformity(`${location}/${taxType}`, taxTypeData),
+        // Only a city can levy this: a state tax charged on itself is
+        // circular, and nothing computes a state tax before the state pass.
+        ...(Object.values<any>(taxTypeData ?? {}).some(
+          (schedule) =>
+            Array.isArray(schedule) &&
+            schedule[0]?.basis === STATE_INCOME_TAX_BASIS,
+        )
+          ? [
+              `${location}/${taxType}: ${STATE_INCOME_TAX_BASIS} is only meaningful for a city tax, and this is levied at state level`,
+            ]
+          : []),
         ...(taxType === FEDERAL_INCOME || taxType === STATE_INCOME
           ? validateIncomeTaxSchedule(`${location}/${taxType}`, taxTypeData)
           : []),

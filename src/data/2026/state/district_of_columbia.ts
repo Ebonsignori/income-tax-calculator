@@ -14,11 +14,14 @@ import {
 import type { TaxData } from "@/types";
 
 export default {
+  // Congress disapproved DC's decoupling act (H.J.Res. 142, enacted
+  // 2026-02-18), so DC is back on the federal standard deduction for 2026.
+  // Source: OTR 2026 D-40ES, Line 2b.
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 15000,
-    [MARRIED]: 30000,
-    [MARRIED_SEPARATELY]: 15000,
-    [HEAD_OF_HOUSEHOLD]: 15000,
+    [SINGLE]: 16100,
+    [MARRIED]: 32200,
+    [MARRIED_SEPARATELY]: 16100,
+    [HEAD_OF_HOUSEHOLD]: 24150,
   },
   [STATE_INCOME]: {
     [ALL]: [

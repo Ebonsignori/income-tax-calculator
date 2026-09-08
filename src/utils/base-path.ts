@@ -157,6 +157,23 @@ export function updateURL(
  */
 export const PRESERVED_QUERY_PARAMS = ["income", "tables"] as const;
 
+/**
+ * Read `?income=` off a URL.
+ *
+ * User input, so anything that is not a positive finite number is ignored
+ * rather than reinterpreted. `parseInt` did reinterpret it: it stops at the
+ * first character it cannot read, so "1e6" became $1 and "50000.5" became
+ * $50,000 -- both silently, with no sign to the reader that the URL said
+ * something else.
+ */
+export function parseIncomeParam(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+  const income = Number(value);
+  return Number.isFinite(income) && income > 0 ? income : null;
+}
+
 export function preserveQueryParams(
   keys: readonly string[] = PRESERVED_QUERY_PARAMS,
 ): Record<string, string> | undefined {

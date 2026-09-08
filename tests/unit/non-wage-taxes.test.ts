@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment jsdom
+ */
 import { describe, it, expect } from "vitest";
 import { calculate } from "@/utils/calculator";
 import { collectBracketSchedules } from "@/utils/bracket-schedules";
@@ -5,7 +8,19 @@ import { tableDataFromTaxData } from "@/utils/tax-table-data";
 import { toUnit } from "@/utils/money";
 import { SINGLE } from "@/constants/filing-status";
 import type { FilingStatus } from "@/constants/filing-status";
-import { CAPITAL_GAINS, INTEREST_AND_DIVIDENDS } from "@/constants/tax_types";
+import {
+  CAPITAL_GAINS,
+  EMPLOYEE_PAYROLL_TAX,
+  EMPLOYER_PAYROLL_TAX,
+  INTEREST_AND_DIVIDENDS,
+  NON_WAGE_TAX_TYPES,
+  STATE_INCOME,
+} from "@/constants/tax_types";
+import { CITIES, INFINITY } from "@/constants";
+import { NEWARK } from "@/constants/cities";
+import { ALL } from "@/constants/filing-status";
+import { renderHook } from "@testing-library/react";
+import { useGetTaxOptions } from "@/utils/get-tax-options";
 import type { TaxData } from "@/types";
 import fed2023 from "@/data/2023/federal";
 import fed2026 from "@/data/2026/federal";
@@ -118,5 +133,97 @@ describe("taxes that are not levied on wages", () => {
       (newHampshire2023 as TaxData)[INTEREST_AND_DIVIDENDS],
     );
     expect(nhTable.rows.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * An employer-borne tax is the second reason a tax lands in
+ * NON_WAGE_TAX_TYPES, and it is a different one: Newark's payroll tax *is*
+ * levied on wages, so the base is right. N.J.S.A. 40:48C-15 simply puts it on
+ * the employer -- the return is filed against a FEIN, and a resident's
+ * residency reduces their employer's bill rather than creating one of their
+ * own. Charging it cost a Newark resident about $1,000 a year at $100,000.
+ */
+describe("a payroll tax borne by the employer", () => {
+  const stateWithEmployerTax = {
+    [STATE_INCOME]: { [ALL]: [{ min: 0, max: INFINITY, rate: 2 }] },
+    [CITIES]: {
+      [NEWARK]: {
+        [EMPLOYER_PAYROLL_TAX]: {
+          [ALL]: [{ min: 0, max: INFINITY, rate: 1 }],
+        },
+      },
+    },
+  } as unknown as TaxData;
+
+  const results = () =>
+    calculate(
+      {} as TaxData,
+      stateWithEmployerTax,
+      100_000,
+      SINGLE as FilingStatus,
+      0,
+      undefined,
+      undefined,
+      [],
+      "new_jersey",
+      NEWARK,
+    );
+
+  // The guard reaches a city tax only because calculateTaxesPerBracket
+  // recurses into itself, so the second pass hits the same check.
+  it("is not charged, even nested under a city", () => {
+    expect(toUnit(results().totalCity.amount)).toBe(0);
+    expect(
+      Object.keys((results().stateResults.cities ?? {}) as object),
+    ).not.toContain(EMPLOYER_PAYROLL_TAX);
+  });
+
+  it("is not offered as something to exempt", () => {
+    // Nothing to exempt from a tax that is never charged.
+    const { result } = renderHook(() =>
+      useGetTaxOptions({
+        federalTaxes: {} as TaxData,
+        stateTaxes: stateWithEmployerTax,
+        USACity: NEWARK,
+        USAState: "new_jersey",
+        setFederalStandardDeductionMap: () => {},
+        setStateStandardDeductionMap: () => {},
+        setMax401KContribution: () => {},
+        excludeNonWageTaxes: true,
+      }),
+    );
+    expect(result.current.map((option) => option.value)).not.toContain(
+      EMPLOYER_PAYROLL_TAX,
+    );
+  });
+
+  it("is not drawn as a bracket ladder", () => {
+    const keys = collectBracketSchedules({
+      federalTaxes: {} as TaxData,
+      stateTaxes: stateWithEmployerTax,
+      USAState: "new_jersey",
+      USACity: NEWARK,
+      filingStatus: SINGLE as FilingStatus,
+      grossIncome: 100_000,
+      federalTaxableIncome: 100_000,
+      stateTaxableIncome: 100_000,
+    }).map((schedule) => schedule.key);
+    expect(keys).not.toContain(`city:${EMPLOYER_PAYROLL_TAX}`);
+  });
+
+  it("is still documented in the tax tables", () => {
+    const table = tableDataFromTaxData(
+      EMPLOYER_PAYROLL_TAX,
+      (stateWithEmployerTax[CITIES] as any)[NEWARK][EMPLOYER_PAYROLL_TAX],
+    );
+    expect(table.rows.length).toBeGreaterThan(0);
+  });
+
+  // Two names two characters apart with opposite behaviour. Eugene's is
+  // withheld from the employee and is charged; Newark's is not.
+  it("does not drag the employee payroll tax down with it", () => {
+    expect(NON_WAGE_TAX_TYPES).toContain(EMPLOYER_PAYROLL_TAX);
+    expect(NON_WAGE_TAX_TYPES).not.toContain(EMPLOYEE_PAYROLL_TAX);
   });
 });

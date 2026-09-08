@@ -6,7 +6,7 @@ import { defaultMetadata, getPageSpecificMetadata } from "@/utils/get-metadata";
 // Update this whenever the disclaimer text below changes. It is deliberately a
 // constant: this page is statically exported, so `new Date()` here would freeze
 // at build time and report every deploy as a change to the disclaimer.
-const LAST_UPDATED = "December 20, 2025";
+const LAST_UPDATED = "September 7, 2026";
 
 export default function Disclaimer() {
   return (
@@ -42,6 +42,45 @@ export default function Disclaimer() {
             laws are complex and frequently change, and individual circumstances
             vary significantly.
           </Typography>
+        </Box>
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>
+            What This Calculator Simplifies
+          </Typography>
+          <Typography variant="body1" paragraph>
+            Even where the underlying tax data is correct, the model itself
+            makes simplifications you should know about:
+          </Typography>
+          <Box component="ul" sx={{ ml: 3 }}>
+            <Typography component="li" variant="body1" paragraph>
+              <strong>One income, one earner.</strong> Wage caps such as the
+              Social Security wage base, California SDI and the New York and New
+              Jersey payroll programs apply per worker, but this calculator
+              takes a single income figure. A married couple entering their
+              combined household income has those caps applied once rather than
+              once per spouse, which understates the total for two-earner
+              households.
+            </Typography>
+            <Typography component="li" variant="body1" paragraph>
+              <strong>Deductions, not credits.</strong> Tax is computed from
+              brackets applied to income after a standard or custom deduction.
+              Credits, exemption phase-outs, dependents, and the many
+              state-specific adjustments and add-backs are not modelled.
+            </Typography>
+            <Typography component="li" variant="body1" paragraph>
+              <strong>Whole tax years only.</strong> Rates that change partway
+              through a year are carried at whichever rate covered most of it,
+              and results assume you lived and worked in the selected place for
+              the full year.
+            </Typography>
+            <Typography component="li" variant="body1" paragraph>
+              <strong>Wages, not investments.</strong> Figures describe a
+              salary. Taxes levied on investment income, such as Washington
+              state capital gains, are documented in the tax tables but are not
+              charged against your income here.
+            </Typography>
+          </Box>
         </Box>
 
         <Box sx={{ mb: 3 }}>

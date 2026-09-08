@@ -9,12 +9,23 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // North Dakota starts from federal taxable income and perpetually conforms
+  // to it, so the federal standard deduction flows through; ND has none of
+  // its own.
+  // These are the federal 2024 amounts.
+  // Source: ND Individual Income Tax Booklet, "Federal Taxable Income".
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 14600,
     [MARRIED]: 29200,
     [MARRIED_SEPARATELY]: 14600,
     [HEAD_OF_HOUSEHOLD]: 21900,
   },
+  // Verified against the 2024 Tax Rate Schedules, page 28 of the Form ND-1
+  // booklet. The published subtraction amounts reconcile with the boundaries:
+  // single $3,725.48 = 1.95% x ($238,200 - $47,150); joint $4,118.40 = 1.95%
+  // x ($289,975 - $78,775); separate $2,059.20 = 1.95% x ($144,975 -
+  // $39,375); head of household $3,918.04 = 1.95% x ($264,100 - $63,175).
+  // https://www.tax.nd.gov/sites/www/files/documents/forms/individual/2024-iit/2024-individual-income-tax-booklet.pdf
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 47150, rate: 0 },

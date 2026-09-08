@@ -14,11 +14,15 @@ import {
 import type { TaxData } from "@/types";
 
 export default {
+  // DC decoupled from the federal standard deduction for tax years
+  // beginning on or after 2025-01-01 and set its own amounts, so these are
+  // deliberately NOT the higher post-OBBBA federal figures.
+  // Source: OTR 2025 D-40 booklet, "DC Basic Standard Deduction".
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 15000,
     [MARRIED]: 30000,
     [MARRIED_SEPARATELY]: 15000,
-    [HEAD_OF_HOUSEHOLD]: 15000,
+    [HEAD_OF_HOUSEHOLD]: 22500,
   },
   [STATE_INCOME]: {
     [ALL]: [

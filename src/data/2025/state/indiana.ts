@@ -102,6 +102,35 @@ export default {
   [STATE_INCOME]: {
     [ALL]: [{ min: 0, max: INFINITY, rate: 3 }],
   },
+  // SOURCE CONVENTION — READ BEFORE CHANGING ANY RATE BELOW.
+  //
+  // The authority for these figures is Schedule CT-40 (form 47907), "Indiana
+  // County Income Tax Rates and County Codes" — the ANNUAL chart printed on the
+  // back of the county tax schedule filed with the IT-40.
+  //
+  // It is NOT Departmental Notice #1. DN #1 is the WITHHOLDING table: it gives
+  // the rate an employer withholds during a period, and it is reissued whenever
+  // a rate takes effect mid-year. An Indiana county may change its rate on
+  // Oct. 1 as well as Jan. 1, and when it does the ANNUAL liability is computed
+  // on a blend — nine months of the old rate plus three of the new. CT-40
+  // publishes that blend; DN #1 never does.
+  //
+  // So a rate here that looks like a typo is usually the official blend:
+  // .01618, .01725, .012125, .024875, .026325 are all real CT-40 figures.
+  // DO NOT "tidy" a long decimal to a round number, and do not reconcile these
+  // against DN #1 and conclude they are wrong. Doing either silently breaks a
+  // correct value — validate-tax-data checks structure only, and a uniformly
+  // wrong Indiana is internally consistent, so nothing downstream will catch it.
+  //
+  // 2025: all 92 verified 2026-09 against CT-40 (2025),
+  // https://forms.in.gov/Download.aspx?id=16902. Six were stale and are fixed
+  // below; the other 86 matched. Four (Decatur, Fayette, Fulton, Henry) still
+  // carried 2024's Oct. 1 blend instead of the full rate; two (Rush,
+  // Switzerland) missed a Jan. 1, 2025 increase. No county changed rate
+  // mid-2025 — DN #1 R46 / 10-25 is identical to R45 / 12-24 — so no 2025 rate
+  // is blended. Cross-checked against both,
+  // https://www.in.gov/dor/files/dn01.pdf, Wayback 20241220064558 and
+  // 20251108221909.
   [CITIES]: {
     [ADAMS_COUNTY]: {
       [COUNTY_INCOME]: {
@@ -180,7 +209,9 @@ export default {
     },
     [DECATUR_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.4875 }],
+        // CT-40 (2025), the DOR annual county rate chart. 2024 was a blend of .025 (Jan-Sep) and .0245 (Oct 1, 2024 change);
+        // the full .0245 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.45 }],
       },
     },
     [DEKALB_COUNTY]: {
@@ -205,7 +236,9 @@ export default {
     },
     [FAYETTE_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.6325 }],
+        // CT-40 (2025), the DOR annual county rate chart. 2024 was a blend of .0257 (Jan-Sep) and .0282 (Oct 1, 2024 change);
+        // the full .0282 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.82 }],
       },
     },
     [FLOYD_COUNTY]: {
@@ -225,7 +258,9 @@ export default {
     },
     [FULTON_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.73 }],
+        // CT-40 (2025), the DOR annual county rate chart. 2024 was a blend of .0268 (Jan-Sep) and .0288 (Oct 1, 2024 change);
+        // the full .0288 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.88 }],
       },
     },
     [GIBSON_COUNTY]: {
@@ -265,7 +300,9 @@ export default {
     },
     [HENRY_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 1.855 }],
+        // CT-40 (2025), the DOR annual county rate chart. 2024 was a blend of .018 (Jan-Sep) and .0202 (Oct 1, 2024 change);
+        // the full .0202 applies from 2025 on.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.02 }],
       },
     },
     [HOWARD_COUNTY_IN]: {
@@ -450,7 +487,8 @@ export default {
     },
     [RUSH_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 2.1 }],
+        // CT-40 (2025), the DOR annual county rate chart. raised from .021 effective Jan 1, 2025.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 2.15 }],
       },
     },
     [ST_JOSEPH_COUNTY]: {
@@ -490,7 +528,8 @@ export default {
     },
     [SWITZERLAND_COUNTY]: {
       [COUNTY_INCOME]: {
-        [ALL]: [{ min: 0, max: INFINITY, rate: 1.25 }],
+        // CT-40 (2025), the DOR annual county rate chart. raised from .0125 effective Jan 1, 2025.
+        [ALL]: [{ min: 0, max: INFINITY, rate: 1.45 }],
       },
     },
     [TIPPECANOE_COUNTY]: {

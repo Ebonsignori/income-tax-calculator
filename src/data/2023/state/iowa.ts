@@ -5,10 +5,22 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME } from "@/constants/tax_types";
+import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Iowa starts from federal taxable income (IA 1040 line 2 is federal Form
+  // 1040 line 15), so the federal standard deduction flows through and Iowa
+  // has none of its own. Its separate $2,210 / $5,450 deduction ended with
+  // tax year 2022. Source: 2023 IA 1040 Expanded Instructions, "Federal
+  // Taxable Income" (line 2) and "Conformity with the Internal Revenue Code".
+  // https://revenue.iowa.gov/sites/default/files/2024-04/2023%20Expanded%20Instructions_032924.pdf
+  [STANDARD_DEDUCTION]: {
+    [SINGLE]: 13850,
+    [MARRIED]: 27700,
+    [MARRIED_SEPARATELY]: 13850,
+    [HEAD_OF_HOUSEHOLD]: 20800,
+  },
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 6000, rate: 4.4 },

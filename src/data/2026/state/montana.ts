@@ -5,10 +5,19 @@ import {
   MARRIED_SEPARATELY,
   SINGLE,
 } from "@/constants/filing-status";
-import { STATE_INCOME } from "@/constants/tax_types";
+import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // SB 399 moved Montana's base to federal taxable income starting with tax
+  // year 2024 (15-30-2120, MCA), so the federal standard deduction flows
+  // through; Montana no longer has a specific standard deduction of its own.
+  [STANDARD_DEDUCTION]: {
+    [SINGLE]: 16100,
+    [MARRIED]: 32200,
+    [MARRIED_SEPARATELY]: 16100,
+    [HEAD_OF_HOUSEHOLD]: 24150,
+  },
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 47500, rate: 4.7 },

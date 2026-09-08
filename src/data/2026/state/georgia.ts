@@ -10,6 +10,11 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // The 2026 cut to a flat 4.99% also raised the standard deduction to
+  // $15,000 for single, head of household and married filing separately, and
+  // $30,000 for married filing jointly. Head of household matching single is
+  // Georgia's grouping of the two statuses, not a duplicated single figure.
+  // Source: Georgia DOR, "Important Tax Updates", 2026 Income Tax Changes.
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 15000,
     [MARRIED]: 30000,

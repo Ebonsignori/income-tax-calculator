@@ -272,11 +272,17 @@ export default function Compare({
    * One figure only when every compared state agrees on it. They usually do
    * not -- Oregon's is $2,835 and Texas has none -- and showing a single
    * number would imply it applied to all of them.
+   *
+   * Resolved at the entered income, since a state whose deduction phases out
+   * gives a different answer as the income slider moves.
    */
   const stateDeductionDisplay = useMemo(() => {
+    const deductionIncome = Math.max(0, income - totalIRA);
     const values = locations.map((location) => {
       const taxes = stateTaxesByState[location.state];
-      return taxes ? standardStateDeduction(taxes, filingStatus) ?? 0 : null;
+      return taxes
+        ? standardStateDeduction(taxes, filingStatus, deductionIncome) ?? 0
+        : null;
     });
     const known = values.filter((value): value is number => value !== null);
     if (!known.length) return "";
@@ -284,7 +290,7 @@ export default function Compare({
     return known.every((value) => value === first)
       ? first.toLocaleString("en-US")
       : VARIES_BY_STATE;
-  }, [locations, stateTaxesByState, filingStatus]);
+  }, [locations, stateTaxesByState, filingStatus, income, totalIRA]);
 
   const addLocation = useCallback(
     (location: ComparedLocation) => {

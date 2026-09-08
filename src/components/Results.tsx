@@ -132,9 +132,11 @@ const Results = memo(function Results({
         USAState,
         USACity,
         filingStatus,
-        // What the calculation calls gross: income less retirement
-        // contributions, before any deduction.
-        grossIncome: Math.max(0, totalIncome - totalIRA),
+        // True wages. Gross-basis schedules -- FICA, the state wage programs --
+        // are charged on this, not on income after the retirement
+        // contribution, so drawing them against anything smaller would put the
+        // taxpayer in the wrong band.
+        grossIncome: totalIncome,
         federalTaxableIncome: toUnit(federalTaxableIncome),
         stateTaxableIncome: toUnit(stateTaxableIncome),
       }),
@@ -145,7 +147,6 @@ const Results = memo(function Results({
       USACity,
       filingStatus,
       totalIncome,
-      totalIRA,
       federalTaxableIncome,
       stateTaxableIncome,
     ],

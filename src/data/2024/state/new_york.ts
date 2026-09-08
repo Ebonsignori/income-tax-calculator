@@ -1,6 +1,7 @@
-import { INFINITY } from "@/constants";
+import { INFINITY, STATE_INCOME_TAX_BASIS } from "@/constants";
 import { CITIES, NEW_YORK_CITY, YONKERS } from "@/constants/cities";
 import {
+  ALL,
   HEAD_OF_HOUSEHOLD,
   MARRIED,
   MARRIED_SEPARATELY,
@@ -75,12 +76,21 @@ export default {
     [MARRIED_SEPARATELY]: [{ min: 0, max: 89342, rate: 0.373 }],
     [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 89342, rate: 0.373 }],
   },
+  // WCL §209(3)(a) caps the employee contribution for disability benefits at
+  // "one-half of one per centum of the employee's wages ... but not in excess
+  // of sixty cents per week": $31.20 a year, i.e. a $6,240 wage base. The cap
+  // is statutory and has not moved since 1950, so it is the same every year.
   [NY_DISABILITY_INSURANCE]: {
-    [SINGLE]: [{ min: 0, max: 1560, rate: 0.5 }],
-    [MARRIED]: [{ min: 0, max: 1560, rate: 0.5 }],
-    [MARRIED_SEPARATELY]: [{ min: 0, max: 1560, rate: 0.5 }],
-    [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: 1560, rate: 0.5 }],
+    [ALL]: [{ min: 0, max: 6240, rate: 0.5 }],
   },
+  // NYC resident income tax verified 2026-09-07 line by line against the
+  // "New York City tax rate schedule" in the Form IT-201 instructions for
+  // this year: 3.078 / 3.762 / 3.819 / 3.876%, breaking at 12,000-25,000-
+  // 50,000 (single and married filing separately), 21,600-45,000-90,000
+  // (joint), 14,400-30,000-60,000 (head of household). The schedule has
+  // not moved in any of 2023-2026, so this was confirmed rather than
+  // assumed.
+  //     https://www.tax.ny.gov/pdf/2024/inc/it201i_2024.pdf
   [CITIES]: {
     [NEW_YORK_CITY]: {
       [NYC_INCOME]: {
@@ -111,11 +121,48 @@ export default {
       },
     },
     [YONKERS]: {
+      // A Yonkers RESIDENT pays a surcharge on New York State tax, not a rate
+      // on income: IT-201 line 55, whose worksheet line n is "Yonkers resident
+      // tax rate (16.75%)" applied to the state tax less credits. Anyone
+      // picking a city in a take-home calculator is a resident -- the repo
+      // already models New York City that way -- so this is the tax to charge.
+      //
+      // The file used to carry the Yonkers NON-RESIDENT earnings tax instead
+      // (Form Y-203 line 6, "multiply line 5 by 0.5% (0.005)"). That
+      // understated a resident by about 45%: $354 a year at $100,000 and $842
+      // at $200,000, widening with income. It was wrong for the non-resident
+      // reading too, since it charged the 0.5% on income after New York's
+      // standard deduction while Y-203 charges gross Yonkers wages.
+      //
+      // Deliberately NOT written as an income schedule with the state's
+      // breakpoints multiplied by 0.1675. That is exact for a filer with no
+      // credits and it is a trap: it would copy the state's schedule into a
+      // second place, so the next state rate change would go stale here, and
+      // it would put bands at rates like 0.98825% on the tax-tables page that
+      // appear in no published document. `basis: STATE_INCOME_TAX_BASIS`
+      // charges the rate on whatever the state tax came to.
+      //
+      // MODELLED without credits: worksheet lines b to i subtract the college
+      // tuition credit, the household credit and others before the 16.75%
+      // applies, and the calculator models none of them, so this is the
+      // surcharge on the full state tax.
+      //
+      // The non-resident tax also allows a $3,000 / $2,000 / $1,000 exclusion
+      // that runs out at $30,000 of wages, so it is $0 at any income this app
+      // is used at either way.
+      //
+      // Source: 2024 Form IT-201-I, "Line 55: Yonkers resident income tax
+      // surcharge" and its worksheet; Publication NYS-50-T-Y confirms the same
+      // 16.75% for withholding.
       [CITY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 0.5 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 0.5 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 0.5 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 0.5 }],
+        [ALL]: [
+          {
+            min: 0,
+            max: INFINITY,
+            rate: 16.75,
+            basis: STATE_INCOME_TAX_BASIS,
+          },
+        ],
       },
     },
   },

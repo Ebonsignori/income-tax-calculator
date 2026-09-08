@@ -10,6 +10,7 @@ import { SINGLE } from "@/constants/filing-status";
 import type { FilingStatus } from "@/constants/filing-status";
 import type { TaxData } from "@/types";
 import federal2025 from "@/data/2025/federal";
+import wisconsin2025 from "@/data/2025/state/wisconsin";
 import oregon2025 from "@/data/2025/state/oregon";
 import texas2025 from "@/data/2025/state/texas";
 import washington2025 from "@/data/2025/state/washington";
@@ -46,14 +47,40 @@ describe("locationId", () => {
 describe("standardStateDeduction", () => {
   it("reads the state's own figure", () => {
     expect(
-      standardStateDeduction(oregon2025 as TaxData, SINGLE as FilingStatus),
+      standardStateDeduction(oregon2025 as TaxData, SINGLE as FilingStatus, 0),
     ).toBe(2835);
   });
 
   it("is undefined for a state that has none", () => {
     expect(
-      standardStateDeduction(texas2025 as TaxData, SINGLE as FilingStatus),
+      standardStateDeduction(texas2025 as TaxData, SINGLE as FilingStatus, 0),
     ).toBeUndefined();
+  });
+
+  // Oregon's is one number at every income. Wisconsin's is not, and each
+  // compared location has to be asked at the income being compared.
+  it("resolves a phased-out deduction at the given income", () => {
+    const at = (income: number) =>
+      standardStateDeduction(
+        wisconsin2025 as TaxData,
+        SINGLE as FilingStatus,
+        income,
+      );
+    expect(at(19_549)).toBe(13_560);
+    expect(at(100_000)).toBe(3_906);
+    expect(at(200_000)).toBe(0);
+  });
+
+  it("stays flat for Oregon whatever the income", () => {
+    for (const income of [0, 100_000, 400_000]) {
+      expect(
+        standardStateDeduction(
+          oregon2025 as TaxData,
+          SINGLE as FilingStatus,
+          income,
+        ),
+      ).toBe(2835);
+    }
   });
 });
 

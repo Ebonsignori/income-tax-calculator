@@ -6,23 +6,44 @@ import {
   STANDARD_DEDUCTION,
   STATE_INCOME,
 } from "@/constants/tax_types";
-import type { StandardDeductionMap } from "@/constants/filing-status";
-import { CITIES } from "@/constants";
+import type { StandardDeductionByFilingStatus } from "@/types";
+import { CITIES, CITY_SCOPE, FEDERAL_SCOPE, STATE_SCOPE } from "@/constants";
 import type { TaxData } from "@/types";
 
 export type TaxOption = {
   title: string;
+  /**
+   * The tax-type key, unqualified. `scope` says which jurisdiction it belongs
+   * to: federal and state keys share a namespace, city keys do not, and a
+   * generic key like `occupational_tax` or `city_income` could otherwise be
+   * exempted in one jurisdiction and silently take effect in another.
+   */
   value: string;
+  scope: TaxScope;
   disabled: boolean;
 };
+
+export type TaxScope =
+  | typeof FEDERAL_SCOPE
+  | typeof STATE_SCOPE
+  | typeof CITY_SCOPE;
 
 type GetTaxOptions = {
   federalTaxes: TaxData;
   stateTaxes: TaxData;
   USACity: string;
   USAState: string;
-  setFederalStandardDeductionMap: (value: StandardDeductionMap) => void;
-  setStateStandardDeductionMap: (value: StandardDeductionMap) => void;
+  /**
+   * Lifted as declared, not resolved. A phased-out deduction is a schedule
+   * rather than a number, and only the caller knows the income to resolve it
+   * against.
+   */
+  setFederalStandardDeductionMap: (
+    value: StandardDeductionByFilingStatus,
+  ) => void;
+  setStateStandardDeductionMap: (
+    value: StandardDeductionByFilingStatus,
+  ) => void;
   setMax401KContribution: (value: number) => void;
   /**
    * Drop taxes that are not levied on wages. The calculator offers these as
@@ -46,7 +67,9 @@ export function useGetTaxOptions({
     const cities: TaxOption[] = [];
     const federal = Object.entries(federalTaxes || {}).map(([key, value]) => {
       if (key === STANDARD_DEDUCTION) {
-        setFederalStandardDeductionMap(value as StandardDeductionMap);
+        setFederalStandardDeductionMap(
+          value as StandardDeductionByFilingStatus,
+        );
         return null;
       }
       if (key === MAX_401K_CONTRIBUTION) {
@@ -56,12 +79,13 @@ export function useGetTaxOptions({
       return {
         title: snakeToTitleCase(key),
         value: key,
+        scope: FEDERAL_SCOPE,
         disabled: false,
       };
     });
     const state = Object.entries(stateTaxes || {}).map(([key, value]) => {
       if (key === STANDARD_DEDUCTION) {
-        setStateStandardDeductionMap(value as StandardDeductionMap);
+        setStateStandardDeductionMap(value as StandardDeductionByFilingStatus);
         return null;
       }
       if (key === CITIES) {
@@ -71,6 +95,7 @@ export function useGetTaxOptions({
             cities.push({
               title: snakeToTitleCase(cityTaxKey(USACity, cityTaxType)),
               value: cityTaxType,
+              scope: CITY_SCOPE,
               disabled: false,
             });
           }
@@ -82,6 +107,7 @@ export function useGetTaxOptions({
           key === STATE_INCOME ? `${USAState}_${key}` : key,
         ),
         value: key,
+        scope: STATE_SCOPE,
         disabled: false,
       };
     });

@@ -10,6 +10,9 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Unchanged from 2024. Head of household matching single is Georgia's
+  // grouping of the two statuses, not a duplicated single figure.
+  // Source: 2025 IT-511 booklet, Form 500 instructions, Line 11.
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 12000,
     [MARRIED]: 24000,

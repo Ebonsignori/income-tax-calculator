@@ -89,7 +89,17 @@ The core calculation logic is in [src/utils/calculator.ts](./src/utils/calculato
 
 **Key Points:**
 - **All currency uses Dinero.js** - Never use plain numbers for money calculations
-- **FICA taxes use gross income** (after IRA, before deductions) per IRS rules
+- **FICA taxes use gross wages** — before deductions *and* before the 401(k) /
+  IRA contribution. A pre-tax elective deferral reduces W-2 box 1 only; boxes 3
+  and 5, the Social Security and Medicare wage figures, are unchanged by it,
+  because elective deferrals remain "subject to Social Security (FICA),
+  Medicare, and federal unemployment taxes"
+  ([IRS Topic No. 424](https://www.irs.gov/taxtopics/tc424)). A deductible
+  traditional IRA contribution is the same: a deduction on the 1040, taken out
+  of wages that were already taxed for FICA. Everything in `grossIncomeTaxes`
+  in [calculator.ts](./src/utils/calculator.ts) — FICA and the state
+  paid-leave / disability / local payroll programs — shares that base, and so
+  do flat-fee thresholds that do not declare `basis: "taxable"`.
 - **Progressive brackets** are calculated separately for federal/state/city
 - **Standard deductions** are applied when custom deductions aren't provided
 

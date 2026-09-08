@@ -22,6 +22,13 @@ import {
 import type { TaxData } from "@/types";
 
 export default {
+  // Deliberately identical to 2023 -- no reduction took effect for 2024, so
+  // the schedule HB 2526 (2023) put in place retroactively carried over.
+  // Verified against the 2024 Tax Rate Schedules, page 35 of the Personal
+  // Income Tax Information and Instructions: the published table is the same
+  // as 2023's, cumulative amounts included ($236.00 / $708.50 / $1,239.50 /
+  // $2,183.50). Do not treat the repeat as a copy-paste bug.
+  // https://tax.wv.gov/Documents/PIT/2024/it140.TaxRateSchedules.2024.pdf
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 10000, rate: 2.36 },
@@ -52,6 +59,24 @@ export default {
       { min: 60000, max: INFINITY, rate: 5.12 },
     ],
   },
+  // City/local layer verified 2026-09-07 against each city's own published
+  // fee document. All six are municipal service/user fees, charged per
+  // calendar week worked in the city with no income threshold, and the
+  // worksheets annualise them at 52 weeks a year ("the number of calendar
+  // weeks ending in such calendar month, quarter, or year"), which is what
+  // `frequency: "weekly"` does here.
+  //   Charleston  $3.00 - City Service Fee Overview, rev. 12/2022
+  //     https://www.charlestonwv.gov/sites/default/files/documents/2022-12/CITY%20SERVICE%20FEE%20OVERVIEW%2012.22%20%282%29.pdf
+  //   Huntington  $5.00 - City Service Fee Return, Art. 772
+  //     https://www.cityofhuntington.com/business/taxes-and-fees/city-service-fee/
+  //   Parkersburg $2.50 - Understanding City Fees, Cod. Ord. 780.04
+  //     https://www.parkersburgwv.gov/departments/finance/fees.php
+  //   Wheeling    $2.00 - City Service Fee Overview + Employer Worksheet CSF-3
+  //     https://www.wheelingwv.gov/departments/Finance/city-service-fee
+  //   Morgantown  $3.00 - Safe Streets & Safe Community Fee
+  //     https://www.morgantownwv.gov/310/Safe-Streets-Safe-Community
+  //   Weirton     $2.00 - Municipal Service Fee, Ordinance 1417 (2004)
+  //     https://cityofweirton.com/158/Municipal-Service-Fee
   [CITIES]: {
     [CHARLESTON]: {
       [OCCUPATIONAL_PRIVILEGE_TAX]: {

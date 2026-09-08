@@ -43,20 +43,55 @@ export const NYC_INCOME = "nyc_income";
 export const OCCUPATIONAL_TAX = "occupational_tax";
 export const COUNTY_INCOME = "county_income";
 export const CITY_INCOME = "city_income";
+/**
+ * A local payroll tax withheld from the employee. Eugene's is the only one so
+ * far; it sits in `grossIncomeTaxes` and is charged on gross wages.
+ *
+ * Deliberately distinct from EMPLOYER_PAYROLL_TAX below, which is two
+ * characters away and behaves the opposite way. Check which one you have
+ * before adding data under either.
+ */
 export const EMPLOYEE_PAYROLL_TAX = "employee_payroll_tax";
+
+/**
+ * A local payroll tax levied on the employer, which the employee does not pay.
+ * Newark's is the only one so far. Listed in NON_WAGE_TAX_TYPES, so the tax
+ * tables document it and the calculator never charges it.
+ *
+ * Deliberately distinct from EMPLOYEE_PAYROLL_TAX above: that one is withheld
+ * from the employee and *is* charged. Same words, opposite incidence.
+ */
+export const EMPLOYER_PAYROLL_TAX = "employer_payroll_tax";
+
 export const LOCAL_EARNED_INCOME = "local_earned_income";
 
 /**
- * Taxes levied on investment income, not on wages.
+ * Real taxes that the person this calculator models does not pay.
  *
- * Washington's capital gains tax applies to long-term gains above a large
- * standard deduction; New Hampshire's interest-and-dividends tax (repealed
- * after 2023) applied to that income alone. Neither state taxes salary at
- * all. They are kept in the data because the tax tables document them, but
- * charging them against a paycheck overstated the bill -- New Hampshire by
- * 4% of everything over $2,400, Washington by 7% of everything over $278,000.
+ * The calculator knows about one thing: an employee's salary. These are all
+ * documented in the tax tables, because they exist and a reader looking up a
+ * state should see them, but charging any of them against a paycheck
+ * overstates the bill. Two separate reasons land a tax here:
+ *
+ *  * **The base is not wages.** Washington's capital gains tax applies to
+ *    long-term gains above a large standard deduction; New Hampshire's
+ *    interest-and-dividends tax (repealed after 2023) applied to that income
+ *    alone. Neither state taxes salary at all. Charging them cost a New
+ *    Hampshire filer 4% of everything over $2,400 and a Washington filer 7%
+ *    of everything over $278,000.
+ *  * **The incidence is not the employee.** Newark's payroll tax *is* levied
+ *    on wages, so the base is right -- but N.J.S.A. 40:48C-15 puts it on the
+ *    employer, the return is filed against a FEIN, and a resident's residency
+ *    reduces their employer's bill rather than creating one of their own.
+ *    Charging it cost a Newark resident about $1,000 a year at $100,000.
+ *
+ * So the test for membership is not "is this levied on wages" but "would this
+ * come out of the modelled employee's pay". Anything here is excluded from
+ * the calculation, from the exemption picker (there is nothing to exempt from
+ * a tax that is never charged) and from the bracket ladder.
  */
 export const NON_WAGE_TAX_TYPES: string[] = [
   CAPITAL_GAINS,
   INTEREST_AND_DIVIDENDS,
+  EMPLOYER_PAYROLL_TAX,
 ];

@@ -88,6 +88,12 @@ export default {
       { min: 300000, max: INFINITY, rate: 5.75 },
     ],
   },
+  // All 24 local rates (23 counties + Baltimore City) verified 2026-09 against
+  // the Comptroller's "Local Tax Rates" chart, TY2023 column (Wayback
+  // 20241002203204 and 20231129125838 of
+  // marylandtaxes.gov/individual/credits-deductions/local-countytax-rates.php),
+  // cross-checked against the 2023 Maryland Employer Withholding Guide.
+  // Three were the county's 2022 rate rather than its 2023 rate; fixed below.
   [CITIES]: {
     [ALLEGANY_COUNTY]: {
       [COUNTY_INCOME]: {
@@ -99,6 +105,10 @@ export default {
     },
     [ANNE_ARUNDEL_COUNTY]: {
       [COUNTY_INCOME]: {
+        // Comptroller "Local Tax Rates" chart, TY2023 note: ".0270 of an
+        // individual's Maryland taxable income of $1 through $50,000; and .0281
+        // of ... income in excess of $50,000." Same for every filing status in
+        // 2023 — the status split starts in 2024. Verified 2026-09.
         [SINGLE]: [
           { min: 0, max: 50000, rate: 2.7 },
           { min: 50000, max: INFINITY, rate: 2.81 },
@@ -159,10 +169,11 @@ export default {
     },
     [CECIL_COUNTY]: {
       [COUNTY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.0 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.0 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.0 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        // Comptroller "Local Tax Rates" chart, TY2023 column: lowered to .0280 for TY2023 (.0300 in 2022); file had the 2022 rate.
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.8 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.8 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.8 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.8 }],
       },
     },
     [CHARLES_COUNTY]: {
@@ -183,21 +194,35 @@ export default {
     },
     [FREDERICK_COUNTY]: {
       [COUNTY_INCOME]: {
+        // Comptroller "Local Tax Rates" chart, TY2023 note, and the 2023
+        // Employer Withholding Guide: ".0275 for taxpayers with Maryland taxable
+        // income of $100,000 or less and a filing status of married filing joint,
+        // head of household, and qualifying widow(er)...; .0275 for taxpayers with
+        // ... $50,000 or less and a filing status of single, married filing
+        // separately, and dependent; and .0296 for ALL OTHER TAXPAYERS."
+        // That last clause is a rate lookup, not a bracket — see rate_on_total.
+        //
+        // Frederick SELECTS one rate by income and charges it on the whole
+        // taxable net income — the statute reads ".0225 FOR TAXPAYERS WHO HAVE a
+        // taxable net income of at least $1 and not exceeding $25,000", with no
+        // "plus $X" base amount, and Form 502's LOCAL TAX WORKSHEET (19A) says to
+        // "Multiply the taxable net income by your local tax rate". Anne Arundel is
+        // carved out of that worksheet and Frederick is not. Hence rate_on_total.
         [SINGLE]: [
-          { min: 0, max: 50000, rate: 2.75 },
-          { min: 50000, max: INFINITY, rate: 2.96 },
+          { min: 0, max: 50000, rate: 2.75, rate_on_total: true },
+          { min: 50000, max: INFINITY, rate: 2.96, rate_on_total: true },
         ],
         [MARRIED]: [
-          { min: 0, max: 100000, rate: 2.75 },
-          { min: 100000, max: INFINITY, rate: 2.96 },
+          { min: 0, max: 100000, rate: 2.75, rate_on_total: true },
+          { min: 100000, max: INFINITY, rate: 2.96, rate_on_total: true },
         ],
         [MARRIED_SEPARATELY]: [
-          { min: 0, max: 50000, rate: 2.75 },
-          { min: 50000, max: INFINITY, rate: 2.96 },
+          { min: 0, max: 50000, rate: 2.75, rate_on_total: true },
+          { min: 50000, max: INFINITY, rate: 2.96, rate_on_total: true },
         ],
         [HEAD_OF_HOUSEHOLD]: [
-          { min: 0, max: 100000, rate: 2.75 },
-          { min: 100000, max: INFINITY, rate: 2.96 },
+          { min: 0, max: 100000, rate: 2.75, rate_on_total: true },
+          { min: 100000, max: INFINITY, rate: 2.96, rate_on_total: true },
         ],
       },
     },
@@ -259,10 +284,11 @@ export default {
     },
     [SAINT_MARYS_COUNTY]: {
       [COUNTY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.1 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.1 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.1 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.1 }],
+        // Comptroller "Local Tax Rates" chart, TY2023 column: lowered to .0300 for TY2023 (.0310 in 2022); file had the 2022 rate.
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3 }],
       },
     },
     [SOMERSET_COUNTY]: {
@@ -283,10 +309,11 @@ export default {
     },
     [WASHINGTON_COUNTY]: {
       [COUNTY_INCOME]: {
-        [SINGLE]: [{ min: 0, max: INFINITY, rate: 3.0 }],
-        [MARRIED]: [{ min: 0, max: INFINITY, rate: 3.0 }],
-        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 3.0 }],
-        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 3.0 }],
+        // Comptroller "Local Tax Rates" chart, TY2023 column: lowered to .0295 for TY2023 (.0300 in 2022); file had the 2022 rate.
+        [SINGLE]: [{ min: 0, max: INFINITY, rate: 2.95 }],
+        [MARRIED]: [{ min: 0, max: INFINITY, rate: 2.95 }],
+        [MARRIED_SEPARATELY]: [{ min: 0, max: INFINITY, rate: 2.95 }],
+        [HEAD_OF_HOUSEHOLD]: [{ min: 0, max: INFINITY, rate: 2.95 }],
       },
     },
     [WICOMICO_COUNTY]: {

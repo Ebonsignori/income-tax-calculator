@@ -9,6 +9,16 @@ import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
 export default {
+  // Verified 2026-09-07: all four correct.
+  // MARRIED_SEPARATELY being exactly half of MARRIED is real, not a
+  // derivation: K.S.A. 79-32,119(d) fixes the separate-return deduction
+  // "on the basis that separate federal returns were filed", and the
+  // booklet prints the exact half.
+  // Source: 2025 K-40 booklet, "Kansas Standard Deduction" (line 4).
+  // Kansas does not index these; K.S.A. 79-32,119(c)(2) sets 3,605 /
+  // 8,240 / 6,180 for "tax year 2024, and all tax years thereafter".
+  // https://www.ksrevenue.gov/pdf/ip25.pdf
+  // https://www.ksrevisor.gov/statutes/chapters/ch79/079_032_0119.html
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 3605,
     [MARRIED]: 8240,

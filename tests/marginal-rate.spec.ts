@@ -102,7 +102,7 @@ test("a payroll tax is measured against gross, not taxable income", async ({
   await page.getByRole("option", { name: "Social Security" }).click();
   await page.waitForTimeout(400);
 
-  // Gross, not the $235,000 federal taxable figure the income tax uses.
+  // Gross, not the $234,250 federal taxable figure the income tax uses.
   await expect(page.getByText(/on \$250,000 of the income/)).toBeVisible();
   // And the wage base shows up as the band's ceiling.
   await expect(page.getByText("$0 – $176,100")).toBeVisible();

@@ -24,7 +24,32 @@ export const TAX_FREQUENCY_PERIODS_PER_YEAR: Record<TaxFrequency, number> = {
   [ANNUALLY]: 1,
 };
 
-// Which income figure a flat-fee threshold is measured against.
+// Which income figure a rate schedule or flat-fee threshold is measured
+// against. "gross" is true wages: before deductions and before any pre-tax
+// retirement contribution.
 export const GROSS_INCOME_BASIS = "gross";
 export const TAXABLE_INCOME_BASIS = "taxable";
 export const INCOME_BASES = [GROSS_INCOME_BASIS, TAXABLE_INCOME_BASIS];
+
+/**
+ * Charged on the computed state income tax rather than on any income figure.
+ *
+ * Yonkers' resident surcharge is the case: IT-201 line 55 is 16.75% of the
+ * New York State tax, not of the income that tax was worked out from. Writing
+ * it as an income schedule would mean copying the state's own brackets into a
+ * second place, where the next rate change would silently miss them.
+ *
+ * Only a rate schedule can use it, and only a city's -- a state tax charged on
+ * itself is meaningless. Flat fees keep to INCOME_BASES.
+ */
+export const STATE_INCOME_TAX_BASIS = "state_income_tax";
+export const TAX_BASES = [...INCOME_BASES, STATE_INCOME_TAX_BASIS];
+
+// Which jurisdiction a selectable tax option belongs to.
+//
+// Federal and state tax-type keys share one namespace and are matched together;
+// a city's keys are its own, so that exempting a city tax cannot also exempt a
+// federal or state tax that happens to use the same key.
+export const FEDERAL_SCOPE = "federal";
+export const STATE_SCOPE = "state";
+export const CITY_SCOPE = "city";

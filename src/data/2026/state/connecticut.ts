@@ -20,11 +20,91 @@ export default {
       { min: 184500, max: INFINITY, rate: 0 },
     ],
   },
+  // Connecticut has no standard deduction. This is its personal exemption
+  // (Conn. Gen. Stat. 12-702), modelled in the deduction slot because it is
+  // subtracted from Connecticut AGI the same way. Do not "correct" these to
+  // federal standard deduction amounts.
+  //
+  // The exemption tapers to nothing as CT AGI rises, so it is a schedule
+  // rather than one number per status. 15,000 / 24,000 / 12,000 / 19,000 are
+  // the maxima, which stop at $30,000 / $48,000 / $24,000 / $38,000 of CT
+  // AGI; past that the exemption drops $1,000 for every $1,000, or fraction
+  // of $1,000, of AGI above the threshold, and is gone at $44,000 / $71,000 /
+  // $35,000 / $56,000. A single filer on $60,000 gets no exemption at all,
+  // where this file used to give them $15,000.
+  //
+  // Two transcription notes, both from DRS printing Table A as
+  // "More Than / Less Than or Equal To":
+  //
+  //  * That is the opposite half of the interval from a deduction band, so
+  //    every boundary below is one dollar above the figure on the page: the
+  //    row "$0 / $30,000 / $15,000" becomes `max: 30001`.
+  //  * "or fraction thereof" rounds the step count up, while `reduce_per`
+  //    counts whole steps down. The two agree exactly if the tapering band
+  //    starts at the table's first reduced row rather than at the maximum --
+  //    $14,000 just above $30,000, then $1,000 off per whole $1,000 -- so
+  //    every amount below is one printed in Table A.
+  //
+  // Verified against Table A row by row. Single at $35,000 (table row
+  // "$34,000 / $35,000 / $10,000"): floor((35000 - 30001) / 1000) = 4 steps,
+  // 14,000 - 4,000 = $10,000. Joint at $60,000 (row "$59,000 / $60,000 /
+  // $12,000"): floor((60000 - 48001) / 1000) = 11, 23,000 - 11,000 = $12,000.
+  // Head of household at $56,000, the last non-zero row: floor((56000 -
+  // 38001) / 1000) = 17, 18,000 - 17,000 = $1,000.
+  //
+  // Table A keys on Connecticut AGI; the calculator picks the band with
+  // income after retirement contributions, its AGI proxy.
+  //
+  // Source: Form CT-1040 TCS, "Table A - Personal Exemptions". The 2026 TCS
+  // is not published yet; 12-702 sets these amounts with no scheduled change
+  // or inflation indexing, and Table A is identical in the 2023, 2024 and
+  // 2025 TCS, so 2026 repeats 2025.
+  // https://portal.ct.gov/-/media/drs/forms/2025/income/ct-1040-tcs_1225.pdf
   [STANDARD_DEDUCTION]: {
-    [SINGLE]: 15000,
-    [MARRIED]: 24000,
-    [MARRIED_SEPARATELY]: 15000,
-    [HEAD_OF_HOUSEHOLD]: 19000,
+    [SINGLE]: [
+      { min: 0, max: 30001, amount: 15000 },
+      {
+        min: 30001,
+        max: 44001,
+        amount: 14000,
+        reduce_per: 1000,
+        reduce_by: 1000,
+      },
+      { min: 44001, max: INFINITY, amount: 0 },
+    ],
+    [MARRIED]: [
+      { min: 0, max: 48001, amount: 24000 },
+      {
+        min: 48001,
+        max: 71001,
+        amount: 23000,
+        reduce_per: 1000,
+        reduce_by: 1000,
+      },
+      { min: 71001, max: INFINITY, amount: 0 },
+    ],
+    [MARRIED_SEPARATELY]: [
+      { min: 0, max: 24001, amount: 12000 },
+      {
+        min: 24001,
+        max: 35001,
+        amount: 11000,
+        reduce_per: 1000,
+        reduce_by: 1000,
+      },
+      { min: 35001, max: INFINITY, amount: 0 },
+    ],
+    [HEAD_OF_HOUSEHOLD]: [
+      { min: 0, max: 38001, amount: 19000 },
+      {
+        min: 38001,
+        max: 56001,
+        amount: 18000,
+        reduce_per: 1000,
+        reduce_by: 1000,
+      },
+      { min: 56001, max: INFINITY, amount: 0 },
+    ],
   },
   [STATE_INCOME]: {
     [SINGLE]: [

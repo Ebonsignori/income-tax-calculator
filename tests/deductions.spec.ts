@@ -14,8 +14,8 @@ const INCOME = "100000";
 
 /** 2025 federal max 401(k) contribution. */
 const MAX_401K = "23,500";
-/** 2025 standard deductions, filing single. */
-const FEDERAL_STANDARD_DEDUCTION = "15,000";
+/** 2025 standard deductions, filing single (the OBBBA figures). */
+const FEDERAL_STANDARD_DEDUCTION = "15,750";
 const OREGON_STANDARD_DEDUCTION = "2,835";
 
 async function setUpPortland(page: Page) {
@@ -88,14 +88,17 @@ test("a 401(k) contribution lowers take home and is shown as its own row", async
   await setUpPortland(page);
 
   await expect(page.getByTestId("total-take-home-amount")).toHaveText(
-    "$69,800.06",
+    "$69,965.06",
   );
 
   await page.fill("input#ira-401k-contributions", "23500");
   await page.waitForTimeout(500);
 
+  // Down by more than the contribution itself: FICA and Oregon's wage
+  // programs are charged on the full $100,000, so deferring does not shrink
+  // their base.
   await expect(page.getByTestId("total-take-home-amount")).toHaveText(
-    "$55,488.56",
+    "$53,691.31",
   );
 
   // The contribution is the user's money, not a tax. It has to be accounted
@@ -177,7 +180,7 @@ test("changing filing status reprefills the standard deduction", async ({
 
   // 2025 married standard deduction is double the single one.
   await expect(page.locator("input#total-federal-deductions")).toHaveValue(
-    "30,000",
+    "31,500",
   );
   await expect(page.locator("input#total-state-deductions")).toHaveValue(
     "5,670",
@@ -188,7 +191,7 @@ test("deductions change the tax owed", async ({ page }) => {
   await setUpPortland(page);
 
   const takeHome = page.getByTestId("total-take-home-amount");
-  await expect(takeHome).toHaveText("$69,800.06");
+  await expect(takeHome).toHaveText("$69,965.06");
 
   // A larger federal deduction shrinks federal taxable income, so take home
   // has to rise.
@@ -196,9 +199,119 @@ test("deductions change the tax owed", async ({ page }) => {
   await page.waitForTimeout(500);
 
   const raised = await takeHome.textContent();
-  expect(raised).not.toBe("$69,800.06");
+  expect(raised).not.toBe("$69,965.06");
 
   const asNumber = (text: string | null) =>
     Number((text ?? "").replace(/[^0-9.]/g, ""));
-  expect(asNumber(raised)).toBeGreaterThan(69_800.06);
+  expect(asNumber(raised)).toBeGreaterThan(69_965.06);
+});
+
+/**
+ * Wisconsin shrinks its standard deduction as income rises, so the prefilled
+ * figure is only right for the income it was resolved at. 2025 single:
+ * $13,560 up to $19,549, then less 12% of the excess, reaching $0 at $132,550.
+ */
+async function setUpWisconsin(page: Page, income: string) {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1000);
+
+  await page.getByTestId("tax-year-select").locator("input").fill(YEAR);
+  await page.waitForTimeout(500);
+
+  await page.fill("input#state-select", "Wisconsin");
+  await page.waitForTimeout(800);
+
+  await page.fill("input#total-income", income);
+  await page.waitForTimeout(500);
+
+  await page.waitForSelector('[data-testid="total-take-home-amount"]', {
+    state: "visible",
+  });
+
+  await page.locator("#deductions-header").click();
+  await expect(page.locator("input#ira-401k-contributions")).toBeVisible();
+}
+
+test("a phased-out state deduction prefills at the entered income", async ({
+  page,
+}) => {
+  await setUpWisconsin(page, "30000");
+
+  // 13,560 less 12% of (30,000 - 19,550), not the $13,560 maximum.
+  await expect(page.locator("input#total-state-deductions")).toHaveValue(
+    "12,306",
+  );
+  // And the helper text says the figure depends on income, which the flat
+  // states' does not.
+  await expect(page.locator("#state-deductions-helper-text")).toHaveText(
+    `Standard deduction for ${YEAR} at this income`,
+  );
+});
+
+test("a phased-out state deduction follows the income field", async ({
+  page,
+}) => {
+  await setUpWisconsin(page, "30000");
+  await expect(page.locator("input#total-state-deductions")).toHaveValue(
+    "12,306",
+  );
+
+  await page.fill("input#total-income", "100000");
+  await page.waitForTimeout(600);
+
+  // 13,560 less 12% of (100,000 - 19,550)
+  await expect(page.locator("input#total-state-deductions")).toHaveValue(
+    "3,906",
+  );
+
+  // Past the end of the schedule there is nothing left to deduct. This is the
+  // case a truthiness check gets wrong: it leaves the field holding the last
+  // non-zero figure, and the calculation then deducts it.
+  await page.fill("input#total-income", "200000");
+  await page.waitForTimeout(600);
+  await expect(page.locator("input#total-state-deductions")).toHaveValue("");
+  await expect(page.locator("#state-deductions-helper-text")).toHaveText(
+    `Standard deduction for ${YEAR} at this income`,
+  );
+});
+
+test("an edited deduction survives a change of income", async ({ page }) => {
+  await setUpWisconsin(page, "30000");
+  await expect(page.locator("input#total-state-deductions")).toHaveValue(
+    "12,306",
+  );
+
+  // Once the figure is the user's, refreshing it as income moves would throw
+  // away what they typed.
+  await page.fill("input#total-state-deductions", "9000");
+  await page.waitForTimeout(300);
+
+  await page.fill("input#total-income", "100000");
+  await page.waitForTimeout(600);
+
+  await expect(page.locator("input#total-state-deductions")).toHaveValue(
+    "9,000",
+  );
+
+  // The reset control brings back the schedule's figure at the new income.
+  await page
+    .getByRole("button", { name: "Reset to standard deduction for year" })
+    .last()
+    .click();
+  await page.waitForTimeout(300);
+  await expect(page.locator("input#total-state-deductions")).toHaveValue(
+    "3,906",
+  );
+});
+
+test("a flat state deduction does not gain the income qualifier", async ({
+  page,
+}) => {
+  await setUpPortland(page);
+
+  // Oregon's $2,835 is the same at every income, and saying "at this income"
+  // would imply otherwise.
+  await expect(page.locator("#state-deductions-helper-text")).toHaveText(
+    `Standard deduction for ${YEAR}`,
+  );
 });

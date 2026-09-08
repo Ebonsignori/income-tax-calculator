@@ -1,11 +1,8 @@
 import { CITIES } from "@/constants";
-import type {
-  FilingStatus,
-  StandardDeductionMap,
-} from "@/constants/filing-status";
-import { STANDARD_DEDUCTION } from "@/constants/tax_types";
+import type { FilingStatus } from "@/constants/filing-status";
 import type { TaxData } from "@/types";
 import { calculate } from "./calculator";
+import { standardDeductionFor } from "./standard-deduction";
 import type { Money } from "./money";
 import { toUnit } from "./money";
 
@@ -36,20 +33,23 @@ export function locationId({ state, city }: ComparedLocation): string {
 }
 
 /**
- * The state's own standard deduction for this filing status.
+ * The state's own standard deduction for this filing status at this income.
  *
  * Carrying one number across locations is the trap here: applying Oregon's
  * $2,835 to Texas would quietly flatter whichever state the comparison
  * started from. Each location resolves its own.
+ *
+ * `income` matters because five states phase their deduction down as income
+ * rises, so the same state answers differently at $40,000 and $140,000. Pass
+ * income after retirement contributions, the proxy for AGI the schedules key
+ * on.
  */
 export function standardStateDeduction(
   stateTaxes: TaxData,
   filingStatus: FilingStatus,
+  income: number,
 ): number | undefined {
-  const map = stateTaxes?.[STANDARD_DEDUCTION] as
-    | StandardDeductionMap
-    | undefined;
-  return map?.[filingStatus];
+  return standardDeductionFor(stateTaxes, filingStatus, income);
 }
 
 /** Cities that levy their own taxes in this state, for the location picker. */
@@ -95,7 +95,11 @@ export function buildComparison({
       filingStatus,
       totalIRA,
       federalDeductions,
-      standardStateDeduction(stateTaxes, filingStatus),
+      standardStateDeduction(
+        stateTaxes,
+        filingStatus,
+        Math.max(0, income - totalIRA),
+      ),
       [],
       location.state,
       location.city,

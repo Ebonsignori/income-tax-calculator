@@ -13,16 +13,14 @@ import {
   toCents,
   toUnit,
 } from "./money";
-import type {
-  FilingStatus,
-  StandardDeductionMap,
-} from "@/constants/filing-status";
+import type { FilingStatus } from "@/constants/filing-status";
 import { ALL } from "@/constants/filing-status";
+import { standardDeductionFor } from "./standard-deduction";
 import type {
   BracketSchedule,
   FlatFeeBracket,
-  IncomeBasis,
   RateBracket,
+  TaxBasis,
   TaxData,
   TaxResults,
   TaxResultsWithCities,
@@ -50,13 +48,16 @@ import {
   RI_TEMPORARY_DISABILITY_INSURANCE,
   SOCIAL_SECURITY,
   STANDARD_DEDUCTION,
+  STATE_INCOME,
   WASHINGTON_CARES_FUND,
 } from "@/constants/tax_types";
 import {
   CITIES,
+  CITY_SCOPE,
   EXEMPT,
   GROSS_INCOME_BASIS,
   INFINITY,
+  STATE_INCOME_TAX_BASIS,
   TAXABLE_INCOME_BASIS,
   TAX_FREQUENCY_PERIODS_PER_YEAR,
 } from "@/constants";
@@ -70,14 +71,19 @@ const nonTaxKeys = [MAX_401K_CONTRIBUTION, STANDARD_DEDUCTION];
 // Taxes levied on wages rather than on income after deductions.
 //
 // Two groups, same treatment. FICA and the state paid-leave/disability programs
-// are statutorily computed on gross income — standard and itemized deductions
-// do not reduce them. Local occupational and payroll taxes land here for the
-// same practical reason: they are withheld from gross wages, so a state
-// standard deduction must not shrink their base either.
+// are statutorily computed on gross wages: neither standard nor itemized
+// deductions reduce them, and neither does a pre-tax retirement contribution.
+// A 401(k) elective deferral reduces W-2 box 1 only — boxes 3 and 5, the Social
+// Security and Medicare wage figures, are unchanged by it, because elective
+// deferrals remain "subject to Social Security (FICA), Medicare, and federal
+// unemployment taxes" (IRS Topic No. 424). Local occupational and payroll taxes
+// land here for the same practical reason: they are withheld from gross wages,
+// so a state standard deduction must not shrink their base either.
 //
-// Everything not listed here is computed on income after deductions. That is
-// correct for genuine income taxes, including the city and county income taxes
-// that start from state taxable income (Maryland, Indiana, NYC).
+// Everything not listed here is computed on income after the retirement
+// contribution and after deductions. That is correct for genuine income taxes,
+// including the city and county income taxes that start from state taxable
+// income (Maryland, Indiana, NYC).
 const grossIncomeTaxes = [
   SOCIAL_SECURITY,
   MEDICARE,
@@ -119,7 +125,14 @@ export function calculate(
   selectedCity: string,
 ) {
   const totalIncome = asCurrency(income);
-  const exemptions = exemptTaxes.map((tax) => tax.value);
+  // Matched against bare tax-type keys, so a city option's key must not be
+  // mixed in with the federal and state ones: the two namespaces overlap.
+  const exemptions = exemptTaxes
+    .filter((tax) => tax.scope !== CITY_SCOPE)
+    .map((tax) => tax.value);
+  const cityExemptions = exemptTaxes
+    .filter((tax) => tax.scope === CITY_SCOPE)
+    .map((tax) => tax.value);
 
   const {
     taxesPerBracket: federalResults,
@@ -143,6 +156,7 @@ export function calculate(
       exemptions,
       selectedState,
       selectedCity,
+      cityExemptions,
     );
 
   const totals = sumTotals(totalIncome, federalResults, stateResults, totalIRA);
@@ -159,33 +173,61 @@ export function calculateTaxesPerBracket(
   exemptions: string[],
   selectedState?: string,
   selectedCity?: string,
+  /**
+   * Exemptions for the selected city, kept out of `exemptions` because the
+   * two namespaces overlap: matching is by bare tax-type key, and a city and
+   * its state can both use `occupational_tax` or `city_income`.
+   */
+  cityExemptions: string[] = [],
+  /**
+   * The state's own income tax, for a city surcharge charged on it rather
+   * than on income. Only the city pass receives this; see the CITIES branch.
+   */
+  stateIncomeTax: Money = ZERO,
 ): { taxesPerBracket: TaxResultsWithCities; taxableIncome: Money } {
   if (!taxData) {
     const taxableIncome = subtract(totalIncome, asCurrency(totalIRA));
     return { taxesPerBracket: {}, taxableIncome };
   }
 
-  // If no custom deductions provided, use standard deduction from tax data
+  // Wages as reported in W-2 boxes 3 and 5, the base for every tax in
+  // `grossIncomeTaxes`. A pre-tax 401(k) deferral reduces box 1 only, so it
+  // must not reduce the base for FICA or for the state wage programs; a
+  // deductible traditional IRA contribution is the same, a deduction taken on
+  // the 1040 out of wages that were already taxed for FICA.
+  const ficaWages = totalIncome;
+
+  // W-2 box 1: wages after the retirement contribution, before deductions.
+  // Also the proxy for AGI that an income-phased standard deduction is
+  // measured against -- see resolveStandardDeduction.
+  const incomeAfterRetirement = subtract(totalIncome, asCurrency(totalIRA));
+
+  // If no custom deductions provided, use standard deduction from tax data.
+  // Resolved here rather than earlier because a phased-out deduction depends
+  // on income: five states shrink theirs as income rises.
   let deductions = totalDeductions;
   if (deductions === undefined) {
-    const standardDeductions = taxData[STANDARD_DEDUCTION] as
-      | StandardDeductionMap
-      | undefined;
-    if (standardDeductions?.[filingStatus] !== undefined) {
-      deductions = standardDeductions[filingStatus];
-    }
+    deductions = standardDeductionFor(
+      taxData,
+      filingStatus,
+      toUnit(incomeAfterRetirement),
+    );
   }
 
-  // Gross income after IRA (used for FICA and payroll taxes)
-  const grossIncome = subtract(totalIncome, asCurrency(totalIRA));
-
   // Taxable income after deductions (used for income taxes)
-  const taxableIncome = subtract(grossIncome, asCurrency(deductions || 0));
+  const taxableIncome = subtract(
+    incomeAfterRetirement,
+    asCurrency(deductions || 0),
+  );
 
   const taxesPerBracket = {} as TaxResultsWithCities;
+  let deferredCities: TaxData[typeof CITIES] | undefined;
   Object.entries(taxData).forEach(([taxType, taxTypeData]) => {
-    // Investment-income taxes are documented in the tax tables but are not
-    // levied on a salary, which is all this calculator has.
+    // Taxes the tax tables document but the modelled employee does not pay --
+    // levied on investment income, or borne by the employer. Note this reaches
+    // a *city's* taxes only because the CITIES branch below recurses into this
+    // same function, so the second pass runs this check again. Flattening that
+    // recursion would silently stop excluding them at the city level.
     if (NON_WAGE_TAX_TYPES.includes(taxType)) {
       return;
     }
@@ -201,21 +243,11 @@ export function calculateTaxesPerBracket(
       return;
     }
     if (taxType === CITIES) {
-      const citiesData = taxTypeData as TaxData[typeof CITIES];
-      const cityTaxes =
-        selectedState && selectedCity ? citiesData?.[selectedCity] : undefined;
-      if (cityTaxes) {
-        taxesPerBracket.cities = calculateTaxesPerBracket(
-          cityTaxes,
-          totalIncome,
-          filingStatus,
-          totalIRA,
-          deductions,
-          exemptions,
-          selectedState,
-          selectedCity,
-        ).taxesPerBracket as TaxResults;
-      }
+      // Handled after this loop, not inside it. Yonkers' surcharge is charged
+      // on the state's own income tax, so that has to be finished first --
+      // and every state file happens to list CITIES last today, which is
+      // exactly the kind of silent ordering dependency worth not having.
+      deferredCities = taxTypeData as TaxData[typeof CITIES];
       return;
     }
 
@@ -227,25 +259,81 @@ export function calculateTaxesPerBracket(
     if (isFlatFeeSchedule(brackets)) {
       taxesPerBracket[taxType] = calculateFlatFee(
         brackets,
-        grossIncome,
+        ficaWages,
         taxableIncome,
       );
       return;
     }
 
-    // FICA and payroll taxes use gross income, income taxes use taxable income.
-    // A schedule may override that where the tax type alone does not settle it
-    // -- `city_income` covers both Yonkers, which starts from state taxable
-    // income, and the Missouri earnings taxes, which are levied on wages.
+    // FICA and payroll taxes use gross wages, income taxes use taxable income,
+    // and a city surcharge may be charged on the state's tax rather than on
+    // income at all. A schedule may override the tax type's default where the
+    // type alone does not settle it -- `city_income` covers Yonkers, the
+    // Missouri earnings taxes and Ohio's municipal taxes, which use all three.
+    const declaredBasis = incomeBasisFor(taxType, brackets);
     const incomeBase =
-      incomeBasisFor(taxType, brackets) === GROSS_INCOME_BASIS
-        ? grossIncome
-        : taxableIncome;
+      declaredBasis === GROSS_INCOME_BASIS
+        ? ficaWages
+        : declaredBasis === STATE_INCOME_TAX_BASIS
+          ? stateIncomeTax
+          : taxableIncome;
 
-    taxesPerBracket[taxType] = isRateLookupSchedule(brackets)
-      ? calculateRateLookup(incomeBase, brackets)
-      : calculateTaxBracket(incomeBase, brackets);
+    if (isRateLookupSchedule(brackets)) {
+      taxesPerBracket[taxType] = calculateRateLookup(incomeBase, brackets);
+      return;
+    }
+    if (isBaseAmountSchedule(brackets)) {
+      taxesPerBracket[taxType] = calculateBaseAmountSchedule(
+        incomeBase,
+        brackets,
+      );
+      return;
+    }
+    taxesPerBracket[taxType] = calculateTaxBracket(incomeBase, brackets);
   });
+
+  if (deferredCities) {
+    const cityTaxes =
+      selectedState && selectedCity ? deferredCities[selectedCity] : undefined;
+    if (cityTaxes) {
+      // A city that declares its own standard deduction is measured against
+      // it; passing `undefined` lets the recursive call run its own lookup.
+      // Every city in the data today declares none and so starts from the
+      // state's already-resolved figure, which is right for the city and
+      // county income taxes that begin at state taxable income.
+      const cityDeductions =
+        standardDeductionFor(
+          cityTaxes,
+          filingStatus,
+          toUnit(incomeAfterRetirement),
+        ) === undefined
+          ? deductions
+          : undefined;
+
+      // Recursing rather than looping is what gives a city's taxes the same
+      // treatment as a state's: the non-wage exclusion, the standard
+      // deduction lookup, the flat-fee and basis handling all run again on
+      // the second pass. See the NON_WAGE_TAX_TYPES check above.
+      taxesPerBracket.cities = calculateTaxesPerBracket(
+        cityTaxes,
+        totalIncome,
+        filingStatus,
+        totalIRA,
+        cityDeductions,
+        // City exemptions travel separately so that exempting a city tax
+        // cannot also exempt a federal or state tax that happens to share
+        // its key -- `occupational_tax` and `city_income` are generic enough
+        // to collide as coverage grows.
+        cityExemptions,
+        selectedState,
+        selectedCity,
+        [],
+        // Whatever the state's own income tax came to, for a surcharge levied
+        // on it rather than on income.
+        (taxesPerBracket[STATE_INCOME] as Money | undefined) ?? ZERO,
+      ).taxesPerBracket as TaxResults;
+    }
+  }
 
   return { taxesPerBracket, taxableIncome };
 }
@@ -253,10 +341,13 @@ export function calculateTaxesPerBracket(
 /**
  * Which income figure a tax is measured against.
  *
- * FICA and payroll taxes are levied on gross wages, income taxes on income
- * after deductions. A schedule may override that where the tax type alone
- * does not settle it -- `city_income` covers both Yonkers, which starts from
- * state taxable income, and the Missouri earnings taxes, levied on wages.
+ * FICA and payroll taxes are levied on gross wages -- before deductions and
+ * before any pre-tax retirement contribution -- while income taxes are levied
+ * on income after both, and Yonkers' resident surcharge is levied on the
+ * state's computed tax rather than on income at all. A schedule may override
+ * the tax type's default where the type alone does not settle it, which
+ * `city_income` needs: it covers Yonkers' surcharge, the Missouri earnings
+ * taxes levied on wages, and Ohio's municipal taxes on qualifying wages.
  *
  * Exported so anything displaying a schedule measures it against the same
  * base the calculation used. Drawing a payroll tax against taxable income
@@ -265,8 +356,8 @@ export function calculateTaxesPerBracket(
 export function incomeBasisFor(
   taxType: string,
   brackets: BracketSchedule,
-): IncomeBasis {
-  const declaredBasis = (brackets[0] as { basis?: IncomeBasis } | undefined)
+): TaxBasis {
+  const declaredBasis = (brackets[0] as { basis?: TaxBasis } | undefined)
     ?.basis;
   if (declaredBasis) return declaredBasis;
   return grossIncomeTaxes.includes(taxType)
@@ -311,23 +402,28 @@ export function isFlatFeeSchedule(
  *
  * Thresholds are inclusive ("$1,000 or more of annual income", "$500 per month
  * or more"), and are written against gross wages rather than income after
- * deductions — so `basis` defaults to gross. Portland's 2026 Arts Tax is the
+ * deductions — so `basis` defaults to gross, the same true-wage figure the
+ * rate schedules in `grossIncomeTaxes` use. Portland's 2026 Arts Tax is the
  * exception: it tests Oregon taxable income, and declares `basis: "taxable"`.
  *
  * Where a schedule has several tiers the highest one the taxpayer qualifies for
- * applies; the fees are not cumulative.
+ * applies; the fees are not cumulative. The tier is picked by its `min`, not by
+ * its position, so a schedule written in descending order charges the same fee
+ * as the same schedule written ascending.
  */
 function calculateFlatFee(
   brackets: FlatFeeBracket[],
-  grossIncome: Money,
+  grossWages: Money,
   taxableIncome: Money,
 ): Money {
   let owed = asCurrency(0);
+  let highestQualifyingMin = -Infinity;
 
   for (const bracket of brackets) {
     const incomeBase =
-      bracket.basis === TAXABLE_INCOME_BASIS ? taxableIncome : grossIncome;
-    if (toUnit(incomeBase) < (bracket.min || 0)) {
+      bracket.basis === TAXABLE_INCOME_BASIS ? taxableIncome : grossWages;
+    const min = bracket.min || 0;
+    if (toUnit(incomeBase) < min || min < highestQualifyingMin) {
       continue;
     }
     let amount = asCurrency(bracket.amount);
@@ -338,6 +434,7 @@ function calculateFlatFee(
       );
     }
     owed = amount;
+    highestQualifyingMin = min;
   }
 
   return owed;
@@ -371,6 +468,50 @@ function calculateRateLookup(income: Money, brackets: RateBracket[]): Money {
     return asCurrency(0);
   }
   return percentage(income, bracket.rate);
+}
+
+/**
+ * A schedule whose bands carry the tax already owed at their floor, rather
+ * than being pure marginal slices.
+ *
+ * Ohio is the only one so far. Its statute reads "$342.00 plus 2.750% of the
+ * amount in excess of $26,050", and that $342 is *not* the cumulative tax from
+ * the bands below -- those are taxed at 0%. The tax function therefore steps:
+ * nothing at $26,050, $342.03 at $26,051. Modelling it marginally undercharged
+ * every Ohio filer above the threshold by the whole base, worst proportionally
+ * at the bottom, where a filer owing $450 was charged $109.
+ */
+export function isBaseAmountSchedule(
+  brackets: BracketSchedule,
+): brackets is RateBracket[] {
+  return (brackets[0] as RateBracket | undefined)?.base_amount !== undefined;
+}
+
+function calculateBaseAmountSchedule(
+  income: Money,
+  brackets: RateBracket[],
+): Money {
+  const amount = toUnit(income);
+
+  // The row that applies is the one with the highest floor *strictly* below
+  // the income. The schedule reads "over $26,050 but not over $100,000", so
+  // income sitting exactly on a threshold still belongs to the row beneath it
+  // -- which is what makes the base a step rather than a rate. Ohio charges
+  // nothing at $26,050 and $342.03 at $26,051.
+  let applicable: RateBracket | undefined;
+  for (const bracket of brackets) {
+    if (amount > bracket.min) {
+      applicable = bracket;
+    }
+  }
+  if (!applicable) {
+    return asCurrency(0);
+  }
+
+  return add(
+    asCurrency(applicable.base_amount ?? 0),
+    percentage(subtract(income, asCurrency(applicable.min)), applicable.rate),
+  );
 }
 
 function calculateTaxBracket(income: Money, brackets: RateBracket[]): Money {
