@@ -78,14 +78,45 @@ import type { TaxData } from "@/types";
 // fall on DFA's own off-by-one row starts ($75,501, $76,501, ...), i.e. table
 // rounding inside a band of constant rate.
 //
-// Worked check at $100,000 of net taxable income. DFA's table states the answer
-// outright: "For $100,001 and over, your tax is $3,809 + 3.9% of the excess over
-// $100,000". The last row here gives 3.9% x $100,000 - $89.30 = $3,810.70. The
-// $1.90 difference is DFA's own: their $3,809 is the table value for the row
-// [$99,901, $100,001), which is the formula evaluated at that row's midpoint of
-// $99,951 and then reused as a closed-form base. The formula is the rule; the
-// table is the formula sampled. Against the old marginal ladder's $3,480.00,
-// either figure is about $330 higher.
+// THE $3,809 TRAP, at $100,000 of net taxable income. DFA's table carries a
+// note reading "For $100,001 and over, your tax is $3,809 + 3.9% of the excess
+// over $100,000", while this schedule gives 3.9% x $100,000 - $89.30 =
+// $3,810.70. Read as a statement of the tax at $100,000, that note implies a
+// residual of $3,900 - $3,809 = $91.00 rather than $89.30, and it looks like it
+// should win: a directly stated figure beating a constant fitted from table
+// rows. It is not one, and this is worth spelling out because it will be
+// re-litigated by the next person who reads the note.
+//
+// $3,809 is the table's own last row. The row [$99,901, $100,001) prints
+// $3,809, and the note repeats that number verbatim as the base of a closed
+// form starting at $100,000. It is the same figure printed twice, and a table
+// row is the formula evaluated at the row's MIDPOINT -- $99,951, not $100,000.
+// The same thing happens in all three years DFA published this note: the last
+// row prints $4,544 in 2023 and the note says $4,544; the last row prints
+// $3,811 in 2024 and the note says $3,811.
+//
+// The $91.00 residual is refuted twice over:
+//   it misses all 19 published rows in the flat region (at [98,101, 98,201) it
+//     gives $3,737 against the printed $3,739), where $89.30 reproduces all 19;
+//   and it does not even reproduce the row the $3,809 came from -- at the
+//     midpoint $99,951 it gives $3,807.089, printing $3,807, not $3,809.
+//     $89.30 gives $3,808.789, printing exactly $3,809.
+// A residual derived from a figure cannot fail to reproduce that figure, so
+// $91.00 is not a reading of this table at all. The 2023 control is cleaner
+// still: the note's $4,544 implies $156.00, which misses all 40 flat rows,
+// where the $153.70 pinned the same way reproduces all 40.
+//
+// Contrast Oklahoma, which does publish a real worksheet for this. Its packet
+// prints $4,560 for the last table row [99,950, 100,000) and $4,562 in the
+// "Calculating Tax on Taxable Income of $100,000 or more" worksheet -- two
+// different numbers, because the worksheet is evaluated at $100,000 and the row
+// at its midpoint. Arkansas prints one number for both, and its instructions
+// contain no such worksheet (only Student Loan Interest, Self-Employed Health
+// Insurance and Additional Tax Credit ones). So the $1.70 gap is DFA's, built
+// into the note by reusing a midpoint value as an endpoint.
+//
+// Against the old marginal ladder's $3,480.00, either figure is about $330
+// higher, which is the correction that matters.
 //
 // Note the schedule steps UP by $20.70 at $94,700 rather than being continuous:
 // a filer at $94,700 owes $3,273.30 and one at $94,701 owes $3,294.04. That

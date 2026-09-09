@@ -73,10 +73,18 @@ import type { TaxData } from "@/types";
 // Second Extraordinary Session of 2024 prints $89,601-$92,700, neither of which
 // is the range actually in force in its own year.
 //
-// KNOWN UNDERSTATEMENT, therefore, above $92,300 of net taxable income: about
-// $321 flat, and exactly zero below it. DFA's table states the upper result
-// outright — "For $100,001 and over, your tax is $3,811 + 3.9% of the excess over
-// $100,000" — against $3,490.10 from the ladder below.
+// KNOWN UNDERSTATEMENT, therefore, above $92,300 of net taxable income:
+// $322.50 flat, and exactly zero below it. At $100,000 the upper income table
+// charges 3.9% x $100,000 - $87.40 = $3,812.60, against $3,490.10 from the
+// ladder below.
+//
+// Do NOT take that $322.50 from the note DFA prints under its table ("For
+// $100,001 and over, your tax is $3,811 + 3.9% of the excess over $100,000").
+// That $3,811 is the table's own last row, [$99,901, $100,001), repeated
+// verbatim as a closed-form base — a value evaluated at the row's midpoint of
+// $99,951, not at $100,000. Using it implies a residual of $87.00, which misses
+// 12 of the 35 published rows in the flat region. The 2025 file works this trap
+// through in full.
 export default {
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 2410,
