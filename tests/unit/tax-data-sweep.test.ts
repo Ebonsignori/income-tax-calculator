@@ -220,7 +220,13 @@ describe("tax data sweep", () => {
       expect(problems, problems.join("\n")).toEqual([]);
     });
 
-    it("computes every city tax without throwing", () => {
+    // Swept across the same income list as the state runs, not at a single
+    // $150,000. A flat fee written without a `min` -- Sheridan's, and six of
+    // West Virginia's -- passed its threshold test at $0 and was charged to
+    // someone earning nothing, which only shows at the bottom of the range.
+    // Compare renders income 0 on first load, so this reached the page as a
+    // take-home of -$260.00.
+    it("computes every city tax without throwing, at every income", () => {
       const problems: string[] = [];
       const federal = taxDataByYear[year].federal;
       let cityCases = 0;
@@ -231,23 +237,40 @@ describe("tax data sweep", () => {
         if (stateName === "federal") continue;
         for (const city of Object.keys(stateData[CITIES] ?? {})) {
           for (const filingStatus of FILING_STATUSES) {
-            cityCases++;
-            const where = `${stateName}/${city}/${filingStatus}`;
-            try {
-              const result = run(
-                federal,
-                stateData,
-                150_000,
-                filingStatus as FilingStatus,
-                stateName,
-                city,
-              );
-              const cityTax = dollars(result.totalCity.amount);
-              if (!Number.isFinite(cityTax) || cityTax < 0) {
-                problems.push(`${where}: city tax is ${cityTax}`);
+            for (const income of INCOMES) {
+              cityCases++;
+              const where = `${stateName}/${city}/${filingStatus}/$${income}`;
+              try {
+                const result = run(
+                  federal,
+                  stateData,
+                  income,
+                  filingStatus as FilingStatus,
+                  stateName,
+                  city,
+                );
+                const cityTax = dollars(result.totalCity.amount);
+                if (!Number.isFinite(cityTax) || cityTax < 0) {
+                  problems.push(`${where}: city tax is ${cityTax}`);
+                }
+                // The same take-home invariant the state sweep applies, which
+                // the city sweep did not: no income means no tax, and tax can
+                // never exceed the income it is charged on.
+                const takeHome = dollars(result.takeHome.amount);
+                if (!Number.isFinite(takeHome)) {
+                  problems.push(`${where}: take-home is ${takeHome}`);
+                } else if (income === 0 && takeHome !== 0) {
+                  problems.push(
+                    `${where}: take-home is ${takeHome} on no income`,
+                  );
+                } else if (takeHome > income) {
+                  problems.push(
+                    `${where}: take-home ${takeHome} exceeds income ${income}`,
+                  );
+                }
+              } catch (error) {
+                problems.push(`${where}: threw ${(error as Error)?.message}`);
               }
-            } catch (error) {
-              problems.push(`${where}: threw ${(error as Error)?.message}`);
             }
           }
         }

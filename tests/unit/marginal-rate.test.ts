@@ -7,9 +7,11 @@ import {
 import { calculate } from "@/utils/calculator";
 import { toUnit } from "@/utils/money";
 import { INFINITY } from "@/constants";
-import { SINGLE } from "@/constants/filing-status";
+import { ALL, SINGLE } from "@/constants/filing-status";
 import type { FilingStatus } from "@/constants/filing-status";
 import type { RateBracket, TaxData } from "@/types";
+import type { Money } from "@/utils/money";
+import { OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE } from "@/constants/tax_types";
 import federal2025 from "@/data/2025/federal";
 import oregon2025 from "@/data/2025/state/oregon";
 
@@ -129,5 +131,72 @@ describe("buildBracketLadder", () => {
     expect(buildBracketLadder(shuffled, 25_000).map((s) => s.min)).toEqual([
       0, 10_000, 40_000,
     ]);
+  });
+});
+
+/**
+ * A tax split with the employer shows the employee's share, as the
+ * calculation charges it.
+ *
+ * Oregon Paid Family and Medical Leave is `rate: 1, percent_of_total: 60`.
+ * The ladder used to draw the full 1%, so it said $1,000 at $100,000 against
+ * the $600 actually charged -- disagreeing with the breakdown table directly
+ * above it. `tax-table-data.ts` already got this right via its "Employee
+ * Portion" column; only the ladder did not.
+ */
+describe("buildBracketLadder and percent_of_total", () => {
+  const splitTax: RateBracket[] = [
+    { min: 0, max: 176_100, rate: 1, percent_of_total: 60 },
+  ];
+
+  it("applies the employee share to the tax it reports", () => {
+    const [step] = buildBracketLadder(splitTax, 100_000);
+    expect(step.amountInBracket).toBe(100_000);
+    expect(step.taxFromBracket).toBeCloseTo(600, 6);
+  });
+
+  it("still reports the published rate, which is not the employee's share", () => {
+    // The rate column shows what the statute says; the money column shows
+    // what comes out of the paycheck.
+    const [step] = buildBracketLadder(splitTax, 100_000);
+    expect(step.rate).toBe(1);
+  });
+
+  it("leaves an unsplit tax alone", () => {
+    const [step] = buildBracketLadder(
+      [{ min: 0, max: INFINITY, rate: 5 }],
+      100_000,
+    );
+    expect(step.taxFromBracket).toBeCloseTo(5_000, 6);
+  });
+
+  it("agrees with what the calculator charges", () => {
+    // The invariant that matters: the ladder's own total must match the bill.
+    const results = calculate(
+      federal2025,
+      oregon2025 as TaxData,
+      100_000,
+      SINGLE as FilingStatus,
+      0,
+      undefined,
+      undefined,
+      [],
+      "oregon",
+      "",
+    );
+    const schedule = (oregon2025 as TaxData)[
+      OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE
+    ] as Record<string, RateBracket[]>;
+    const laddered = buildBracketLadder(schedule[ALL], 100_000).reduce(
+      (total, step) => total + step.taxFromBracket,
+      0,
+    );
+    expect(laddered).toBeCloseTo(
+      toUnit(
+        results.stateResults
+          .oregon_paid_family_and_medical_leave as unknown as Money,
+      ),
+      2,
+    );
   });
 });

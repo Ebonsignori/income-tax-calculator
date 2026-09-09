@@ -51,6 +51,7 @@ import {
 } from "@/constants";
 import type { TaxData, TaxResults } from "@/types";
 import type { TaxOption } from "@/utils/get-tax-options";
+import { EXEMPT } from "@/constants";
 import {
   add,
   asCurrency,
@@ -885,6 +886,32 @@ describe("Calculator Audit Tests", () => {
   });
 
   describe("Flat fee thresholds", () => {
+    // A fee written without a `min` -- Sheridan's, and six of West Virginia's,
+    // because those cities publish no threshold -- passed its threshold test
+    // at $0 and was charged to someone earning nothing. Compare renders income
+    // 0 on first load, where it showed as a negative take-home.
+    it("charges nothing at all on no income", () => {
+      for (const [state, city, data] of [
+        ["colorado", "sheridan", colorado2025],
+        ["west_virginia", "charleston", westVirginia2025],
+      ] as const) {
+        const results = calculate(
+          federal2025,
+          data as TaxData,
+          0,
+          SINGLE,
+          0,
+          undefined,
+          undefined,
+          [],
+          state,
+          city,
+        );
+        expect(toUnit(results.totalCity.amount)).toBe(0);
+        expect(toUnit(results.takeHome.amount)).toBe(0);
+      }
+    });
+
     it("applies Portland's Arts Tax at exactly $1,000 of gross income", () => {
       // The $1,000 test is against gross income, not income after Oregon's
       // standard deduction, and the rule is "$1,000 or more".
@@ -1884,6 +1911,39 @@ describe("Calculator Audit Tests", () => {
         expect(charged).toBeCloseTo(829.42, 2);
         expect(oldModel).toBeCloseTo(460, 2);
         expect((charged - oldModel) / charged).toBeGreaterThan(0.4);
+      });
+
+      it("charges nothing when the state tax it is levied on is exempt", () => {
+        // `taxesPerBracket` holds either money or the EXEMPT sentinel, which
+        // is a string. Passing it to a Dinero operation threw
+        // "dineroObject.toJSON is not a function" -- and `calculate` runs in a
+        // render-time useMemo, so it took the whole results section down.
+        //
+        // Zero is the right answer as well as a safe one: nothing is owed on
+        // 16.75% of a tax the filer does not pay.
+        const exemptStateIncome: TaxOption[] = [
+          {
+            title: "New York State Income",
+            value: STATE_INCOME,
+            scope: STATE_SCOPE,
+            disabled: false,
+          },
+        ];
+        const results = calculate(
+          federal2025,
+          newYork2025 as TaxData,
+          100_000,
+          SINGLE,
+          0,
+          undefined,
+          undefined,
+          exemptStateIncome,
+          "new_york",
+          "yonkers",
+        );
+        expect(results.stateResults.state_income).toBe(EXEMPT);
+        expect(toUnit(results.totalCity.amount)).toBe(0);
+        expect(Number.isFinite(toUnit(results.totalTaxes))).toBe(true);
       });
 
       it("is not drawn as an income ladder", () => {

@@ -7,6 +7,7 @@ import {
   STATE_INCOME,
 } from "@/constants/tax_types";
 import type { StandardDeductionByFilingStatus } from "@/types";
+import { EMPTY_STANDARD_DEDUCTION_MAP } from "@/constants/filing-status";
 import { CITIES, CITY_SCOPE, FEDERAL_SCOPE, STATE_SCOPE } from "@/constants";
 import type { TaxData } from "@/types";
 
@@ -64,12 +65,33 @@ export function useGetTaxOptions({
   excludeNonWageTaxes = false,
 }: GetTaxOptions): TaxOption[] {
   return useMemo(() => {
+    // Lifted unconditionally, not only when the key is present.
+    //
+    // Fifteen states declare no standard deduction, and reporting one only
+    // when a file happens to have the key meant the previous state's figure
+    // survived an in-session switch -- and was then applied. Moving from New
+    // York to Pennsylvania charged $2,824.40 instead of $3,070.00 at
+    // $100,000, with the field still captioned "Standard deduction for 2025",
+    // so the page asserted Pennsylvania had New York's $8,000. A fresh load
+    // was fine, which is what kept it hidden.
+    //
+    // EMPTY_STANDARD_DEDUCTION_MAP is a module constant, so a state that
+    // declares none reports the same object every time and React bails out of
+    // the update rather than looping.
+    setFederalStandardDeductionMap(
+      (federalTaxes?.[STANDARD_DEDUCTION] as
+        | StandardDeductionByFilingStatus
+        | undefined) ?? EMPTY_STANDARD_DEDUCTION_MAP,
+    );
+    setStateStandardDeductionMap(
+      (stateTaxes?.[STANDARD_DEDUCTION] as
+        | StandardDeductionByFilingStatus
+        | undefined) ?? EMPTY_STANDARD_DEDUCTION_MAP,
+    );
+
     const cities: TaxOption[] = [];
     const federal = Object.entries(federalTaxes || {}).map(([key, value]) => {
       if (key === STANDARD_DEDUCTION) {
-        setFederalStandardDeductionMap(
-          value as StandardDeductionByFilingStatus,
-        );
         return null;
       }
       if (key === MAX_401K_CONTRIBUTION) {
@@ -85,7 +107,6 @@ export function useGetTaxOptions({
     });
     const state = Object.entries(stateTaxes || {}).map(([key, value]) => {
       if (key === STANDARD_DEDUCTION) {
-        setStateStandardDeductionMap(value as StandardDeductionByFilingStatus);
         return null;
       }
       if (key === CITIES) {

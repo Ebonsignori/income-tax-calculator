@@ -10,6 +10,7 @@ import { SINGLE } from "@/constants/filing-status";
 import type { FilingStatus } from "@/constants/filing-status";
 import {
   CAPITAL_GAINS,
+  DC_PAID_FAMILY_LEAVE,
   EMPLOYEE_PAYROLL_TAX,
   EMPLOYER_PAYROLL_TAX,
   INTEREST_AND_DIVIDENDS,
@@ -26,6 +27,7 @@ import fed2023 from "@/data/2023/federal";
 import fed2026 from "@/data/2026/federal";
 import newHampshire2023 from "@/data/2023/state/new_hampshire";
 import washington2026 from "@/data/2026/state/washington";
+import districtOfColumbia2026 from "@/data/2026/state/district_of_columbia";
 
 /**
  * Washington taxes long-term capital gains and New Hampshire taxed interest
@@ -225,5 +227,51 @@ describe("a payroll tax borne by the employer", () => {
   it("does not drag the employee payroll tax down with it", () => {
     expect(NON_WAGE_TAX_TYPES).toContain(EMPLOYER_PAYROLL_TAX);
     expect(NON_WAGE_TAX_TYPES).not.toContain(EMPLOYEE_PAYROLL_TAX);
+  });
+});
+
+/**
+ * D.C.'s paid family leave is the employer's, not the employee's.
+ *
+ * D.C. Code 32-541.03(a): "A covered employer shall contribute an amount equal
+ * to 0.75% of the wages of each of its covered employees to the District", and
+ * the programme describes the benefit as available to employees "whose
+ * employer pays the PFL tax". Nothing is withheld from the worker. Charging it
+ * cost a DC filer $750 a year at $100,000 -- the same shape as Newark, in a
+ * second place.
+ */
+describe("DC paid family leave", () => {
+  const dcResults = (income: number) =>
+    calculate(
+      fed2026 as TaxData,
+      districtOfColumbia2026 as TaxData,
+      income,
+      SINGLE as FilingStatus,
+      0,
+      undefined,
+      undefined,
+      [],
+      "district_of_columbia",
+      "",
+    );
+
+  it("is not charged", () => {
+    const results = dcResults(100_000);
+    expect(Object.keys(results.stateResults)).not.toContain(
+      DC_PAID_FAMILY_LEAVE,
+    );
+  });
+
+  it("does not silently remove the rest of DC's tax", () => {
+    // The point is to stop charging one tax, not to empty the state.
+    expect(toUnit(dcResults(100_000).totalState.amount)).toBeGreaterThan(0);
+  });
+
+  it("is still documented in the tax tables", () => {
+    const table = tableDataFromTaxData(
+      DC_PAID_FAMILY_LEAVE,
+      (districtOfColumbia2026 as TaxData)[DC_PAID_FAMILY_LEAVE],
+    );
+    expect(table.rows.length).toBeGreaterThan(0);
   });
 });

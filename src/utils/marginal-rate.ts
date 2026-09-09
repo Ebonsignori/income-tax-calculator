@@ -89,12 +89,22 @@ export function buildBracketLadder(
       taxableIncome > bracket.min &&
       (max === null || taxableIncome <= max || !next);
 
+    // `percent_of_total` is the employee's share of a tax split with the
+    // employer, and calculateTaxBracket applies it. Without it here, Oregon
+    // Paid Family and Medical Leave (rate 1, percent_of_total 60) drew $1,000
+    // in the ladder against the $600 actually charged at $100,000 -- the
+    // ladder disagreeing with the breakdown sitting above it.
+    const beforeEmployeeShare = (amountInBracket * bracket.rate) / 100;
+
     return {
       min: bracket.min,
       max,
       rate: bracket.rate,
       amountInBracket,
-      taxFromBracket: (amountInBracket * bracket.rate) / 100,
+      taxFromBracket:
+        bracket.percent_of_total === undefined
+          ? beforeEmployeeShare
+          : (beforeEmployeeShare * bracket.percent_of_total) / 100,
       isCurrent,
     };
   });

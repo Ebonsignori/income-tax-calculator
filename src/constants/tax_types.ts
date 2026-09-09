@@ -84,6 +84,12 @@ export const LOCAL_EARNED_INCOME = "local_earned_income";
  *    employer, the return is filed against a FEIN, and a resident's residency
  *    reduces their employer's bill rather than creating one of their own.
  *    Charging it cost a Newark resident about $1,000 a year at $100,000.
+ *    D.C.'s paid family leave is the same shape: D.C. Code 32-541.03(a) says
+ *    "A covered employer shall contribute an amount equal to 0.75% of the
+ *    wages of each of its covered employees to the District", and the
+ *    programme's own site describes the benefit as available to employees
+ *    "whose employer pays the PFL tax". Nothing is withheld from the worker.
+ *    Charging it cost a DC filer $750 a year at $100,000.
  *
  * So the test for membership is not "is this levied on wages" but "would this
  * come out of the modelled employee's pay". Anything here is excluded from
@@ -94,4 +100,5 @@ export const NON_WAGE_TAX_TYPES: string[] = [
   CAPITAL_GAINS,
   INTEREST_AND_DIVIDENDS,
   EMPLOYER_PAYROLL_TAX,
+  DC_PAID_FAMILY_LEAVE,
 ];

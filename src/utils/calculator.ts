@@ -90,6 +90,9 @@ const grossIncomeTaxes = [
   CALIFORNIA_SDI,
   WASHINGTON_CARES_FUND,
   OREGON_PAID_FAMILY_AND_MEDICAL_LEAVE,
+  // Listed for its base, though NON_WAGE_TAX_TYPES stops it being charged at
+  // all: D.C. levies it on the employer. Kept here so that if the District
+  // ever shifts it onto employees, the base is already right.
   DC_PAID_FAMILY_LEAVE,
   NJ_DISABILITY_INSURANCE,
   NJ_FAMILY_LEAVE_INSURANCE,
@@ -162,6 +165,22 @@ export function calculate(
   const totals = sumTotals(totalIncome, federalResults, stateResults, totalIRA);
 
   return { ...totals, federalTaxableIncome, stateTaxableIncome };
+}
+
+/**
+ * A computed result read back as an amount of money.
+ *
+ * `taxesPerBracket` holds either a Money or the EXEMPT sentinel, which is a
+ * string. `?? ZERO` does not catch the sentinel -- it is neither null nor
+ * undefined -- and handing it to a Dinero operation throws
+ * "dineroObject.toJSON is not a function". `calculate` runs inside a
+ * render-time useMemo, so that took the results section down with it.
+ *
+ * Zero is also the right answer rather than merely a safe one: a filer exempt
+ * from New York's income tax owes nothing on a surcharge levied on that tax.
+ */
+function computedTaxOrZero(result: TaxResultsWithCities[string]): Money {
+  return result === undefined || result === EXEMPT ? ZERO : (result as Money);
 }
 
 export function calculateTaxesPerBracket(
@@ -330,7 +349,7 @@ export function calculateTaxesPerBracket(
         [],
         // Whatever the state's own income tax came to, for a surcharge levied
         // on it rather than on income.
-        (taxesPerBracket[STATE_INCOME] as Money | undefined) ?? ZERO,
+        computedTaxOrZero(taxesPerBracket[STATE_INCOME]),
       ).taxesPerBracket as TaxResults;
     }
   }
@@ -422,6 +441,14 @@ function calculateFlatFee(
   for (const bracket of brackets) {
     const incomeBase =
       bracket.basis === TAXABLE_INCOME_BASIS ? taxableIncome : grossWages;
+    // No income, no fee. Sheridan's and six West Virginia city fees are
+    // written without a `min` because those cities publish no threshold, not
+    // because they charge someone earning nothing -- and with `min` absent the
+    // threshold test passes at zero. Compare renders income 0 on first load,
+    // where this showed up as a take-home of -$260.00 for Huntington.
+    if (toUnit(incomeBase) <= 0) {
+      continue;
+    }
     const min = bracket.min || 0;
     if (toUnit(incomeBase) < min || min < highestQualifyingMin) {
       continue;

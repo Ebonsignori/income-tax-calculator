@@ -16,18 +16,37 @@ import type { TaxData } from "@/types";
 export default {
   // Employee share is half the premium, capped at 0.5% of the maximum weekly
   // wage base of $1,441.72 (2025), i.e. $74969 a year.
+  // VERIFIED 2026-09-08 against the DLIR Disability Compensation Division's
+  // "2025 Maximum Weekly Wage Base and Maximum Weekly Benefit Amount" (dated
+  // 2024-12-02): maximum weekly wage base $1,441.72, maximum weekly deduction
+  // $7.21. The cap is statutory (HRS sec. 392-43) and must not run to INFINITY.
+  // https://labor.hawaii.gov/dcd/files/2023/05/2025-Max-Weekly-Wage-Base-Rev-2025.03.pdf
   [HI_TEMPORARY_DISABILITY_INSURANCE]: {
     [ALL]: [
       { min: 0, max: 74969, rate: 0.5 },
       { min: 74969, max: INFINITY, rate: 0 },
     ],
   },
+  // VERIFIED 2026-09-08. Unchanged from 2024 -- Act 46's next step up is 2026.
+  // 2025 N-11 instructions, "Standard Deduction"; DOTAX Announcement 2024-03,
+  // "For tax year 2025, the standard deduction amounts will be the same as in
+  // tax year 2024." Correct as stored.
+  // https://files.hawaii.gov/tax/forms/2025/n11ins.pdf
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 4400,
     [MARRIED]: 8800,
     [MARRIED_SEPARATELY]: 4400,
     [HEAD_OF_HOUSEHOLD]: 6424,
   },
+  // VERIFIED 2026-09-08 against the 2025 N-11 Tax Rate Schedules (page 48) and
+  // independently against DOTAX Announcement 2024-03, which prints the Act 46
+  // tax-year-2025 tables. All four statuses correct as stored.
+  // Cross-checked against the printed cumulative column, which reconciles only
+  // with these boundaries: single $125,000 floor = $8,391
+  // (9600x1.4 + 4800x3.2 + 4800x5.5 + 4800x6.4 + 12000x6.8 + 12000x7.2 +
+  // 77000x7.6 = $8,390.40) and head of household $187,500 floor = $12,587.
+  // https://files.hawaii.gov/tax/forms/2025/n11ins.pdf
+  // https://files.hawaii.gov/tax/news/announce/ann24-03.pdf
   [STATE_INCOME]: {
     [SINGLE]: [
       { min: 0, max: 9600, rate: 1.4 },

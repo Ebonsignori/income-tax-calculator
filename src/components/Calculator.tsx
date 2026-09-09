@@ -191,13 +191,13 @@ export default function Home({
     }
   }, [totalIncome, year, USAState, USACity]);
 
+  // Unconditional, not guarded on the figure being non-zero. Fifteen states
+  // have no standard deduction, and treating their zero as "no data, keep
+  // what is there" left the previous state's figure in the field after an
+  // in-session switch -- and the calculation used it.
   useEffect(() => {
-    if (federalStandardDeductionMap[filingStatus]) {
-      resetTotalFederalDeductions();
-    }
-    if (stateStandardDeductionMap[filingStatus]) {
-      resetTotalStateDeductions();
-    }
+    resetTotalFederalDeductions();
+    resetTotalStateDeductions();
   }, [
     filingStatus,
     federalStandardDeductionMap,

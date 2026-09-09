@@ -11,11 +11,11 @@ type SupportButtonProps = {
 export function SupportButton({ asLink }: SupportButtonProps) {
   const href =
     process.env.NEXT_PUBLIC_NEW_REPO_ISSUE_LINK ||
-    "https://github.com/Ebonsignori/income-tax-calculator/issues/new";
+    "https://github.com/Ebonsignori/income-tax-calculator/issues";
   if (asLink) {
     return (
       <MuiLink color="inherit" component={Link} href={href}>
-        open an issue on GitHub
+        check the issues on GitHub
       </MuiLink>
     );
   }
@@ -28,7 +28,7 @@ export function SupportButton({ asLink }: SupportButtonProps) {
       component={Link}
       href={href}
     >
-      Report issue on GitHub
+      View issues on GitHub
     </Button>
   );
 }

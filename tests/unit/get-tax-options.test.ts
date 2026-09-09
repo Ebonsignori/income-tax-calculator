@@ -14,6 +14,7 @@ import {
   ART_TAX,
 } from "@/constants/tax_types";
 import { CITIES, CITY_SCOPE, FEDERAL_SCOPE, STATE_SCOPE } from "@/constants";
+import { EMPTY_STANDARD_DEDUCTION_MAP } from "@/constants/filing-status";
 
 const setFederalStandardDeductionMap = vi.fn();
 const setStateStandardDeductionMap = vi.fn();
@@ -179,6 +180,56 @@ describe("useGetTaxOptions", () => {
         STATE_INCOME,
         ART_TAX,
       ]);
+    });
+  });
+
+  /**
+   * Fifteen states declare no standard deduction, and the map used to be
+   * reported only when a file had the key -- so the previous state's figure
+   * survived an in-session switch and was then applied. New York to
+   * Pennsylvania charged $2,824.40 instead of $3,070.00 at $100,000, with the
+   * field still captioned "Standard deduction for 2025". A fresh load was
+   * fine, which is what kept it hidden.
+   */
+  describe("the standard deduction map after a state switch", () => {
+    const withDeduction = { [STANDARD_DEDUCTION]: deductionMap } as TaxData;
+    const withoutDeduction = { [STATE_INCOME]: {} } as TaxData;
+
+    it("reports the state's own figure when it has one", () => {
+      options({} as TaxData, withDeduction);
+      expect(setStateStandardDeductionMap).toHaveBeenCalledWith(deductionMap);
+    });
+
+    it("reports an empty map for a state that declares none", () => {
+      options({} as TaxData, withoutDeduction);
+      expect(setStateStandardDeductionMap).toHaveBeenCalledWith(
+        EMPTY_STANDARD_DEDUCTION_MAP,
+      );
+    });
+
+    it("does not leave the previous state's figure standing", () => {
+      // The switch itself: whatever was reported for the state with a
+      // deduction must not still be the last word after moving to one without.
+      options({} as TaxData, withDeduction);
+      vi.clearAllMocks();
+      options({} as TaxData, withoutDeduction);
+
+      expect(setStateStandardDeductionMap).toHaveBeenCalledTimes(1);
+      expect(setStateStandardDeductionMap).not.toHaveBeenCalledWith(
+        deductionMap,
+      );
+      expect(setStateStandardDeductionMap).toHaveBeenCalledWith(
+        EMPTY_STANDARD_DEDUCTION_MAP,
+      );
+    });
+
+    it("reports the same object each time, so React can bail out", () => {
+      // Called unconditionally now, so a changing identity would loop.
+      options({} as TaxData, withoutDeduction);
+      options({} as TaxData, withoutDeduction);
+      const [first] = setStateStandardDeductionMap.mock.calls[0];
+      const [second] = setStateStandardDeductionMap.mock.calls[1];
+      expect(first).toBe(second);
     });
   });
 

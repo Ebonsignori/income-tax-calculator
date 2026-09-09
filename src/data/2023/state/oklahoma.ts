@@ -8,6 +8,39 @@ import {
 import { STANDARD_DEDUCTION, STATE_INCOME } from "@/constants/tax_types";
 import type { TaxData } from "@/types";
 
+// Verified 2026-09-08 against the Oklahoma Tax Commission's own Form 511
+// resident packet (2023 packet, retrieved from the Internet Archive because oklahoma.gov serves
+// only the current year at .../individuals/current/511-Pkt.pdf: https://web.archive.org/web/20240317105904/https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/individuals/current/511-Pkt.pdf).
+//
+// Standard deduction — VERIFIED $6,350 single / $12,700 joint / $6,350 married
+// separate / $9,350 head of household. The packet states each one in words:
+// "If your filing status is 'single' or 'married filing separate', your
+// Oklahoma standard deduction is $6,350." Oklahoma's deduction is fixed at the
+// 2017 federal amounts by 68 O.S. 2358(C) and is not indexed, which is why the
+// same four numbers hold in every year here.
+//
+// Brackets — VERIFIED by reproducing the packet's entire published tax table.
+// Evaluating the schedules below at each row's midpoint reproduces all 2,003
+// printed rows in both status columns with zero mismatches. That pins every
+// boundary and every rate, not just their sum.
+//
+// Independent arithmetic check from the packet's own "Calculating Tax on
+// Taxable Income of $100,000 or more" worksheets, which state the cumulative
+// tax at $100,000:
+//   Single / married separate, packet says $4,562:
+//     1000x0.25% + 1500x0.75% + 1250x1.75% + 1150x2.75% + 2300x3.75%
+//       = $153.50 at $7,200, then 92,800x4.75% = $4,408.00 -> $4,561.50 -> $4,562
+//   Married joint / head of household, packet says $4,395:
+//     2000x0.25% + 3000x0.75% + 2500x1.75% + 2300x2.75% + 2400x3.75%
+//       = $224.50 at $12,200, then 87,800x4.75% = $4,170.50 -> $4,395.00
+//   The $12,200 top boundary is specific to 2023 — it becomes $14,400 in
+//   2024, and only $12,200 reproduces the $4,395 printed here.
+//
+// Head of household is not a copy-paste of the joint column by accident:
+// Oklahoma's table column is headed "Married filing joint or head of
+// household", so the two genuinely share a schedule. Married filing separate
+// shares the single schedule for the same reason, and is not "half of joint" —
+// at $100,000 it owes $4,562, not half of $4,395.
 export default {
   [STANDARD_DEDUCTION]: {
     [SINGLE]: 6350,

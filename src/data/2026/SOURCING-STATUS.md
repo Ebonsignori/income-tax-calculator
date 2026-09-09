@@ -4,7 +4,7 @@ Source-of-truth tracker for the 2026 tax-year data build. Records what has
 been populated, what source each figure came from, and anything **unsourced or
 not yet finalized** by the taxing authority. Update this file as data lands.
 
-Last updated: 2026-09-07 (full correctness audit — engine, all four years, all 51 states, full city layer)
+Last updated: 2026-09-08 (second sweep — the 14 states the first audit never opened, plus an independent engine review)
 
 ## How to read this
 
@@ -777,3 +777,148 @@ where 2024 was worst, the mechanism differs — Indiana-style "someone updated a
 stopped halfway" is a different fault from Maryland 2024's "this file was seeded
 from an ancient table", and the second leaves no year-over-year discontinuity to
 detect at all.
+
+---
+
+## Second sweep (2026-09-08)
+
+The first audit left **14 income-taxing states whose bracket schedules had never
+been checked against a primary source**, and had not re-read the engine after a
+day of rewriting it. Both gaps were closed.
+
+### Result: 9 of 14 states were clean
+
+| Clean, all four years                                                                          | Defects found                                                                       |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Oklahoma, Minnesota, Virginia, Delaware, Massachusetts, Arizona, Georgia, North Carolina, Utah | Arkansas 11, Hawaii 12, South Carolina 6 + a structural replacement, Rhode Island 4 |
+
+**Oklahoma is the strongest confirmation in either audit**: the repo's schedules
+reproduce **all 2,003 rows of OTC's printed tax table in both status columns,
+zero mismatches, three years running**. Evaluating a schedule at each printed
+row's midpoint pins every boundary and every rate _individually_; a cumulative
+column can be satisfied by compensating errors, a full table cannot.
+
+### Defects worth naming
+
+- **Hawaii 2024 head-of-household held the 2025 ladder** — 11 of 12 rows. Act 46
+  widened brackets only from 2025, and DOTAX Announcement 2024-03 says so
+  outright; single, joint and MFS were all correctly still on the 2023 ladder.
+  $1,152/yr understated at $100k.
+- **Hawaii 2023 TDI ran to `INFINITY`** — $500/yr charged against a $342.80
+  statutory maximum. The New York disability defect in a second place.
+- **South Carolina's brackets came from `WH1603F`, the withholding formula**,
+  which SCDOR publishes each November off the _preceding_ year's indexing. Wrong
+  in three of four years.
+- **South Carolina 2026**: Act 110 decoupled from IRC §63(b)–(g) and replaced the
+  federal deduction with the phasing-out SCIAD. The file still carried
+  $15,000/$30,000/$22,500 — **$781.50/yr** understated above $95,000 of AGI.
+- **Arkansas** was wrong in three of four years: 2023 held pre-indexing statutory
+  amounts, 2025 was a year stale in both brackets and deduction, and 2026 missed
+  Act 1's fifth top-rate cut since 2023 (4.9 → 4.7 → 4.4 → 3.9 → 3.7).
+- **DC paid family leave is employer-borne** — D.C. Code § 32-541.03(a). Newark
+  in a second place; **$750/yr** at $100k. Now in `NON_WAGE_TAX_TYPES`.
+
+### Engine review — four defects the tests did not catch
+
+Reviewed **read-only by an agent that wrote none of it**, which is the point: the
+author of four mechanisms landed in quick succession is the worst placed to see
+what they do together.
+
+1. **A crash.** Exempting New York's state income tax with Yonkers selected threw
+   `TypeError` from inside a render-time `useMemo`, with **no `error.tsx`
+   anywhere in `src/app`**. `?? ZERO` guards null but not the `EXEMPT` string
+   sentinel. Introduced by the Yonkers work the day before.
+2. **The bracket ladder ignored `percent_of_total`** — Oregon Paid Family and
+   Medical Leave drew $1,000 against $600 charged. The only such mismatch in the
+   dataset, swept across every state × city × status × year.
+3. **Switching state kept the previous state's standard deduction and applied
+   it.** Fifteen states declare none, so the map was never overwritten:
+   New York → Pennsylvania undercharged $245, Massachusetts $802 married — and
+   the field _displayed_ the stale figure as fact.
+4. **A flat fee with no `min` was charged at $0 income**, rendering negative
+   take-home on the Compare page.
+
+**Verified sound:** `money.ts` diffed against a real dinero v1.9.1 install over
+**986,118 cases, zero mismatches**; Ohio's base amount composing correctly with
+its banded exemption at every boundary; tax monotone in both income and 401(k)
+contribution across the whole dataset; no crashes or NaN on edge inputs.
+
+### Three states where a "suspicious" shape is the law
+
+Every one would trip a ratio heuristic. Every one is correct.
+
+- **Minnesota** — MFS exactly half of MFJ is M.S. 290.06 subd. 2c.
+- **Oklahoma** — head of household shares the joint schedule; that is OTC's own
+  column heading.
+- **Virginia** — head of household holds the single amount because **Virginia has
+  no head-of-household filing status**.
+
+This is why the heuristics summon a human rather than fail a build. Kentucky made
+the same point in the first audit, where the detector flagged the only correct
+year as the anomaly.
+
+### Sourcing rules added
+
+- **An agency's own "current rate" page can be the stale document.** Utah's Tax
+  Commission page still read "January 1, 2025 – current: 4.5%" in August 2026; it
+  is the TY2025 edition of a per-tax-year site. S.B. 60 sets 4.45% retroactive to
+  2026-01-01. The repo was right and the page was wrong — the opposite of the
+  usual direction.
+- **Statute beat booklet in Utah; booklet beat statute in Arizona**, whose
+  A.R.S. 43-1041(A) still reads the pre-2018 amounts with indexing language that
+  looks like it would exclude OBBBA, while ADOR's Form 140 booklet publishes the
+  post-OBBBA figures. There is no rule preferring one source — the rule is that a
+  figure needs the document the _return_ uses, and **when two official sources
+  disagree you need a third thing to break the tie**. South Carolina's did: its
+  own computation schedule contradicts itself, and the 1,070-row official tax
+  table settled it 1,069/1,070 against 67.
+- **Hawaii**: use DOTAX Announcement 2024-03, not the N-11 booklets. It prints
+  the whole Act 46 phase-in in one place — which years the deduction moves and
+  which years the brackets move. A year's booklet tells you what that year _is_,
+  never which years are _supposed_ to change, which is exactly how a 2025
+  schedule got into a 2024 slot without disturbing anything.
+
+### Two more failure modes, and one false alarm of my own
+
+**A correct number in a shape that does nothing.** Arkansas 2024 carried
+`{25700-92300, 3.9}, {92300-INFINITY, 3.9}` — and **$92,300 was exactly that
+year's upper-table threshold.** Someone found the right figure, encoded it as a
+bracket boundary with the same rate on both sides, and thereby encoded nothing.
+A _wrong_ rate would have failed every reconciliation; a _right_ number in an
+inert shape survived all of them, leaving only a phantom floor on the tax-tables
+page as evidence. Watch for adjacent bands sharing a rate.
+
+**A figure quoted from a state's tax TABLE is a band's value, not a point
+value.** I flagged Arkansas 2025's reconstructed residual as $1.70 wrong against
+DFA's printed $3,809 at $100,000. It was not: DFA's figure is the table row
+_ending_ at $100,000, evaluated at its midpoint of $99,950. The residual
+reproduces it exactly, and the same construction reproduces $4,544 (2023) and
+$3,811 (2024) from their own constants. Comparing a calculator evaluated at a
+band's edge against a table's band value is off by the rate times half the band
+width — $1.95 on Arkansas's $100 grid — and looks exactly like a wrong constant.
+Same family as Maine's +/-$1 rounding artefact and Ohio's half-cent tie.
+
+**Truthy-zero was the bug three separate times in one day** — the banded-deduction
+refresh, the state-switch prefill, and the flat-fee threshold. Each was a guard
+where a legitimate zero read as "no value, keep what you had". In a tax
+calculator zero is a real and common answer: a state can allow no deduction, a
+phase-out can reach zero, a filer can owe nothing. Prefer `=== undefined` over
+truthiness anywhere a money figure is being defaulted.
+
+### Still open after this sweep
+
+- **Arkansas has two rate schedules.** Above ~$94,700 a second table is charged on
+  the whole income, bridged by a stepped adjustment. Understates $287–$441/yr,
+  flat above the phase-out, zero below. Same class as Ohio's base amount.
+- **Minnesota's standard deduction phases down** (M.S. 290.0123 subd. 5) and
+  belongs with Alabama, Connecticut, Maine, Montana-2023 and Wisconsin. Missed by
+  the first audit.
+- **Massachusetts line 11** deducts up to $2,000 of Social Security and Medicare
+  tax _actually paid_ — maxed by nearly every W-2 filer, worth ~$100 — but it is
+  computed from another tax, which the schema cannot express.
+- **Utah's taxpayer tax credit** (59-10-1018), worth $945 at low income and $0
+  above ~$90,300, deliberately not modelled: it phases out against a different
+  figure than it is computed from, so writing it as a deduction band means
+  inventing a rule that appears in no document.
+- **Virginia's deduction increase sunsets after 2026** and reverts to
+  $3,000/$6,000 unless extended.
