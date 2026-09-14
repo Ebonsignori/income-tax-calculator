@@ -108,4 +108,26 @@ export default {
   [CALIFORNIA_SDI]: {
     [ALL]: [{ min: 0, max: INFINITY, rate: 1.2 }],
   },
+  // No [CITIES] key, and that is a finding rather than a gap: California law
+  // preempts local income taxes outright. Verified 2026-09-11 against R&TC
+  // 17041.5, which provides that "no city, county, city and county ... shall
+  // levy or collect or cause to be levied or collected any tax upon the
+  // income, or any part thereof, of any person," carving out only an
+  // "otherwise authorized license tax upon a business measured by or
+  // according to gross receipts."
+  // https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=17041.5
+  //
+  // San Francisco is the counterexample people reach for, and it lands
+  // squarely inside that carve-out. Its Gross Receipts Tax, Homelessness
+  // Gross Receipts Tax, Commercial Rents Tax, and Overpaid Executive Gross
+  // Receipts Tax are all owed by the business and none are withheld from a
+  // paycheck. The Payroll Expense Tax that stale sources -- including
+  // Wikipedia's state-income-tax article, which still lists "San Francisco
+  // (payroll only)" -- keep citing was the same species: a business license
+  // tax measured by payroll, not a tax on an employee's income. Prop E (2012)
+  // phased its rate to zero as the Gross Receipts Tax phased in.
+  //
+  // So a California wage earner's only sub-federal taxes are the two above,
+  // state income tax and SDI. This holds for every California city and every
+  // year; do not open this question again without a change to 17041.5.
 } as TaxData;
