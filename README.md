@@ -1,14 +1,7 @@
-# [Income Tax Calculator](https://income-tax.org/)
+# This repository has moved
 
-This is the open source repository for [income-tax.org](https://income-tax.org/), a comprehensive income tax calculator for the United States.
+**[income-tax.org](https://income-tax.org/) is now developed at [github.com/income-tax-org/income-tax.org](https://github.com/income-tax-org/income-tax.org).**
 
-## Features
+This repository is no longer updated. Please open issues and pull requests, and star or watch, on the new repository. The full history moved with it, so nothing here is lost.
 
-- Calculates USA federal, state, and city-level income tax
-- Accounts for city-specific taxes (like Portland, OR), unlike other online calculators
-- Includes a [list of US cities](https://income-tax.org/city-taxes/) with specific income taxes
-- Progressive Web App (PWA) - works offline and can be installed on your device
-
-## Contributing
-
-If your city isn't included and you'd like to add it, see the [src/data/README.md](./src/data/README.md).
+The site is unchanged at [income-tax.org](https://income-tax.org/), and it now has a free [JSON API and MCP server](https://income-tax.org/developers/) as well.
